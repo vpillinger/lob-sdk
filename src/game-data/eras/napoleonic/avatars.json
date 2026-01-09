@@ -443,5 +443,33 @@
     "name": "rush-b",
     "tier": 3,
     "premiumPrice": 1250
+  },
+
+  {
+    "id": 66,
+    "name": "default-british",
+    "tier": 1,
+    "premiumPrice": 1
+  },
+
+  {
+    "id": 67,
+    "name": "default-prussian",
+    "tier": 1,
+    "premiumPrice": 1
+  },
+
+  {
+    "id": 68,
+    "name": "default-austrian",
+    "tier": 1,
+    "premiumPrice": 1
+  },
+
+  {
+    "id": 69,
+    "name": "default-russian",
+    "tier": 1,
+    "premiumPrice": 1
   }
 ]
