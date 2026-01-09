@@ -429,5 +429,19 @@
     "name": "catoleon",
     "tier": 3,
     "premiumPrice": 1250
+  },
+
+  {
+    "id": 64,
+    "name": "skill-issue",
+    "tier": 3,
+    "premiumPrice": 1250
+  },
+
+  {
+    "id": 65,
+    "name": "rush-b",
+    "tier": 3,
+    "premiumPrice": 1250
   }
 ]
