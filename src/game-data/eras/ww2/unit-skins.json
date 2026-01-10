@@ -104,7 +104,7 @@
     "formations": {
       "default": {
         "base": "panzer-iv",
-        "overlay": null
+        "overlay": "panzer-iv"
       }
     }
   }
