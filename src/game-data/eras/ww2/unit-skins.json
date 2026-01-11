@@ -120,5 +120,18 @@
         "overlay": "char-d2"
       }
     }
+  },
+  {
+    "id": 11,
+    "name": "t-34",
+    "tier": 2,
+    "premiumPrice": 300,
+    "unitType": 2,
+    "formations": {
+      "default": {
+        "base": "t-34",
+        "overlay": "t-34"
+      }
+    }
   }
 ]
