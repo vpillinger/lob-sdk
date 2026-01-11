@@ -107,5 +107,18 @@
         "overlay": "panzer-iv"
       }
     }
+  },
+  {
+    "id": 10,
+    "name": "char-d2",
+    "tier": 2,
+    "premiumPrice": 300,
+    "unitType": 2,
+    "formations": {
+      "default": {
+        "base": "char-d2",
+        "overlay": "char-d2"
+      }
+    }
   }
 ]
