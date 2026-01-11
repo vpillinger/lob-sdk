@@ -35,14 +35,14 @@ export enum GameScenarioType {
 export interface TeamDeploymentZone {
   /** The team number this zone belongs to. */
   team: number;
-  /** X coordinate of the zone's top-left corner. */
+  /** X coordinate of the zone's top-left corner (zone center - radius). */
   x: number;
-  /** Y coordinate of the zone's top-left corner. */
+  /** Y coordinate of the zone's top-left corner (zone center - radius). */
   y: number;
-  /** Width of the deployment zone. */
-  width: number;
-  /** Height of the deployment zone. */
-  height: number;
+  /** Radius of the circular deployment zone. */
+  radius: number;
+  /** Optional rotation angle in radians. Zone will be rotated around its center. */
+  rotation?: number;
 }
 
 /**

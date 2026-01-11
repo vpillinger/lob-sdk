@@ -208,7 +208,6 @@ interface BaseUnitTemplate {
   premiumPrice?: number;
   locked?: boolean;
   hasSkirmishers?: boolean;
-  canDeployForward?: boolean;
 
   /**
    * Custom visibility range in tiles for this unit.

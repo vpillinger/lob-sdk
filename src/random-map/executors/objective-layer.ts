@@ -147,6 +147,18 @@ export class ObjectiveLayerExecutor {
         const positionX = x * tileSize + tileSize / 2;
         const positionY = y * tileSize + tileSize / 2;
 
+        // Ensure objectives stay within map bounds
+        // Objectives have a radius, so we need to leave some margin
+        const objectiveRadius = 32; // Approximate radius of an objective
+        if (
+          positionX < objectiveRadius ||
+          positionX > widthPx - objectiveRadius ||
+          positionY < objectiveRadius ||
+          positionY > heightPx - objectiveRadius
+        ) {
+          continue; // Skip positions that would place objectives outside map
+        }
+
         // Check minDistance constraint if provided (minDistance is in tile units)
         if (minDistanceSquaredInTiles > 0) {
           let tooClose = false;

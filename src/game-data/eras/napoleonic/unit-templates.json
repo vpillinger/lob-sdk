@@ -303,7 +303,6 @@
     "movementSound": "cavalry-movement",
     "manpower": 150,
     "gold": 100,
-    "canDeployForward": true,
     "basicPrice": 400,
     "premiumPrice": 40,
     "unknownType": 22,
@@ -360,7 +359,6 @@
     "premiumPrice": 40,
     "minDistanceToFAA": 50,
     "startsRunning": true,
-    "canDeployForward": true,
     "unknownType": 23,
     "reportStats": {
       "men": 84,
@@ -414,7 +412,6 @@
     "premiumPrice": 40,
     "minDistanceToFAA": 25,
     "hasSkirmishers": true,
-    "canDeployForward": true,
     "unknownType": 21,
     "reportStats": {
       "men": 800,
@@ -689,7 +686,6 @@
     "movementSound": "cavalry-movement",
     "manpower": 125,
     "gold": 50,
-    "canDeployForward": true,
     "unknownType": 22,
     "reportStats": {
       "men": 250,
@@ -795,7 +791,6 @@
     "premiumPrice": 500,
     "fireWhileMoving": true,
     "minDistanceToFAA": 35,
-    "canDeployForward": true,
     "unknownType": 22,
     "reportStats": {
       "men": 250,
@@ -937,7 +932,6 @@
     "premiumPrice": 40,
     "minDistanceToFAA": 50,
     "startsRunning": true,
-    "canDeployForward": true,
     "unknownType": 23,
     "reportStats": {
       "men": 64,
@@ -989,7 +983,6 @@
     "premiumPrice": 40,
     "minDistanceToFAA": 30,
     "locked": true,
-    "canDeployForward": true,
     "reducedVisibilityRange": 18,
     "unknownType": 21,
     "reportStats": {
@@ -1043,7 +1036,6 @@
     "premiumPrice": 40,
     "hasSkirmishers": true,
     "minDistanceToFAA": 30,
-    "canDeployForward": true,
     "reducedVisibilityRange": 16,
     "unknownType": 21,
     "reportStats": {
@@ -1150,7 +1142,6 @@
     "premiumPrice": 40,
     "minDistanceToFAA": 50,
     "startsRunning": true,
-    "canDeployForward": true,
     "unknownType": 23,
     "reportStats": {
       "men": 60,

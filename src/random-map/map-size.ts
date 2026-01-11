@@ -1,5 +1,6 @@
 import { TeamDeploymentZone, Size } from "@lob-sdk/types";
 import { GameEra, GameDataManager } from "@lob-sdk/game-data-manager";
+import { calculateCircularDeploymentZone } from "@common/army";
 
 /**
  * Calculates the map size index based on the number of players.
@@ -28,25 +29,41 @@ export const getDeploymentZoneBySize = (
   mapHeight: number,
   team: number,
   era: GameEra,
-  tileSize: number
+  tileSize: number,
+  numTeams?: number // Optional: number of teams for circular distribution
 ): TeamDeploymentZone => {
   const mapSizes = GameDataManager.get(era).getMapSizes();
   let zoneSettings = mapSizes[size].deployment;
 
-  // Convert tiles to pixels
-  const zoneWidth = zoneSettings.tilesX * tileSize;
-  const zoneHeight = zoneSettings.tilesY * tileSize;
+  // Convert radius from tiles to pixels
+  // For circular zones, we use the radius directly
+  const zoneRadius = zoneSettings.radius * tileSize;
+
+  // Use circular distribution if numTeams is provided (and > 1)
+  if (numTeams !== undefined && numTeams > 1) {
+    return calculateCircularDeploymentZone(
+      team,
+      numTeams,
+      mapWidth,
+      mapHeight,
+      zoneRadius
+    );
+  }
+
+  // Fallback to old linear distribution for backward compatibility
+  // This is deprecated but kept for compatibility
   const zoneSeparation = zoneSettings.zoneSeparation * tileSize;
+  const zoneDiameter = zoneRadius * 2;
 
   // Calculate centered X coordinate
-  const x = (mapWidth - zoneWidth) / 2;
+  const x = (mapWidth - zoneDiameter) / 2;
 
   // Calculate Y coordinate, centering zones vertically with zoneSeparation
-  const totalHeight = 2 * zoneHeight + zoneSeparation;
+  const totalHeight = 2 * zoneDiameter + zoneSeparation;
   const y =
     team === 1
-      ? (mapHeight + totalHeight) / 2 - zoneHeight
+      ? (mapHeight + totalHeight) / 2 - zoneDiameter
       : (mapHeight - totalHeight) / 2;
 
-  return { team, width: zoneWidth, height: zoneHeight, x, y };
+  return { team, x, y, radius: zoneRadius };
 };
