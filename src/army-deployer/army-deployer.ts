@@ -22,7 +22,9 @@ function getUnitDeploymentCost(
   unitType: number
 ): number {
   try {
-    const template = gameDataManager.getUnitTemplateManager().getTemplate(unitType);
+    const template = gameDataManager
+      .getUnitTemplateManager()
+      .getTemplate(unitType);
     return template.deploymentCost ?? 1;
   } catch {
     return 1;
@@ -182,11 +184,11 @@ export class ArmyDeployer {
    * @returns True if the unit was added, false if capacity was exceeded.
    */
   private addUnit(type: UnitType, x: number, y: number): boolean {
-    // Check deployment capacity if zone has a capacity limit
+    // Check deployment capacity if zone has a capacity limit (0 = infinite)
     const zone = this.deploymentZone;
-    if (zone.deploymentCapacity !== undefined) {
+    if (zone.capacity > 0) {
       const unitCost = getUnitDeploymentCost(this.gameDataManager, type);
-      if (this.currentDeploymentCost + unitCost > zone.deploymentCapacity) {
+      if (this.currentDeploymentCost + unitCost > zone.capacity) {
         // Capacity would be exceeded, skip this unit
         return false;
       }
@@ -234,7 +236,7 @@ export class ArmyDeployer {
       rotation: this.rotation + Math.PI / 2,
       type,
     });
-    
+
     return true;
   }
 
@@ -410,16 +412,16 @@ export class ArmyDeployer {
   ) {
     const unitCount = units.length;
     const lines = Math.ceil(unitCount / maxUnitsPerRow);
-    
+
     // Calculate the total height of all lines to center them vertically
-    const totalFormationHeight = 
-      lines * this.DEFAULT_UNIT_HEIGHT + 
-      (lines - 1) * this.MARGIN;
-    
+    const totalFormationHeight =
+      lines * this.DEFAULT_UNIT_HEIGHT + (lines - 1) * this.MARGIN;
+
     // Start Y position so that the center of the formation is at zone center Y
     const zoneCenterY = this.deploymentZone.y + this.deploymentZone.radius;
-    const startY = zoneCenterY - totalFormationHeight / 2 + this.DEFAULT_UNIT_HEIGHT / 2;
-    
+    const startY =
+      zoneCenterY - totalFormationHeight / 2 + this.DEFAULT_UNIT_HEIGHT / 2;
+
     for (let lineIndex = 0; lineIndex < lines; lineIndex++) {
       const unitsInLine = Math.min(
         maxUnitsPerRow,
@@ -427,16 +429,17 @@ export class ArmyDeployer {
       );
       const totalLineWidth =
         unitsInLine * (this.DEFAULT_UNIT_HEIGHT + spacing) - spacing;
-      
+
       // Center the line horizontally within its section
       const lineStartX = startX + (sectionWidth - totalLineWidth) / 2;
-      const lineY = startY + lineIndex * (this.DEFAULT_UNIT_HEIGHT + this.MARGIN);
+      const lineY =
+        startY + lineIndex * (this.DEFAULT_UNIT_HEIGHT + this.MARGIN);
 
       for (let i = 0; i < unitsInLine; i++) {
         const unitIndex = lineIndex * maxUnitsPerRow + i;
         const unitType = units[unitIndex];
         const posX = lineStartX + i * (this.DEFAULT_UNIT_HEIGHT + spacing);
-        
+
         if (!this.addUnit(unitType, posX, lineY)) {
           // Capacity exceeded, stop deploying units
           return;
@@ -453,36 +456,41 @@ export class ArmyDeployer {
   private deployCenter(centerUnits: UnitType[]) {
     const unitCount = centerUnits.length;
     const lines = Math.ceil(unitCount / this.metrics.centerMaxUnits);
-    
+
     // Calculate the total height of all lines to center them vertically
-    const totalFormationHeight = 
-      lines * this.DEFAULT_UNIT_HEIGHT + 
-      (lines - 1) * this.MARGIN;
-    
+    const totalFormationHeight =
+      lines * this.DEFAULT_UNIT_HEIGHT + (lines - 1) * this.MARGIN;
+
     // Start Y position so that the center of the formation is at centerY
-    const startY = this.metrics.centerY - totalFormationHeight / 2 + this.DEFAULT_UNIT_HEIGHT / 2;
-    
+    const startY =
+      this.metrics.centerY -
+      totalFormationHeight / 2 +
+      this.DEFAULT_UNIT_HEIGHT / 2;
+
     // Deploy units, ensuring horizontal center is at zoneCenterX
     const zoneCenterX = this.deploymentZone.x + this.deploymentZone.radius;
-    
+
     for (let lineIndex = 0; lineIndex < lines; lineIndex++) {
       const unitsInLine = Math.min(
         this.metrics.centerMaxUnits,
         unitCount - lineIndex * this.metrics.centerMaxUnits
       );
       const totalLineWidth =
-        unitsInLine * (this.DEFAULT_UNIT_HEIGHT + this.metrics.centerSpacing) - 
+        unitsInLine * (this.DEFAULT_UNIT_HEIGHT + this.metrics.centerSpacing) -
         this.metrics.centerSpacing;
-      
+
       // Center the line horizontally at zoneCenterX
       const lineStartX = zoneCenterX - totalLineWidth / 2;
-      const lineY = startY + lineIndex * (this.DEFAULT_UNIT_HEIGHT + this.MARGIN);
+      const lineY =
+        startY + lineIndex * (this.DEFAULT_UNIT_HEIGHT + this.MARGIN);
 
       for (let i = 0; i < unitsInLine; i++) {
         const unitIndex = lineIndex * this.metrics.centerMaxUnits + i;
         const unitType = centerUnits[unitIndex];
-        const posX = lineStartX + i * (this.DEFAULT_UNIT_HEIGHT + this.metrics.centerSpacing);
-        
+        const posX =
+          lineStartX +
+          i * (this.DEFAULT_UNIT_HEIGHT + this.metrics.centerSpacing);
+
         if (!this.addUnit(unitType, posX, lineY)) {
           // Capacity exceeded, stop deploying units
           return;
@@ -513,36 +521,41 @@ export class ArmyDeployer {
 
     const unitCount = frontUnits.length;
     const lines = Math.ceil(unitCount / this.metrics.centerMaxUnits);
-    
+
     // Calculate the total height of all lines to center them vertically
-    const totalFormationHeight = 
-      lines * this.DEFAULT_UNIT_HEIGHT + 
-      (lines - 1) * this.MARGIN;
-    
+    const totalFormationHeight =
+      lines * this.DEFAULT_UNIT_HEIGHT + (lines - 1) * this.MARGIN;
+
     // Start Y position so that the center of the formation is at frontY
-    const startY = this.metrics.frontY - totalFormationHeight / 2 + this.DEFAULT_UNIT_HEIGHT / 2;
-    
+    const startY =
+      this.metrics.frontY -
+      totalFormationHeight / 2 +
+      this.DEFAULT_UNIT_HEIGHT / 2;
+
     // Deploy units, ensuring horizontal center is at zoneCenterX
     const zoneCenterX = this.deploymentZone.x + this.deploymentZone.radius;
-    
+
     for (let lineIndex = 0; lineIndex < lines; lineIndex++) {
       const unitsInLine = Math.min(
         this.metrics.centerMaxUnits,
         unitCount - lineIndex * this.metrics.centerMaxUnits
       );
       const totalLineWidth =
-        unitsInLine * (this.DEFAULT_UNIT_HEIGHT + this.metrics.centerSpacing) - 
+        unitsInLine * (this.DEFAULT_UNIT_HEIGHT + this.metrics.centerSpacing) -
         this.metrics.centerSpacing;
-      
+
       // Center the line horizontally at zoneCenterX
       const lineStartX = zoneCenterX - totalLineWidth / 2;
-      const lineY = startY + lineIndex * (this.DEFAULT_UNIT_HEIGHT + this.MARGIN);
+      const lineY =
+        startY + lineIndex * (this.DEFAULT_UNIT_HEIGHT + this.MARGIN);
 
       for (let i = 0; i < unitsInLine; i++) {
         const unitIndex = lineIndex * this.metrics.centerMaxUnits + i;
         const unitType = frontUnits[unitIndex];
-        const posX = lineStartX + i * (this.DEFAULT_UNIT_HEIGHT + this.metrics.centerSpacing);
-        
+        const posX =
+          lineStartX +
+          i * (this.DEFAULT_UNIT_HEIGHT + this.metrics.centerSpacing);
+
         if (!this.addUnit(unitType, posX, lineY)) {
           // Capacity exceeded, stop deploying units
           return;

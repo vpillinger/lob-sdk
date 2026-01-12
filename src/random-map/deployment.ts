@@ -34,6 +34,7 @@ export const calculateCircularDeploymentZone = (
     y: zone.y,
     radius: zone.radius,
     ...(zone.rotation !== undefined && { rotation: zone.rotation }),
+    capacity: zone.capacity ?? 0, // 0 = infinite capacity
   };
 };
 
@@ -87,6 +88,7 @@ export const calculateCircularPlayerDeploymentZone = (
     y: clampedCenterY - zoneRadius,
     radius: zoneRadius,
     rotation,
+    capacity: 0, // 0 = infinite capacity
   };
 };
 
@@ -107,7 +109,7 @@ export const addForwardDeploymentZones = (
     /** Distance from main zone edge (as percentage of main zone radius, default: 0.2). */
     distanceRatio?: number;
     /** Deployment capacity for each forward zone. If undefined, capacity is infinite. If set, total deploymentCost of units in each forward zone cannot exceed this value. */
-    deploymentCapacity?: number;
+    capacity?: number;
     /** Spacing between zones along the arc circumference (as percentage of main zone radius, default: uses distanceRatio). If set, zones will be spaced this distance apart along the arc. */
     spacingRatio?: number;
   }
@@ -202,10 +204,8 @@ export const addForwardDeploymentZones = (
         radius: smallZoneRadius,
         // Rotate the small zone to face towards the center
         rotation: rotationToCenter + Math.PI / 2,
-        // Set deployment capacity if specified in options
-        ...(options?.deploymentCapacity !== undefined && {
-          deploymentCapacity: options.deploymentCapacity,
-        }),
+        // Set deployment capacity (0 = infinite if not specified)
+        capacity: options?.capacity ?? 0,
       };
 
       newZones.push(smallZone);

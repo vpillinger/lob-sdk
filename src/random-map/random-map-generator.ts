@@ -65,9 +65,7 @@ export class RandomMapGenerator {
     // Calculate initial rotation for deployment zones based on seed
     // This rotates the entire circle of zones randomly
     const mapSeed = seed ?? generateRandomSeed();
-    const deploymentRotationRandom = randomSeeded(
-      deriveSeed(mapSeed, "deployment-rotation")
-    );
+    const deploymentRotationRandom = randomSeeded(deriveSeed(mapSeed, 123));
     const initialRotation = deploymentRotationRandom() * 2 * Math.PI; // Random rotation 0-2π
 
     if (playerSetups && playerSetups.length > 0) {
@@ -88,11 +86,12 @@ export class RandomMapGenerator {
         );
 
         return {
-          team: playerSetup.team,
+          player: playerSetup.player,
           x: zone.x,
           y: zone.y,
           radius: zone.radius,
           ...(zone.rotation !== undefined && { rotation: zone.rotation }),
+          capacity: zone.capacity ?? 0, // 0 = infinite capacity
         };
       });
     } else {

@@ -43,8 +43,8 @@ export interface DeploymentZone {
   radius: number;
   /** Optional rotation angle in radians. Zone will be rotated around its center. */
   rotation?: number;
-  /** Optional deployment capacity. If undefined, capacity is infinite. If set, total deploymentCost of units in this zone cannot exceed this value. */
-  deploymentCapacity?: number;
+  /** Deployment capacity. If 0, capacity is infinite. If set to a positive value, total deploymentCost of units in this zone cannot exceed this value. */
+  capacity: number;
 }
 
 /**
@@ -103,8 +103,8 @@ interface BaseScenario {
     radiusRatio?: number;
     /** Distance from main zone edge (as percentage of main zone radius, default: 0.2). */
     distanceRatio?: number;
-    /** Deployment capacity for each forward zone. If undefined, capacity is infinite. If set, total deploymentCost of units in each forward zone cannot exceed this value. */
-    deploymentCapacity?: number;
+    /** Deployment capacity for each forward zone. If 0, capacity is infinite. If set to a positive value, total deploymentCost of units in each forward zone cannot exceed this value. */
+    capacity?: number;
     /** Spacing between zones along the arc (as percentage of main zone radius, default: uses distanceRatio). If set, zones will be spaced this distance apart along the arc circumference. */
     spacingRatio?: number;
   };
