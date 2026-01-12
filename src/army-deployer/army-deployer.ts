@@ -5,10 +5,29 @@ import {
   UnitCounts,
   DynamicBattleType,
   Zone,
+  TeamDeploymentZone,
 } from "@lob-sdk/types";
 import { GameDataManager } from "@lob-sdk/game-data-manager";
 import { DeploymentSection } from "@lob-sdk/game-data-manager";
 import { divideArrayInHalf, getClosestPointInsideZone } from "@lob-sdk/utils";
+
+/**
+ * Gets the deployment cost for a unit type.
+ * @param gameDataManager - The game data manager.
+ * @param unitType - The unit type.
+ * @returns The deployment cost (defaults to 1 if not specified).
+ */
+function getUnitDeploymentCost(
+  gameDataManager: GameDataManager,
+  unitType: number
+): number {
+  try {
+    const template = gameDataManager.getUnitTemplateManager().getTemplate(unitType);
+    return template.deploymentCost ?? 1;
+  } catch {
+    return 1;
+  }
+}
 
 /**
  * Metrics for calculating unit deployment positions within the deployment zone.
@@ -66,6 +85,7 @@ export class ArmyDeployer {
 
   private readonly metrics: SectionMetrics;
   private readonly rotation: number;
+  private currentDeploymentCost: number = 0;
 
   /**
    * Creates a new ArmyDeployer instance.
@@ -155,11 +175,23 @@ export class ArmyDeployer {
 
   /**
    * Adds a unit to the deployment list at the specified position.
+   * Checks deployment capacity before adding the unit.
    * @param type - The unit type to deploy.
    * @param x - The x coordinate (in zone-local coordinates, not rotated).
    * @param y - The y coordinate (in zone-local coordinates, not rotated).
+   * @returns True if the unit was added, false if capacity was exceeded.
    */
-  private addUnit(type: UnitType, x: number, y: number) {
+  private addUnit(type: UnitType, x: number, y: number): boolean {
+    // Check deployment capacity if zone has a capacity limit
+    const zone = this.deploymentZone as TeamDeploymentZone;
+    if (zone.deploymentCapacity !== undefined) {
+      const unitCost = getUnitDeploymentCost(this.gameDataManager, type);
+      if (this.currentDeploymentCost + unitCost > zone.deploymentCapacity) {
+        // Capacity would be exceeded, skip this unit
+        return false;
+      }
+      this.currentDeploymentCost += unitCost;
+    }
     // Calculate zone center
     const zoneCenterX = this.deploymentZone.x + this.deploymentZone.radius;
     const zoneCenterY = this.deploymentZone.y + this.deploymentZone.radius;
@@ -202,6 +234,8 @@ export class ArmyDeployer {
       rotation: this.rotation + Math.PI / 2,
       type,
     });
+    
+    return true;
   }
 
   /**
@@ -240,7 +274,10 @@ export class ArmyDeployer {
         const posY =
           baseY + lineIndex * (this.DEFAULT_UNIT_HEIGHT + this.MARGIN);
 
-        this.addUnit(unitType, posX, posY);
+        if (!this.addUnit(unitType, posX, posY)) {
+          // Capacity exceeded, stop deploying units
+          return;
+        }
       }
     }
   }
@@ -400,7 +437,10 @@ export class ArmyDeployer {
         const unitType = units[unitIndex];
         const posX = lineStartX + i * (this.DEFAULT_UNIT_HEIGHT + spacing);
         
-        this.addUnit(unitType, posX, lineY);
+        if (!this.addUnit(unitType, posX, lineY)) {
+          // Capacity exceeded, stop deploying units
+          return;
+        }
       }
     }
   }
@@ -443,7 +483,10 @@ export class ArmyDeployer {
         const unitType = centerUnits[unitIndex];
         const posX = lineStartX + i * (this.DEFAULT_UNIT_HEIGHT + this.metrics.centerSpacing);
         
-        this.addUnit(unitType, posX, lineY);
+        if (!this.addUnit(unitType, posX, lineY)) {
+          // Capacity exceeded, stop deploying units
+          return;
+        }
       }
     }
   }
@@ -500,7 +543,10 @@ export class ArmyDeployer {
         const unitType = frontUnits[unitIndex];
         const posX = lineStartX + i * (this.DEFAULT_UNIT_HEIGHT + this.metrics.centerSpacing);
         
-        this.addUnit(unitType, posX, lineY);
+        if (!this.addUnit(unitType, posX, lineY)) {
+          // Capacity exceeded, stop deploying units
+          return;
+        }
       }
     }
   }

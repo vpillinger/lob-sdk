@@ -156,9 +156,11 @@
     }
   ],
   "forwardDeploymentZones": {
-    "amount": 6,
-    "radiusRatio": 0.3,
-    "distanceRatio": 0.2
+    "amount": 3,
+    "radiusRatio": 0.4,
+    "distanceRatio": 0.6,
+    "deploymentCapacity": 50,
+    "spacingRatio": 2.0
   },
   "triggers": [
     {

@@ -84,7 +84,8 @@
       }
     ],
     "pushStrength": 15,
-    "pushDistance": 3
+    "pushDistance": 3,
+    "deploymentCost": 100
   },
   {
     "name": "dragoons",
@@ -132,7 +133,8 @@
       }
     ],
     "pushStrength": 6,
-    "pushDistance": 6
+    "pushDistance": 6,
+    "deploymentCost": 100
   },
   {
     "name": "8lb_artillery",
@@ -185,7 +187,8 @@
       }
     ],
     "pushStrength": 0,
-    "pushDistance": 0
+    "pushDistance": 0,
+    "deploymentCost": 100
   },
   {
     "name": "guards",
@@ -274,7 +277,8 @@
       }
     ],
     "pushStrength": 18,
-    "pushDistance": 3
+    "pushDistance": 3,
+    "deploymentCost": 100
   },
   {
     "name": "lancers",
@@ -324,7 +328,8 @@
       }
     ],
     "pushStrength": 4,
-    "pushDistance": 6
+    "pushDistance": 6,
+    "deploymentCost": 100
   },
   {
     "name": "6lb_artillery",
@@ -377,7 +382,8 @@
       }
     ],
     "pushStrength": 0,
-    "pushDistance": 0
+    "pushDistance": 0,
+    "deploymentCost": 100
   },
   {
     "name": "light_infantry",
@@ -466,7 +472,8 @@
       }
     ],
     "pushStrength": 18,
-    "pushDistance": 2
+    "pushDistance": 2,
+    "deploymentCost": 100
   },
   {
     "name": "cuirassiers",
@@ -516,7 +523,8 @@
       }
     ],
     "pushStrength": 9,
-    "pushDistance": 6
+    "pushDistance": 6,
+    "deploymentCost": 100
   },
   {
     "name": "6in_howitzer",
@@ -569,7 +577,8 @@
       }
     ],
     "pushStrength": 0,
-    "pushDistance": 0
+    "pushDistance": 0,
+    "deploymentCost": 100
   },
   {
     "name": "militia",
@@ -657,7 +666,8 @@
       }
     ],
     "pushStrength": 4,
-    "pushDistance": 2
+    "pushDistance": 2,
+    "deploymentCost": 100
   },
   {
     "name": "hussars",
@@ -705,7 +715,8 @@
       }
     ],
     "pushStrength": 4,
-    "pushDistance": 5
+    "pushDistance": 5,
+    "deploymentCost": 1
   },
   {
     "name": "12lb_artillery",
@@ -756,7 +767,8 @@
       }
     ],
     "pushStrength": 0,
-    "pushDistance": 0
+    "pushDistance": 0,
+    "deploymentCost": 100
   },
   {
     "name": "horse_archers",
@@ -810,7 +822,8 @@
       }
     ],
     "pushStrength": 3,
-    "pushDistance": 4
+    "pushDistance": 4,
+    "deploymentCost": 100
   },
   {
     "name": "grenadiers",
@@ -897,7 +910,8 @@
       }
     ],
     "pushStrength": 20,
-    "pushDistance": 4
+    "pushDistance": 4,
+    "deploymentCost": 100
   },
   {
     "name": "4lb_artillery",
@@ -950,7 +964,8 @@
       }
     ],
     "pushStrength": 0,
-    "pushDistance": 0
+    "pushDistance": 0,
+    "deploymentCost": 100
   },
   {
     "name": "skirmishers",
@@ -1003,7 +1018,8 @@
       }
     ],
     "pushStrength": 14,
-    "pushDistance": 0
+    "pushDistance": 0,
+    "deploymentCost": 1
   },
   {
     "name": "rifles",
@@ -1056,7 +1072,8 @@
       }
     ],
     "pushStrength": 14,
-    "pushDistance": 0
+    "pushDistance": 0,
+    "deploymentCost": 1
   },
   {
     "name": "6lb_artillery",
@@ -1107,7 +1124,8 @@
       }
     ],
     "pushStrength": 0,
-    "pushDistance": 0
+    "pushDistance": 0,
+    "deploymentCost": 100
   },
   {
     "name": "rockets",
@@ -1160,7 +1178,8 @@
       }
     ],
     "pushStrength": 0,
-    "pushDistance": 0
+    "pushDistance": 0,
+    "deploymentCost": 100
   },
   {
     "name": "unknown",
@@ -1204,7 +1223,8 @@
       }
     ],
     "pushStrength": 0,
-    "pushDistance": 0
+    "pushDistance": 0,
+    "deploymentCost": 100
   },
   {
     "name": "unknown_infantry",
@@ -1248,7 +1268,8 @@
       }
     ],
     "pushStrength": 0,
-    "pushDistance": 0
+    "pushDistance": 0,
+    "deploymentCost": 100
   },
   {
     "name": "unknown_cavalry",
@@ -1292,7 +1313,8 @@
       }
     ],
     "pushStrength": 0,
-    "pushDistance": 0
+    "pushDistance": 0,
+    "deploymentCost": 100
   },
   {
     "name": "unknown_artillery",
@@ -1335,7 +1357,8 @@
       }
     ],
     "pushStrength": 0,
-    "pushDistance": 0
+    "pushDistance": 0,
+    "deploymentCost": 100
   },
   {
     "name": "10lb_licorne",
@@ -1392,7 +1415,8 @@
       }
     ],
     "pushStrength": 0,
-    "pushDistance": 0
+    "pushDistance": 0,
+    "deploymentCost": 100
   },
   {
     "name": "18lb_licorne",
@@ -1449,6 +1473,7 @@
       }
     ],
     "pushStrength": 0,
-    "pushDistance": 0
+    "pushDistance": 0,
+    "deploymentCost": 100
   }
 ]

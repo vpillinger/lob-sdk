@@ -261,6 +261,13 @@ interface BaseUnitTemplate {
    * Max entrenchment level.
    */
   maxEntrenchment?: number;
+
+  /**
+   * Deployment cost for this unit type.
+   * Used to calculate if a deployment zone's capacity is exceeded.
+   * If not set, defaults to 1.
+   */
+  deploymentCost?: number;
 }
 
 export interface RangeUnitTemplate extends BaseUnitTemplate {

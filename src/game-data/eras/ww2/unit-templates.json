@@ -48,7 +48,8 @@
     ],
     "pushStrength": 10,
     "pushDistance": 2,
-    "maxEntrenchment": 8
+    "maxEntrenchment": 8,
+    "deploymentCost": 100
   },
   {
     "name": "armored_division",
@@ -100,7 +101,8 @@
     ],
     "pushStrength": 40,
     "pushDistance": 4,
-    "maxEntrenchment": 8
+    "maxEntrenchment": 8,
+    "deploymentCost": 100
   },
   {
     "name": "motorized_division",
@@ -151,7 +153,8 @@
     ],
     "pushStrength": 20,
     "pushDistance": 1,
-    "maxEntrenchment": 8
+    "maxEntrenchment": 8,
+    "deploymentCost": 100
   },
   {
     "name": "unknown",
@@ -196,6 +199,7 @@
       }
     ],
     "pushStrength": 0,
-    "pushDistance": 0
+    "pushDistance": 0,
+    "deploymentCost": 100
   }
 ]
