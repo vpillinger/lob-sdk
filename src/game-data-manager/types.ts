@@ -331,6 +331,11 @@ export interface GameConstants {
    * Routing units will switch to this formation when they start routing.
    */
   ROUTING_FORMATION: string;
+
+  /**
+   * Default radius of deployment zones.
+   */
+  DEFAULT_DEPLOYMENT_ZONE_RADIUS: number;
 }
 
 // Damage Type Types (moved from @common/damage-type)
