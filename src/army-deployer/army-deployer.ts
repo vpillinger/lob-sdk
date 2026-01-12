@@ -80,6 +80,8 @@ export class ArmyDeployer {
 
   private readonly units: UnitCounts;
   private readonly deploymentZone: DeploymentZone;
+  private readonly allDeploymentZones: DeploymentZone[];
+  private readonly forwardZones: DeploymentZone[];
   private readonly player: number;
   private readonly team: number;
   private readonly dynamicBattleType: DynamicBattleType;
@@ -88,15 +90,17 @@ export class ArmyDeployer {
   private readonly metrics: SectionMetrics;
   private readonly rotation: number;
   private currentDeploymentCost: number = 0;
+  private forwardZoneCosts: Map<DeploymentZone, number> = new Map();
 
   /**
    * Creates a new ArmyDeployer instance.
    * @param gameDataManager - The game data manager instance.
    * @param units - A record mapping unit types to their counts.
-   * @param deploymentZone - The zone where units should be deployed.
+   * @param deploymentZone - The main zone where units should be deployed.
    * @param player - The player number.
    * @param team - The team number (1 or 2).
    * @param dynamicBattleType - The battle type (defaults to Combat).
+   * @param allDeploymentZones - Optional array of all deployment zones for this player. Forward zones (capacity != 0) will be automatically detected.
    */
   constructor(
     private gameDataManager: GameDataManager,
@@ -104,10 +108,18 @@ export class ArmyDeployer {
     deploymentZone: DeploymentZone,
     player: number,
     team: number,
-    dynamicBattleType?: DynamicBattleType
+    dynamicBattleType?: DynamicBattleType,
+    allDeploymentZones?: DeploymentZone[]
   ) {
     this.units = units;
     this.deploymentZone = deploymentZone;
+    this.allDeploymentZones = allDeploymentZones || [deploymentZone];
+    
+    // Automatically detect forward zones: zones with capacity != 0 that are not the main zone
+    this.forwardZones = this.allDeploymentZones.filter(
+      (zone) => zone !== deploymentZone && zone.capacity !== 0
+    );
+    
     this.player = player;
     this.team = team;
     this.dynamicBattleType =
@@ -181,38 +193,52 @@ export class ArmyDeployer {
    * @param type - The unit type to deploy.
    * @param x - The x coordinate (in zone-local coordinates, not rotated).
    * @param y - The y coordinate (in zone-local coordinates, not rotated).
+   * @param zone - Optional zone to use for capacity checking and positioning. Defaults to main deploymentZone.
    * @returns True if the unit was added, false if capacity was exceeded.
    */
-  private addUnit(type: UnitType, x: number, y: number): boolean {
+  private addUnit(type: UnitType, x: number, y: number, zone?: DeploymentZone): boolean {
+    const targetZone = zone || this.deploymentZone;
+    
     // Check deployment capacity if zone has a capacity limit (0 = infinite)
-    const zone = this.deploymentZone;
-    if (zone.capacity > 0) {
+    if (targetZone.capacity > 0) {
       const unitCost = getUnitDeploymentCost(this.gameDataManager, type);
-      if (this.currentDeploymentCost + unitCost > zone.capacity) {
-        // Capacity would be exceeded, skip this unit
-        return false;
+      
+      // Use zone-specific cost tracking for forward zones
+      if (zone && zone !== this.deploymentZone) {
+        const currentCost = this.forwardZoneCosts.get(zone) || 0;
+        if (currentCost + unitCost > zone.capacity) {
+          // Capacity would be exceeded, skip this unit
+          return false;
+        }
+        this.forwardZoneCosts.set(zone, currentCost + unitCost);
+      } else {
+        // Main zone capacity tracking
+        if (this.currentDeploymentCost + unitCost > targetZone.capacity) {
+          // Capacity would be exceeded, skip this unit
+          return false;
+        }
+        this.currentDeploymentCost += unitCost;
       }
-      this.currentDeploymentCost += unitCost;
     }
     // Calculate zone center
-    const zoneCenterX = this.deploymentZone.x + this.deploymentZone.radius;
-    const zoneCenterY = this.deploymentZone.y + this.deploymentZone.radius;
+    const zoneCenterX = targetZone.x + targetZone.radius;
+    const zoneCenterY = targetZone.y + targetZone.radius;
 
     // For circular zones, always use getClosestPointInsideZone which handles circles
-    const clamped = getClosestPointInsideZone(this.deploymentZone, { x, y }, 0);
+    const clamped = getClosestPointInsideZone(targetZone, { x, y }, 0);
 
     let finalX = clamped.x;
     let finalY = clamped.y;
 
     // If zone is rotated, rotate the clamped position around the zone center
-    if (this.deploymentZone.rotation !== undefined) {
+    if (targetZone.rotation !== undefined) {
       // Convert to coordinates relative to zone center
       const localX = finalX - zoneCenterX;
       const localY = finalY - zoneCenterY;
 
       // Rotate around zone center
-      const cos = Math.cos(this.deploymentZone.rotation);
-      const sin = Math.sin(this.deploymentZone.rotation);
+      const cos = Math.cos(targetZone.rotation);
+      const sin = Math.sin(targetZone.rotation);
       const rotatedX = localX * cos - localY * sin;
       const rotatedY = localX * sin + localY * cos;
 
@@ -222,7 +248,7 @@ export class ArmyDeployer {
 
       // Re-clamp to circle after rotation
       const reClamped = getClosestPointInsideZone(
-        this.deploymentZone,
+        targetZone,
         { x: finalX, y: finalY },
         0
       );
@@ -501,7 +527,8 @@ export class ArmyDeployer {
 
   /**
    * Deploys units in the front section.
-   * The formation is centered horizontally at the zone center, positioned forward from center.
+   * If forward zones are available, distributes front units across them.
+   * Otherwise, deploys in the main zone as before.
    * @param frontUnits - The units to deploy in the front.
    */
   private deployFront(frontUnits: UnitType[]) {
@@ -519,6 +546,102 @@ export class ArmyDeployer {
       }
     }
 
+    // If forward zones are available, deploy front units into them
+    if (this.forwardZones.length > 0) {
+      this.deployFrontToForwardZones(frontUnits);
+    } else {
+      // Fall back to deploying in main zone
+      this.deployFrontToMainZone(frontUnits);
+    }
+  }
+
+  /**
+   * Deploys front units into forward zones, distributing them across available zones.
+   * @param frontUnits - The units to deploy.
+   */
+  private deployFrontToForwardZones(frontUnits: UnitType[]) {
+    // Distribute units across forward zones
+    const unitsPerZone = Math.ceil(frontUnits.length / this.forwardZones.length);
+    
+    for (let zoneIndex = 0; zoneIndex < this.forwardZones.length; zoneIndex++) {
+      const zone = this.forwardZones[zoneIndex];
+      const startIndex = zoneIndex * unitsPerZone;
+      const endIndex = Math.min(startIndex + unitsPerZone, frontUnits.length);
+      const zoneUnits = frontUnits.slice(startIndex, endIndex);
+
+      if (zoneUnits.length === 0) break;
+
+      // Deploy units in this forward zone
+      this.deployUnitsInForwardZone(zoneUnits, zone);
+    }
+  }
+
+  /**
+   * Deploys units into a specific forward zone.
+   * @param units - The units to deploy.
+   * @param zone - The forward zone to deploy into.
+   */
+  private deployUnitsInForwardZone(units: UnitType[], zone: DeploymentZone) {
+    const zoneCenterX = zone.x + zone.radius;
+    const zoneCenterY = zone.y + zone.radius;
+    const zoneRadius = zone.radius;
+
+    // Calculate how many units can fit in a row based on zone radius
+    const maxUnitsPerRow = Math.max(
+      1,
+      Math.floor((zoneRadius * 2) / (this.DEFAULT_UNIT_HEIGHT + this.MIN_SPACING))
+    );
+    const spacing = Math.max(
+      this.MIN_SPACING,
+      maxUnitsPerRow > 1
+        ? ((zoneRadius * 2) - maxUnitsPerRow * this.DEFAULT_UNIT_HEIGHT) /
+          (maxUnitsPerRow - 1)
+        : this.MIN_SPACING
+    );
+
+    const unitCount = units.length;
+    const lines = Math.ceil(unitCount / maxUnitsPerRow);
+
+    // Calculate the total height of all lines to center them vertically
+    const totalFormationHeight =
+      lines * this.DEFAULT_UNIT_HEIGHT + (lines - 1) * this.MARGIN;
+
+    // Start Y position so that the center of the formation is at zone center Y
+    const startY =
+      zoneCenterY - totalFormationHeight / 2 + this.DEFAULT_UNIT_HEIGHT / 2;
+
+    for (let lineIndex = 0; lineIndex < lines; lineIndex++) {
+      const unitsInLine = Math.min(
+        maxUnitsPerRow,
+        unitCount - lineIndex * maxUnitsPerRow
+      );
+      const totalLineWidth =
+        unitsInLine * (this.DEFAULT_UNIT_HEIGHT + spacing) - spacing;
+
+      // Center the line horizontally at zoneCenterX
+      const lineStartX = zoneCenterX - totalLineWidth / 2;
+      const lineY =
+        startY + lineIndex * (this.DEFAULT_UNIT_HEIGHT + this.MARGIN);
+
+      for (let i = 0; i < unitsInLine; i++) {
+        const unitIndex = lineIndex * maxUnitsPerRow + i;
+        const unitType = units[unitIndex];
+        const posX = lineStartX + i * (this.DEFAULT_UNIT_HEIGHT + spacing);
+
+        if (!this.addUnit(unitType, posX, lineY, zone)) {
+          // Capacity exceeded for this zone, stop deploying units in this zone
+          return;
+        }
+      }
+    }
+  }
+
+  /**
+   * Deploys front units in the main zone (fallback when no forward zones available).
+   * The formation is centered horizontally at the zone center, positioned forward from center.
+   * @param frontUnits - The units to deploy in the front.
+   */
+  private deployFrontToMainZone(frontUnits: UnitType[]) {
     const unitCount = frontUnits.length;
     const lines = Math.ceil(unitCount / this.metrics.centerMaxUnits);
 
