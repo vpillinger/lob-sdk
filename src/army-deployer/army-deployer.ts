@@ -114,12 +114,12 @@ export class ArmyDeployer {
     this.units = units;
     this.deploymentZone = deploymentZone;
     this.allDeploymentZones = allDeploymentZones || [deploymentZone];
-    
+
     // Automatically detect forward zones: zones with capacity != 0 that are not the main zone
     this.forwardZones = this.allDeploymentZones.filter(
       (zone) => zone !== deploymentZone && zone.capacity !== 0
     );
-    
+
     this.player = player;
     this.team = team;
     this.dynamicBattleType =
@@ -155,6 +155,7 @@ export class ArmyDeployer {
     this.deployFlank(unitsByDeploymentSection.flank);
     this.deployCenter(unitsByDeploymentSection.center);
     this.deployFront(unitsByDeploymentSection.front);
+    this.deployForward(unitsByDeploymentSection.forward);
     return this.unitDtos;
   }
 
@@ -168,7 +169,7 @@ export class ArmyDeployer {
     const grouped: Record<DeploymentSection, UnitType[]> = {
       flank: [],
       center: [],
-      forward: [], // Not used anymore, but required by type
+      forward: [],
       front: [],
     };
 
@@ -198,11 +199,11 @@ export class ArmyDeployer {
    */
   private addUnit(type: UnitType, x: number, y: number, zone?: DeploymentZone): boolean {
     const targetZone = zone || this.deploymentZone;
-    
+
     // Check deployment capacity if zone has a capacity limit (0 = infinite)
     if (targetZone.capacity > 0) {
       const unitCost = getUnitDeploymentCost(this.gameDataManager, type);
-      
+
       // Use zone-specific cost tracking for forward zones
       if (zone && zone !== this.deploymentZone) {
         const currentCost = this.forwardZoneCosts.get(zone) || 0;
@@ -352,26 +353,26 @@ export class ArmyDeployer {
     const leftFlankSpacing =
       leftFlankMaxUnits > 0
         ? Math.max(
-            this.MIN_SPACING,
-            (leftFlankWidth - leftFlankMaxUnits * this.DEFAULT_UNIT_HEIGHT) /
-              (leftFlankMaxUnits > 1 ? leftFlankMaxUnits - 1 : 1)
-          )
+          this.MIN_SPACING,
+          (leftFlankWidth - leftFlankMaxUnits * this.DEFAULT_UNIT_HEIGHT) /
+          (leftFlankMaxUnits > 1 ? leftFlankMaxUnits - 1 : 1)
+        )
         : this.MIN_SPACING;
     const centerSpacing =
       centerMaxUnits > 0
         ? Math.max(
-            this.MIN_SPACING,
-            (centerWidth - centerMaxUnits * this.DEFAULT_UNIT_HEIGHT) /
-              (centerMaxUnits > 1 ? centerMaxUnits - 1 : 1)
-          )
+          this.MIN_SPACING,
+          (centerWidth - centerMaxUnits * this.DEFAULT_UNIT_HEIGHT) /
+          (centerMaxUnits > 1 ? centerMaxUnits - 1 : 1)
+        )
         : this.MIN_SPACING;
     const rightFlankSpacing =
       rightFlankMaxUnits > 0
         ? Math.max(
-            this.MIN_SPACING,
-            (rightFlankWidth - rightFlankMaxUnits * this.DEFAULT_UNIT_HEIGHT) /
-              (rightFlankMaxUnits > 1 ? rightFlankMaxUnits - 1 : 1)
-          )
+          this.MIN_SPACING,
+          (rightFlankWidth - rightFlankMaxUnits * this.DEFAULT_UNIT_HEIGHT) /
+          (rightFlankMaxUnits > 1 ? rightFlankMaxUnits - 1 : 1)
+        )
         : this.MIN_SPACING;
 
     // Calculate Y positions centered around the zone center
@@ -525,13 +526,18 @@ export class ArmyDeployer {
     }
   }
 
-  /**
-   * Deploys units in the front section.
-   * If forward zones are available, distributes front units across them.
-   * Otherwise, deploys in the main zone as before.
-   * @param frontUnits - The units to deploy in the front.
-   */
   private deployFront(frontUnits: UnitType[]) {
+    // Deploy front units (like Artillery) regardless of forward zones
+    this.deployFrontToMainZone(frontUnits);
+  }
+
+  /**
+   * Deploys units in the forward section.
+   * If forward zones are available, distributes units across them.
+   * Otherwise, deploys in the main zone.
+   * @param forwardUnits - The units to deploy in the forward section.
+   */
+  private deployForward(forwardUnits: UnitType[]) {
     // Add additional skirmishers if skirmisher spawning is enabled
     const { skirmisherSpawning } = this.gameDataManager.getGameRules();
 
@@ -542,32 +548,34 @@ export class ArmyDeployer {
         this.dynamicBattleType
       );
       for (let i = 0; i < additionalSkirmishers; i++) {
-        frontUnits.push(skirmisherSpawning.unitType);
+        forwardUnits.push(skirmisherSpawning.unitType);
       }
     }
 
-    // If forward zones are available, deploy front units into them
+    // If forward zones are available, deploy forward units into them
     if (this.forwardZones.length > 0) {
-      this.deployFrontToForwardZones(frontUnits);
+      this.deployForwardToForwardZones(forwardUnits);
     } else {
       // Fall back to deploying in main zone
-      this.deployFrontToMainZone(frontUnits);
+      this.deployFrontToMainZone(forwardUnits);
     }
   }
 
   /**
-   * Deploys front units into forward zones, distributing them across available zones.
-   * @param frontUnits - The units to deploy.
+   * Deploys forward units into forward zones, distributing them across available zones.
+   * @param forwardUnits - The units to deploy.
    */
-  private deployFrontToForwardZones(frontUnits: UnitType[]) {
+  private deployForwardToForwardZones(forwardUnits: UnitType[]) {
     // Distribute units across forward zones
-    const unitsPerZone = Math.ceil(frontUnits.length / this.forwardZones.length);
-    
+    const unitsPerZone = Math.ceil(
+      forwardUnits.length / this.forwardZones.length
+    );
+
     for (let zoneIndex = 0; zoneIndex < this.forwardZones.length; zoneIndex++) {
       const zone = this.forwardZones[zoneIndex];
       const startIndex = zoneIndex * unitsPerZone;
-      const endIndex = Math.min(startIndex + unitsPerZone, frontUnits.length);
-      const zoneUnits = frontUnits.slice(startIndex, endIndex);
+      const endIndex = Math.min(startIndex + unitsPerZone, forwardUnits.length);
+      const zoneUnits = forwardUnits.slice(startIndex, endIndex);
 
       if (zoneUnits.length === 0) break;
 
@@ -596,7 +604,7 @@ export class ArmyDeployer {
       this.MIN_SPACING,
       maxUnitsPerRow > 1
         ? ((zoneRadius * 2) - maxUnitsPerRow * this.DEFAULT_UNIT_HEIGHT) /
-          (maxUnitsPerRow - 1)
+        (maxUnitsPerRow - 1)
         : this.MIN_SPACING
     );
 
