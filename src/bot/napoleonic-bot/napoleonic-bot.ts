@@ -12,24 +12,23 @@ import { SkirmisherStrategy } from "./strategies/skirmisher-strategy";
 import { ArtilleryStrategy } from "./strategies/artillery-strategy";
 import { InfantryStrategy } from "./strategies/infantry-strategy";
 import { CavalryStrategy } from "./strategies/cavalry-strategy";
-import { NapoleonicBotStrategy, NapoleonicBotStrategyContext } from "./types";
+import { 
+  NapoleonicBotStrategy, 
+  NapoleonicBotStrategyContext,
+  INapoleonicBot
+} from "./types";
 import { splitIntoLines } from "./formation-utils";
 
 /**
  * A bot implementation for Napoleonic era gameplay.
  * Uses unit grouping and strategic decision-making to control units.
  */
-export class NapoleonicBot implements IBot {
+export class NapoleonicBot implements INapoleonicBot {
   private _onBotPlayScript: OnBotPlayScript | null = null;
   private _scriptName: string | null = null;
   private _team: number;
 
-  private readonly _strategies: Record<string, NapoleonicBotStrategy> = {
-    skirmishers: new SkirmisherStrategy(),
-    artillery: new ArtilleryStrategy(),
-    infantry: new InfantryStrategy(),
-    cavalry: new CavalryStrategy(),
-  };
+  private readonly _strategies: Record<string, NapoleonicBotStrategy>;
 
   /**
    * Static mapping of unit categories to bot formation groups.
@@ -43,6 +42,13 @@ export class NapoleonicBot implements IBot {
     private _playerNumber: number,
   ) {
     this._team = this._game.getPlayerTeam(this._playerNumber);
+    
+    this._strategies = {
+      skirmishers: new SkirmisherStrategy(this),
+      artillery: new ArtilleryStrategy(this),
+      infantry: new InfantryStrategy(this),
+      cavalry: new CavalryStrategy(this),
+    };
   }
 
   /**
@@ -206,8 +212,8 @@ export class NapoleonicBot implements IBot {
       const category = this._gameDataManager.getUnitTemplateManager().getTemplate(
         unit.type,
       ).category;
-
-      const groupName = NapoleonicBot._CATEGORY_TO_GROUP[category];
+      
+      const groupName = this.getGroup(category);
       if (groupName && groups[groupName]) {
         groups[groupName].push(unit);
       }
@@ -242,6 +248,15 @@ export class NapoleonicBot implements IBot {
     // Round to nearest integer, but allow fractional costs for positive modifiers
     return cost;
   }
+  
+  /**
+   * Gets the high-level group name for a given unit category.
+   * @param categoryId - The unit category ID.
+   * @returns The group name (e.g., "infantry", "cavalry").
+   */
+  getGroup(categoryId: string): string {
+    return NapoleonicBot._CATEGORY_TO_GROUP[categoryId] || "";
+  }
 
   /**
    * Gets the player number this bot controls.
@@ -249,6 +264,16 @@ export class NapoleonicBot implements IBot {
    */
   getPlayerNumber(): number {
     return this._playerNumber;
+  }
+
+
+
+  /**
+   * Gets the team number this bot belongs to.
+   * @returns The team number.
+   */
+  getTeam(): number {
+    return this._team;
   }
 
   private static readonly _CATEGORY_TO_GROUP: Record<string, string> = {
@@ -261,12 +286,4 @@ export class NapoleonicBot implements IBot {
     heavyCavalry: "cavalry",
     scoutCavalry: "cavalry",
   };
-
-  /**
-   * Gets the team number this bot belongs to.
-   * @returns The team number.
-   */
-  getTeam(): number {
-    return this._team;
-  }
 }

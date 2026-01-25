@@ -1,4 +1,4 @@
-import { IServerGame } from "@lob-sdk/types";
+import { IServerGame, TerrainType } from "@lob-sdk/types";
 import { BaseUnit } from "@lob-sdk/unit";
 import { Vector2 } from "@lob-sdk/vector";
 
@@ -147,4 +147,48 @@ export function findHighGroundNearby(
 
   // Return the center of the best tile
   return new Vector2(bestX * tileSize + tileSize / 2, bestY * tileSize + tileSize / 2);
+}
+
+/**
+ * Finds the best cover (buildings, then forests) nearby a position.
+ * Useful for skirmisher placement.
+ */
+export function findCoverNearby(
+  pos: Vector2,
+  game: IServerGame,
+  searchRadiusTiles: number = 3,
+): Vector2 {
+  const tileSize = 16;
+  const map = game.map;
+  const centerX = Math.floor(pos.x / tileSize);
+  const centerY = Math.floor(pos.y / tileSize);
+
+  let bestCoverPos: Vector2 | null = null;
+  let bestScore = -1; // 2 for building, 1 for forest, 0 for nothing
+
+  for (let dx = -searchRadiusTiles; dx <= searchRadiusTiles; dx++) {
+    for (let dy = -searchRadiusTiles; dy <= searchRadiusTiles; dy++) {
+      const tx = centerX + dx;
+      const ty = centerY + dy;
+
+      if (tx >= 0 && tx < map.width && ty >= 0 && ty < map.height) {
+        const terrain = map.terrains[tx][ty];
+        let score = 0;
+        
+        // Priority: Building/City > Forest
+        if (terrain === TerrainType.Building || terrain === TerrainType.City) {
+          score = 2;
+        } else if (terrain === TerrainType.Forest || terrain === TerrainType.ForestWinter) {
+          score = 1;
+        }
+
+        if (score > bestScore) {
+          bestScore = score;
+          bestCoverPos = new Vector2(tx * tileSize + tileSize / 2, ty * tileSize + tileSize / 2);
+        }
+      }
+    }
+  }
+
+  return bestCoverPos || pos;
 }

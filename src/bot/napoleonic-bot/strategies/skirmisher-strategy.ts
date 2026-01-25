@@ -1,7 +1,7 @@
 import { OrderType } from "@lob-sdk/types";
 import { BaseUnit } from "@lob-sdk/unit";
-import { NapoleonicBotStrategy, NapoleonicBotStrategyContext } from "../types";
-import { calculateLinePositions, sortUnitsAlongVector } from "../formation-utils";
+import { NapoleonicBotStrategy, NapoleonicBotStrategyContext, INapoleonicBot } from "../types";
+import { calculateLinePositions, sortUnitsAlongVector, findCoverNearby } from "../formation-utils";
 
 /**
  * Strategy for skirmishers: dynamic based on enemies and stamina.
@@ -9,6 +9,8 @@ import { calculateLinePositions, sortUnitsAlongVector } from "../formation-utils
 export class SkirmisherStrategy implements NapoleonicBotStrategy {
   private static readonly UNIT_SPACING = 40;
   private _assignedUnitIds: string[] = [];
+
+  constructor(private _bot: INapoleonicBot) {}
 
   assignOrders(
     units: BaseUnit[],
@@ -56,8 +58,11 @@ export class SkirmisherStrategy implements NapoleonicBotStrategy {
     );
 
     sortedUnits.forEach((unit, i) => {
-      const targetPos = targetPositions[i];
+      let targetPos = targetPositions[i];
       if (!targetPos) return;
+
+      // Prefers cover (forests, buildings) if nearby
+      targetPos = findCoverNearby(targetPos, game, 4); // 4 tiles radius
 
       const range = unit.getMaxRange();
       const threshold = range * 2;

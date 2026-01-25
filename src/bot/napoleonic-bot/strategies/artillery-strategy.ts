@@ -1,6 +1,6 @@
 import { OrderType } from "@lob-sdk/types";
 import { BaseUnit } from "@lob-sdk/unit";
-import { NapoleonicBotStrategy, NapoleonicBotStrategyContext } from "../types";
+import { NapoleonicBotStrategy, NapoleonicBotStrategyContext, INapoleonicBot } from "../types";
 import { calculateLinePositions, sortUnitsAlongVector, findHighGroundNearby } from "../formation-utils";
 
 /**
@@ -11,6 +11,8 @@ export class ArtilleryStrategy implements NapoleonicBotStrategy {
   private static readonly UNIT_SPACING = 60; // 40 * 1.5
   private static readonly LINE_SPACING = 32;
   private _assignedUnitIds: string[] = [];
+
+  constructor(private _bot: INapoleonicBot) {}
 
   assignOrders(
     units: BaseUnit[],

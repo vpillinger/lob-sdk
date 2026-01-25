@@ -1,7 +1,12 @@
-import { OrderType } from "@lob-sdk/types";
+import { IServerGame, OrderType } from "@lob-sdk/types";
 import { BaseUnit } from "@lob-sdk/unit";
-import { NapoleonicBotStrategy, NapoleonicBotStrategyContext } from "../types";
+import { 
+  NapoleonicBotStrategy, 
+  NapoleonicBotStrategyContext,
+  INapoleonicBot
+} from "../types";
 import { calculateLinePositions, splitIntoLines, sortUnitsAlongVector } from "../formation-utils";
+import { Vector2 } from "@lob-sdk/vector";
 
 /**
  * Strategy for infantry: multi-line formations with dynamic orders and formations.
@@ -10,6 +15,8 @@ export class InfantryStrategy implements NapoleonicBotStrategy {
   private static readonly UNIT_SPACING = 48;
   private static readonly LINE_SPACING = 48;
   private _assignedUnitIds: string[] = [];
+
+  constructor(private _bot: INapoleonicBot) {}
 
   assignOrders(
     units: BaseUnit[],
@@ -78,42 +85,13 @@ export class InfantryStrategy implements NapoleonicBotStrategy {
         const isMovingBackwards = moveVector.dot(direction) < 0;
 
         // --- Square Formation Logic ---
-        const threatRadius = 250;
-        const quadrants = [
-          { name: "Front", vec: direction },
-          { name: "Back", vec: direction.scale(-1) },
-          { name: "Right", vec: perpendicular },
-          { name: "Left", vec: perpendicular.scale(-1) },
-        ];
-
-        let threatenedSides = 0;
-        const allUnits = game.getUnits();
-        
-        const isCoreUnit = (u: BaseUnit) => {
-          // Accessing category directly as property (BaseUnit usually has it)
-          const category = (u as any).category || "";
-          return category.includes("infantry") || category.includes("cavalry");
-        };
-
-        for (const quad of quadrants) {
-          const isEnemyInQuad = visibleEnemies.some(enemy => {
-            const relPos = enemy.position.subtract(unit.position);
-            return relPos.length() <= threatRadius && relPos.normalize().dot(quad.vec) > 0.707; // ~45 deg cone
-          });
-
-          if (isEnemyInQuad) {
-            const isAllyProtecting = allUnits.some(ally => {
-               if (ally.player !== unit.player || ally.id === unit.id) return false;
-               if (!isCoreUnit(ally)) return false;
-               const relPos = ally.position.subtract(unit.position);
-               return relPos.length() <= threatRadius && relPos.normalize().dot(quad.vec) > 0.707;
-            });
-
-            if (!isAllyProtecting) {
-              threatenedSides++;
-            }
-          }
-        }
+        const threatenedSides = this._countThreatenedSides(
+          unit, 
+          game, 
+          visibleEnemies, 
+          direction, 
+          perpendicular
+        );
 
         let orderType: OrderType = OrderType.Walk;
         let targetFormation = "column";
@@ -159,5 +137,55 @@ export class InfantryStrategy implements NapoleonicBotStrategy {
         }
       });
     });
+  }
+
+  /**
+   * Counts how many sides (quadrants) of a unit are threatened by enemies 
+   * without allied protection.
+   */
+  private _countThreatenedSides(
+    unit: BaseUnit,
+    game: IServerGame,
+    visibleEnemies: BaseUnit[],
+    direction: Vector2,
+    perpendicular: Vector2
+  ): number {
+    const threatRadius = 250;
+    const quadrants = [
+      { vec: direction },           // Front
+      { vec: direction.scale(-1) },  // Back
+      { vec: perpendicular },       // Right
+      { vec: perpendicular.scale(-1) }, // Left
+    ];
+
+    let threatenedSides = 0;
+    const allUnits = game.getUnits() as BaseUnit[];
+    
+    const isCoreUnit = (u: BaseUnit) => {
+      const group = this._bot.getGroup(u.category);
+      return group === "infantry" || group === "cavalry";
+    };
+
+    for (const quad of quadrants) {
+      const isEnemyInQuad = visibleEnemies.some(enemy => {
+        const relPos = enemy.position.subtract(unit.position);
+        return relPos.length() <= threatRadius && relPos.normalize().dot(quad.vec) > 0.707;
+      });
+
+      if (isEnemyInQuad) {
+        const isAllyProtecting = allUnits.some((ally: BaseUnit) => {
+           if (ally.player !== unit.player || ally.id === unit.id) return false;
+           if (!isCoreUnit(ally)) return false;
+           const relPos = ally.position.subtract(unit.position);
+           return relPos.length() <= threatRadius && relPos.normalize().dot(quad.vec) > 0.707;
+        });
+
+        if (!isAllyProtecting) {
+          threatenedSides++;
+        }
+      }
+    }
+
+    return threatenedSides;
   }
 }

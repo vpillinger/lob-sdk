@@ -1,6 +1,7 @@
 import { AnyOrder, IServerGame, UnitFormationChange } from "@lob-sdk/types";
 import { BaseUnit } from "@lob-sdk/unit";
 import { Vector2 } from "@lob-sdk/vector";
+import { IBot } from "../types";
 
 /**
  * Interface for Napoleonic unit strategies.
@@ -23,4 +24,16 @@ export interface NapoleonicBotStrategy {
     units: BaseUnit[],
     context: NapoleonicBotStrategyContext,
   ): void;
+}
+
+/**
+ * Interface for the Napoleonic bot to avoid circular dependencies.
+ */
+export interface INapoleonicBot extends IBot {
+  /**
+   * Gets the high-level group name for a given unit category.
+   * @param categoryId - The unit category ID.
+   * @returns The group name (e.g., "infantry", "cavalry").
+   */
+  getGroup(categoryId: string): string;
 }
