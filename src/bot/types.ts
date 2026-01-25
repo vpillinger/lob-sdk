@@ -66,6 +66,18 @@ export interface UnitStrategy {
 }
 
 /**
+ * Higher-level strategic stances for the bot.
+ */
+export enum BotStance {
+  /** Favors holding positions, using artillery, and careful advances. */
+  Positional = "Positional",
+  /** Favors outflanking the enemy, primarily with cavalry. */
+  Maneuver = "Maneuver",
+  /** Concentrates forces for a strong attack at a single point. */
+  Aggressive = "Aggressive",
+}
+
+/**
  * Interface for bot implementations that can control units in the game.
  */
 export interface IBot {

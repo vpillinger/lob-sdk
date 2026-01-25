@@ -1,15 +1,23 @@
 import {
   AnyOrder,
+  Direction,
   IServerGame,
   OrderPathPoint,
   OrderType,
   UnitCategoryId,
+  UnitFormationChange,
+  TurnSubmission,
 } from "@lob-sdk/types";
 import { GameDataManager } from "@lob-sdk/game-data-manager";
 import { Point2, Vector2 } from "@lob-sdk/vector";
 import { UnitGroup } from "./unit-group";
-import { TurnSubmission } from "@lob-sdk/types";
-import { BotConfig, BotUnitCategory, IBot, OnBotPlayScript } from "./types";
+import {
+  BotConfig,
+  BotStance,
+  BotUnitCategory,
+  IBot,
+  OnBotPlayScript,
+} from "./types";
 import { AStar } from "@lob-sdk/a-star";
 import { getSquaredDistance } from "@lob-sdk/utils";
 import { douglasPeucker } from "@lob-sdk/douglas-peucker";
@@ -27,6 +35,13 @@ export class BotNapoleonic implements IBot {
   private onBotPlayScript: OnBotPlayScript | null = null;
   private scriptName: string | null = null;
 
+  /** Current strategic stance based on balance of power. */
+  private stance: BotStance = BotStance.Positional;
+  /** Primary objective or enemy group to focus on. */
+  private strategicTarget: Vector2 | null = null;
+  /** Offsets for each group to form a frontage. */
+  private groupOffsets: Map<UnitGroup, Vector2> = new Map();
+
   private static _config: BotConfig = {
     categoryGroups: {
       infantry: "Infantry",
@@ -36,12 +51,13 @@ export class BotNapoleonic implements IBot {
       scoutCavalry: "Cavalry",
       heavyCavalry: "Cavalry",
       artillery: "Artillery",
-      skirmishInfantry: "Infantry",
+      skirmishInfantry: "Skirmishers",
     },
     maxGroupSize: {
       Infantry: 4,
       Cavalry: 4,
       Artillery: 2,
+      Skirmishers: 2, // Smaller groups for skirmishers
     },
     strategies: {
       Infantry: {
@@ -62,6 +78,13 @@ export class BotNapoleonic implements IBot {
         minDistanceFromEnemies: 8,
         groupCohesion: 2,
       },
+      Skirmishers: {
+        behavior: "harass",
+        maintainDistance: true,
+        minDistanceFromEnemies: 6,
+        groupCohesion: 3,
+        preferFireAndAdvance: true,
+      },
     },
     thresholds: {
       orgChargeThreshold: 250,
@@ -77,7 +100,18 @@ export class BotNapoleonic implements IBot {
   }
 
   private getMaxGroupSize(botCategory: BotUnitCategory): number {
-    return this._botConfig.maxGroupSize[botCategory];
+    const baseSize = this._botConfig.maxGroupSize[botCategory];
+
+    // Situational adjustments based on stance
+    if (this.stance === BotStance.Aggressive) {
+      if (botCategory === "Infantry") return baseSize + 2; // Larger blocks for concentrated attack
+      if (botCategory === "Cavalry") return baseSize + 2;
+    } else if (this.stance === BotStance.Maneuver) {
+      if (botCategory === "Infantry") return Math.max(2, baseSize - 1); // Smaller groups for flexibility
+      if (botCategory === "Cavalry") return Math.max(2, baseSize - 1);
+    }
+
+    return baseSize;
   }
 
   private getGroupCohesion(botCategory: BotUnitCategory): number {
@@ -147,20 +181,144 @@ export class BotNapoleonic implements IBot {
       turn: this.game.turnNumber,
       orders: [],
       autofireConfigChanges: [],
+      formationChanges: [],
     };
 
     const orders = turnSubmission.orders;
+    const formationChanges = turnSubmission.formationChanges!;
 
     // Reset groups
     this.allyGroups = this.formGroups(myUnits);
     this.enemyGroups = this.formGroups(enemies);
 
+    // Assess global balance and choose stance
+    this.stance = this.assessGlobalBalance(myUnits, enemies);
+    this.strategicTarget = this.selectStrategicTarget();
+
+    // Calculate frontage offsets
+    this.calculateFrontageOffsets();
+
     for (const group of this.allyGroups) {
       const groupType = this.getBotUnitCategory(group.category);
-      this.processUnitGroup(group, groupType, orders);
+      this.processUnitGroup(group, groupType, orders, formationChanges);
     }
 
     return turnSubmission;
+  }
+
+  private calculateFrontageOffsets() {
+    this.groupOffsets.clear();
+    if (!this.strategicTarget || this.allyGroups.length === 0) return;
+
+    const myCenter = this.getForcesCenter();
+    const toTarget = this.strategicTarget.subtract(myCenter);
+    if (toTarget.length() === 0) return;
+
+    const direction = toTarget.normalize();
+    const right = new Vector2(-direction.y, direction.x);
+
+    // Filter groups that should participate in the main line (non-artillery for now)
+    const lineGroups = this.allyGroups.filter(
+      (g) => this.getBotUnitCategory(g.category) !== "Artillery"
+    );
+
+    if (lineGroups.length <= 1) return;
+
+    // Sort groups by their projection on the 'right' vector (lateral position)
+    lineGroups.sort((a, b) => {
+      const projA = a.getCenter().subtract(myCenter).dot(right);
+      const projB = b.getCenter().subtract(myCenter).dot(right);
+      return projA - projB;
+    });
+
+    const spacing = this.gameDataManager.getGameConstants().TILE_SIZE * 6;
+    const totalLength = (lineGroups.length - 1) * spacing;
+
+    lineGroups.forEach((group, index) => {
+      const offsetValue = index * spacing - totalLength / 2;
+      this.groupOffsets.set(group, right.scale(offsetValue));
+    });
+  }
+
+  private assessGlobalBalance(
+    myUnits: BaseUnit[],
+    enemies: BaseUnit[]
+  ): BotStance {
+    if (enemies.length === 0) return BotStance.Aggressive;
+
+    const myPower = myUnits.reduce((sum, u) => sum + u.getPower(), 0);
+    const enemyPower = enemies.reduce((sum, u) => sum + u.getPower(), 0);
+
+    const myArty = myUnits.filter(
+      (u) => this.getBotUnitCategory(u.category) === "Artillery"
+    );
+    const enemyArty = enemies.filter(
+      (u) => this.getBotUnitCategory(u.category) === "Artillery"
+    );
+
+    const myCav = myUnits.filter(
+      (u) => this.getBotUnitCategory(u.category) === "Cavalry"
+    );
+    const enemyCav = enemies.filter(
+      (u) => this.getBotUnitCategory(u.category) === "Cavalry"
+    );
+
+    const artyRatio = (myArty.length + 1) / (enemyArty.length + 1);
+    const cavRatio = (myCav.length + 1) / (enemyCav.length + 1);
+    const powerRatio = myPower / (enemyPower || 1);
+
+    // Strategic decision making
+    if (artyRatio > 1.5 && powerRatio > 0.8) {
+      return BotStance.Positional;
+    }
+
+    if (cavRatio > 1.5 && powerRatio > 0.9) {
+      return BotStance.Maneuver;
+    }
+
+    if (powerRatio > 1.2) {
+      return BotStance.Aggressive;
+    }
+
+    // Default to positional if unsure or balanced
+    return BotStance.Positional;
+  }
+
+  private selectStrategicTarget(): Vector2 | null {
+    const objectives = this.game.getObjectives();
+    const enemyObjectives = objectives.filter((o) => o.team !== this.team);
+
+    if (enemyObjectives.length > 0) {
+      // For now, pick the closest objective to the center of our forces
+      const myCenter = this.getForcesCenter();
+      let closestObj = enemyObjectives[0];
+      let minDist = Infinity;
+
+      for (const obj of enemyObjectives) {
+        const dist = getSquaredDistance(myCenter, obj.position);
+        if (dist < minDist) {
+          minDist = dist;
+          closestObj = obj;
+        }
+      }
+      return closestObj.position;
+    }
+
+    // If no objectives, target the strongest enemy group center
+    if (this.enemyGroups.length > 0) {
+      return this.enemyGroups[0].getCenter();
+    }
+
+    return null;
+  }
+
+  private getForcesCenter(): Vector2 {
+    if (this.allyGroups.length === 0) return new Vector2(0, 0);
+    const sum = this.allyGroups.reduce(
+      (acc, g) => acc.add(g.getCenter()),
+      new Vector2(0, 0)
+    );
+    return sum.scale(1 / this.allyGroups.length);
   }
 
   private getMyUnits() {
@@ -177,43 +335,55 @@ export class BotNapoleonic implements IBot {
   private processUnitGroup(
     group: UnitGroup,
     groupType: BotUnitCategory,
-    orders: AnyOrder[]
+    orders: AnyOrder[],
+    formationChanges: UnitFormationChange[]
   ) {
     if (group.size === 0) return;
 
     const groupCenter = group.getCenter();
     const strategy = this.getStrategyForType(groupType);
 
-    const closestEnemyGroup = this.getClosestGroup(
-      groupCenter,
-      this.enemyGroups
-    );
-    const closestEnemyObjective = this.game.getClosestEnemyObjective(
-      groupCenter,
-      this.team
-    );
+    // If we have a strategic target, we might want to prioritize it
+    let targetPosition = this.strategicTarget;
 
-    const targetPositions: Vector2[] = [];
-
-    if (closestEnemyGroup) {
-      targetPositions.push(closestEnemyGroup.getCenter());
+    // Apply frontage offset if available
+    const offset = this.groupOffsets.get(group);
+    if (targetPosition && offset) {
+      targetPosition = targetPosition.add(offset);
     }
 
-    if (closestEnemyObjective) {
-      targetPositions.push(closestEnemyObjective.position);
+    // In non-aggressive stances, or if we don't have a strategic target,
+    // we default to the closest enemy group or objective (unless we are pursuing a strategic target)
+    if (this.stance !== BotStance.Aggressive || !this.strategicTarget) {
+      const closestEnemyGroup = this.getClosestGroup(
+        groupCenter,
+        this.enemyGroups
+      );
+      const closestEnemyObjective = this.game.getClosestEnemyObjective(
+        groupCenter,
+        this.team
+      );
+
+      const candidates: Vector2[] = [];
+      if (closestEnemyGroup) candidates.push(closestEnemyGroup.getCenter());
+      if (closestEnemyObjective) candidates.push(closestEnemyObjective.position);
+
+      if (candidates.length > 0) {
+        targetPosition = groupCenter.getClosestVector(candidates);
+      }
     }
 
-    if (targetPositions.length === 0) {
-      return;
-    }
-
-    const targetPosition = groupCenter.getClosestVector(targetPositions);
-    if (targetPosition === null) {
-      return;
-    }
+    if (!targetPosition) return;
 
     group.units.forEach((unit) => {
-      this.processUnit(unit, groupType, strategy, targetPosition, orders);
+      this.processUnit(
+        unit,
+        groupType,
+        strategy,
+        targetPosition!,
+        orders,
+        formationChanges
+      );
     });
   }
 
@@ -222,7 +392,8 @@ export class BotNapoleonic implements IBot {
     groupType: BotUnitCategory,
     strategy: any,
     targetPosition: Vector2,
-    orders: AnyOrder[]
+    orders: AnyOrder[],
+    formationChanges: UnitFormationChange[]
   ) {
     // Use fog of war filtered method to only see visible nearby enemies
     const nearbyEnemies = this.game
@@ -247,6 +418,114 @@ export class BotNapoleonic implements IBot {
       targetPosition,
       orders
     );
+
+    // Small detail: Ensure unit has a sensible formation
+    this.processUnitFormation(
+      unit,
+      closestEnemy,
+      strategy,
+      formationChanges
+    );
+  }
+
+  private processUnitFormation(
+    unit: BaseUnit,
+    closestEnemy: BaseUnit | null,
+    strategy: any,
+    formationChanges: UnitFormationChange[]
+  ) {
+    if (unit.cannotChangeFormation || unit.pendingFormationId) return;
+
+    const availableFormations = unit.getAvailableFormations();
+    if (availableFormations.length <= 1) return;
+
+    let targetFormation = unit.currentFormation;
+
+    // Tactical Square: if threatened from 2 or more sides, form a square
+    // A side is threatened if it has enemies but NO solid allies (Infantry/Cavalry)
+    const threatenedDirections = this.getThreatenedDirections(unit);
+    if (threatenedDirections.size >= 2) {
+      const square = availableFormations.find((f) =>
+        f.id.toLowerCase().includes("square")
+      );
+      if (square) {
+        targetFormation = square.id;
+      }
+    }
+
+    // Only proceed with other formation logic if not forcing a square
+    if (targetFormation === unit.currentFormation) {
+      if (closestEnemy) {
+        const dist = unit.position.distanceTo(closestEnemy.position);
+        const inRange = dist <= unit.getMaxRange();
+
+        if (inRange) {
+          // Formation Safety: Only switch to Line if flanks and rear are safe
+          const sideOrRearThreatened =
+            threatenedDirections.has(Direction.Right) ||
+            threatenedDirections.has(Direction.Left) ||
+            threatenedDirections.has(Direction.Back);
+
+          if (!sideOrRearThreatened) {
+            // Find formation with best defensive or ranged stats
+            // For now, simplicity: prefer "Line" or similar if they have it.
+            const line = availableFormations.find((f) =>
+              f.id.toLowerCase().includes("line")
+            );
+            if (line) targetFormation = line.id;
+          }
+        }
+      } else {
+        // If moving long distances, Column is often better (if it exists)
+        const column = availableFormations.find((f) =>
+          f.id.toLowerCase().includes("column")
+        );
+        if (
+          column &&
+          unit.position.distanceTo(this.strategicTarget || unit.position) > 500
+        ) {
+          targetFormation = column.id;
+        }
+      }
+    }
+
+    if (targetFormation !== unit.currentFormation) {
+      formationChanges.push({
+        unitId: unit.id,
+        formationId: targetFormation,
+      });
+    }
+  }
+
+  private findNearbyHighGround(position: Vector2, radius: number): Vector2 | null {
+    const { TILE_SIZE } = this.gameDataManager.getGameConstants();
+    const startTileX = Math.floor(position.x / TILE_SIZE);
+    const startTileY = Math.floor(position.y / TILE_SIZE);
+    const tileRadius = Math.floor(radius / TILE_SIZE);
+
+    let bestTile = { x: startTileX, y: startTileY };
+    let maxHeight = this.game.map.heightMap[startTileX]?.[startTileY] ?? 0;
+
+    for (let x = startTileX - tileRadius; x <= startTileX + tileRadius; x++) {
+      for (let y = startTileY - tileRadius; y <= startTileY + tileRadius; y++) {
+        if (x < 0 || x >= this.game.map.width || y < 0 || y >= this.game.map.height) continue;
+
+        const h = this.game.map.heightMap[x][y];
+        if (h > maxHeight) {
+          maxHeight = h;
+          bestTile = { x, y };
+        }
+      }
+    }
+
+    if (maxHeight > (this.game.map.heightMap[startTileX]?.[startTileY] ?? 0)) {
+      return new Vector2(
+        bestTile.x * TILE_SIZE + TILE_SIZE / 2,
+        bestTile.y * TILE_SIZE + TILE_SIZE / 2
+      );
+    }
+
+    return null;
   }
 
   private processUnitByStrategy(
@@ -256,6 +535,25 @@ export class BotNapoleonic implements IBot {
     targetPosition: Vector2,
     orders: AnyOrder[]
   ) {
+    // Stance-based modifications
+    if (this.stance === BotStance.Positional) {
+      // In positional stance, we are more defensive
+      if (closestEnemy) {
+        const dist = unit.position.distanceTo(closestEnemy.position);
+        const maxRange = unit.getMaxRange();
+        // If we are in range and have ammo, stay put
+        if (dist <= maxRange && (unit.ammo === null || unit.ammo > 0)) {
+          return;
+        }
+      }
+    } else if (this.stance === BotStance.Maneuver && strategy.behavior === "flanking") {
+      // Flanking behavior: try to go around the targetPosition
+      const myCenter = this.getForcesCenter();
+      const toTarget = targetPosition.subtract(myCenter);
+      const perp = new Vector2(-toTarget.y, toTarget.x).normalize().scale(500); // Offset by some distance
+      targetPosition = targetPosition.add(perp);
+    }
+
     // Handle charging logic if strategy has chargeThreshold
     if (closestEnemy && strategy.chargeThreshold !== undefined) {
       const shouldCharge =
@@ -320,7 +618,7 @@ export class BotNapoleonic implements IBot {
           this.playerNumber,
           unit.position,
           strategy.minDistanceFromEnemies *
-            this.gameDataManager.getGameConstants().TILE_SIZE
+          this.gameDataManager.getGameConstants().TILE_SIZE
         )
         .filter((enemy) => enemy.team !== unit.team && !enemy.isRouting());
 
@@ -334,7 +632,7 @@ export class BotNapoleonic implements IBot {
           const retreatPosition = unit.position.add(
             direction.scale(
               strategy.minDistanceFromEnemies *
-                this.gameDataManager.getGameConstants().TILE_SIZE
+              this.gameDataManager.getGameConstants().TILE_SIZE
             )
           );
           const path = this.getMovementPath(unit, retreatPosition);
@@ -348,7 +646,7 @@ export class BotNapoleonic implements IBot {
       }
     }
 
-    // Check if unit is already in range (for artillery)
+    // Check if unit is already in range (for artillery or positional infantry)
     // Use fog of war filtered method to only see visible nearby enemies
     const nearbyEnemies = this.game
       .getVisibleNearbyUnits(
@@ -359,13 +657,24 @@ export class BotNapoleonic implements IBot {
       .filter((enemy) => enemy.team !== unit.team && !enemy.isRouting());
 
     if (nearbyEnemies.length > 0) {
-      return; // Stay in position if already in range
+      // If we are positional, we definitely stay. If we are aggressive, we might stay to fire before charging
+      if (this.stance === BotStance.Positional || !strategy.preferRun) {
+        return;
+      }
+    }
+
+    // Special behavior for artillery: seek high ground
+    if (this.getBotUnitCategory(unit.category) === "Artillery" && !closestEnemy) {
+      const highGround = this.findNearbyHighGround(unit.position, 200);
+      if (highGround) {
+        targetPosition = highGround;
+      }
     }
 
     // Default movement towards target
     const path = this.getMovementPath(unit, targetPosition);
 
-    if (strategy.preferRun) {
+    if (strategy.preferRun || (this.stance === BotStance.Aggressive && strategy.behavior !== "support")) {
       orders.push({
         type: OrderType.Run,
         id: unit.id,
@@ -405,7 +714,7 @@ export class BotNapoleonic implements IBot {
           group.size < maxSize &&
           groupType === unitGroupType &&
           unit.position.distanceTo(group.getCenter()) <=
-            TILE_SIZE * this.getGroupCohesion(groupType)
+          TILE_SIZE * this.getGroupCohesion(groupType)
         ) {
           addedToGroup = true;
           group.addUnit(unit);
@@ -523,6 +832,53 @@ export class BotNapoleonic implements IBot {
 
       return acc;
     }, []);
+  }
+
+  private getThreatenedDirections(unit: BaseUnit): Set<Direction> {
+    const checkRadius = unit.getMaxRange() * 1.5;
+    const nearbyUnits = this.game.getVisibleNearbyUnits(
+      this.playerNumber,
+      unit.position,
+      checkRadius
+    );
+
+    const enemies = nearbyUnits.filter(
+      (u) => u.team !== unit.team && !u.isRouting()
+    );
+    const allies = nearbyUnits.filter(
+      (u) => u.team === unit.team && u.id !== unit.id && !u.isRouting()
+    );
+
+    const threatened = new Set<Direction>();
+    if (enemies.length === 0) return threatened;
+
+    const directions = [
+      Direction.Front,
+      Direction.Right,
+      Direction.Back,
+      Direction.Left,
+    ];
+
+    for (const side of directions) {
+      const enemiesInArc = enemies.filter(
+        (e) => unit.getDirectionToPoint(e.position) === side
+      );
+      if (enemiesInArc.length > 0) {
+        // Check if there are "solid" allies in this same arc
+        const solidAlliesInArc = allies.filter((a) => {
+          const category = this.getBotUnitCategory(a.category);
+          const isSolid = category === "Infantry" || category === "Cavalry";
+          return isSolid && unit.getDirectionToPoint(a.position) === side;
+        });
+
+        // Arc is threatened if enemies exist and NO solid allies protect it
+        if (solidAlliesInArc.length === 0) {
+          threatened.add(side);
+        }
+      }
+    }
+
+    return threatened;
   }
 
   private _getTerrainCost(movementModifier: number) {
