@@ -1,4 +1,4 @@
-import { AnyOrder, IServerGame, OrderType } from "@lob-sdk/types";
+import { OrderType } from "@lob-sdk/types";
 import { BaseUnit } from "@lob-sdk/unit";
 import { NapoleonicBotStrategy, NapoleonicBotStrategyContext } from "../types";
 import { calculateLinePositions } from "../formation-utils";
@@ -7,14 +7,21 @@ import { calculateLinePositions } from "../formation-utils";
  * Strategy for skirmishers: dynamic based on enemies and stamina.
  */
 export class SkirmisherStrategy implements NapoleonicBotStrategy {
+  private static readonly UNIT_SPACING = 40;
+
   assignOrders(
     units: BaseUnit[],
-    game: IServerGame,
-    visibleEnemies: BaseUnit[],
-    orders: AnyOrder[],
     context: NapoleonicBotStrategyContext,
   ): void {
-    const { formationCenter, direction, perpendicular, unitSpacing } = context;
+    const { 
+      game, 
+      visibleEnemies, 
+      orders, 
+      formationChanges, 
+      formationCenter, 
+      direction, 
+      perpendicular 
+    } = context;
 
     const targetPositions = calculateLinePositions(
       units,
@@ -22,7 +29,7 @@ export class SkirmisherStrategy implements NapoleonicBotStrategy {
       direction,
       perpendicular,
       0, // Front line
-      unitSpacing,
+      SkirmisherStrategy.UNIT_SPACING,
       game,
     );
 
@@ -56,6 +63,15 @@ export class SkirmisherStrategy implements NapoleonicBotStrategy {
         path: [targetPos.toArray()],
         rotation: direction.angle(),
       });
+
+      // Target formation for skirmishers
+      const targetFormation = "skirmish";
+      if (unit.currentFormation !== targetFormation) {
+        formationChanges.push({
+          unitId: unit.id,
+          formationId: targetFormation,
+        });
+      }
     });
   }
 }

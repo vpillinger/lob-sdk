@@ -1,4 +1,4 @@
-import { AnyOrder, IServerGame, OrderType } from "@lob-sdk/types";
+import { OrderType } from "@lob-sdk/types";
 import { BaseUnit } from "@lob-sdk/unit";
 import { NapoleonicBotStrategy, NapoleonicBotStrategyContext } from "../types";
 import { calculateLinePositions } from "../formation-utils";
@@ -7,22 +7,29 @@ import { calculateLinePositions } from "../formation-utils";
  * Strategy for artillery: always run to position.
  */
 export class ArtilleryStrategy implements NapoleonicBotStrategy {
+  private static readonly UNIT_SPACING = 60; // 40 * 1.5
+  private static readonly LINE_SPACING = 32;
+
   assignOrders(
     units: BaseUnit[],
-    game: IServerGame,
-    visibleEnemies: BaseUnit[],
-    orders: AnyOrder[],
     context: NapoleonicBotStrategyContext,
   ): void {
-    const { formationCenter, direction, perpendicular, unitSpacing, lineSpacing } = context;
+    const { 
+      game, 
+      orders, 
+      formationChanges, 
+      formationCenter, 
+      direction, 
+      perpendicular, 
+    } = context;
 
     const targetPositions = calculateLinePositions(
       units,
       formationCenter,
       direction,
       perpendicular,
-      -lineSpacing, // Second line (behind skirmishers)
-      unitSpacing * 1.5,
+      -ArtilleryStrategy.LINE_SPACING, // Second line (behind skirmishers)
+      ArtilleryStrategy.UNIT_SPACING,
       game,
     );
 
@@ -36,6 +43,15 @@ export class ArtilleryStrategy implements NapoleonicBotStrategy {
         path: [targetPos.toArray()],
         rotation: direction.angle(),
       });
+
+      // Target formation for artillery
+      const targetFormation = "artillery";
+      if (unit.currentFormation !== targetFormation) {
+        formationChanges.push({
+          unitId: unit.id,
+          formationId: targetFormation,
+        });
+      }
     });
   }
 }

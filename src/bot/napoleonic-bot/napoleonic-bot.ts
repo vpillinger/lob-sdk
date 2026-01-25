@@ -5,6 +5,7 @@ import {
   AnyOrder,
   TurnSubmission,
   IServerGame,
+  UnitFormationChange,
 } from "@lob-sdk/types";
 import { GameDataManager } from "@lob-sdk/game-data-manager";
 import { BaseUnit } from "@lob-sdk/unit";
@@ -145,82 +146,51 @@ export class NapoleonicBot implements IBot {
       direction.scale(armyFront + advanceDistance),
     );
 
-    // 3. Define spacing
-    const unitSpacing = 40; // Distance between units in a line
-    const lineSpacing = 32; // Distance between lines
-
     // 4. Calculate positions for each group via strategies
     const orders: AnyOrder[] = [];
+    const formationChanges: UnitFormationChange[] = [];
     const infantryLines = splitIntoLines(groups.infantry, 10);
     const mainBodyWidth =
       Math.max(
         groups.skirmishers.length,
         groups.artillery.length,
         infantryLines.length > 0 ? infantryLines[0].length : 0,
-      ) * unitSpacing;
+      ) * 40; // Default unit spacing for width calculation
 
     const strategyContext: NapoleonicBotStrategyContext = {
+      game: this._game,
+      visibleEnemies: enemies,
+      orders,
+      formationChanges,
       formationCenter,
       direction,
       perpendicular,
-      unitSpacing,
-      lineSpacing,
       mainBodyWidth,
       forwardAngle,
     };
 
     this._strategies.skirmishers.assignOrders(
       groups.skirmishers,
-      this._game,
-      enemies,
-      orders,
       strategyContext,
     );
 
     this._strategies.artillery.assignOrders(
       groups.artillery,
-      this._game,
-      enemies,
-      orders,
       strategyContext,
     );
 
     this._strategies.infantry.assignOrders(
       groups.infantry,
-      this._game,
-      enemies,
-      orders,
       strategyContext,
     );
 
     this._strategies.cavalry.assignOrders(
       groups.cavalry,
-      this._game,
-      enemies,
-      orders,
       strategyContext,
     );
 
     turnSubmission.orders = orders;
-
-    // Optional: add formation changes if needed (e.g. skirmishers to skirmish formation)
-    myUnits.forEach((unit: BaseUnit) => {
-      const category = this._gameDataManager.getUnitTemplateManager().getTemplate(
-        unit.type,
-      ).category;
-      let targetFormation = "";
-      if (category === "skirmishInfantry") targetFormation = "skirmish";
-      else if (category === "artillery") targetFormation = "artillery";
-      else if (category === "infantry" || category === "militiaInfantry")
-        targetFormation = "line";
-
-      if (targetFormation && unit.currentFormation !== targetFormation) {
-        turnSubmission.formationChanges!.push({
-          unitId: unit.id,
-          formationId: targetFormation,
-        });
-      }
-    });
+    turnSubmission.formationChanges = formationChanges;
 
     return turnSubmission;
   }

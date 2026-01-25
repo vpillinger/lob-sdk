@@ -1,4 +1,4 @@
-import { AnyOrder, IServerGame, OrderType } from "@lob-sdk/types";
+import { OrderType } from "@lob-sdk/types";
 import { BaseUnit } from "@lob-sdk/unit";
 import { NapoleonicBotStrategy, NapoleonicBotStrategyContext } from "../types";
 import { calculateFlankPositions, splitCavalry } from "../formation-utils";
@@ -7,14 +7,22 @@ import { calculateFlankPositions, splitCavalry } from "../formation-utils";
  * Strategy for cavalry: flank protection.
  */
 export class CavalryStrategy implements NapoleonicBotStrategy {
+  private static readonly UNIT_SPACING = 40;
+  private static readonly LINE_SPACING = 32;
+
   assignOrders(
     units: BaseUnit[],
-    game: IServerGame,
-    visibleEnemies: BaseUnit[],
-    orders: AnyOrder[],
     context: NapoleonicBotStrategyContext,
   ): void {
-    const { formationCenter, direction, perpendicular, lineSpacing, unitSpacing, mainBodyWidth } = context;
+    const { 
+      game, 
+      orders, 
+      formationChanges, 
+      formationCenter, 
+      direction, 
+      perpendicular, 
+      mainBodyWidth 
+    } = context;
 
     const cavalrySplit = splitCavalry(units);
     
@@ -24,8 +32,8 @@ export class CavalryStrategy implements NapoleonicBotStrategy {
       formationCenter,
       direction,
       perpendicular,
-      -mainBodyWidth / 2 - unitSpacing,
-      lineSpacing,
+      -mainBodyWidth / 2 - CavalryStrategy.UNIT_SPACING,
+      CavalryStrategy.LINE_SPACING,
       game
     );
 
@@ -38,6 +46,15 @@ export class CavalryStrategy implements NapoleonicBotStrategy {
         path: [targetPos.toArray()],
         rotation: direction.angle(),
       });
+
+      // Target formation for cavalry
+      const targetFormation = "line";
+      if (unit.currentFormation !== targetFormation) {
+        formationChanges.push({
+          unitId: unit.id,
+          formationId: targetFormation,
+        });
+      }
     });
 
     // Right Flank
@@ -46,8 +63,8 @@ export class CavalryStrategy implements NapoleonicBotStrategy {
       formationCenter,
       direction,
       perpendicular,
-      mainBodyWidth / 2 + unitSpacing,
-      lineSpacing,
+      mainBodyWidth / 2 + CavalryStrategy.UNIT_SPACING,
+      CavalryStrategy.LINE_SPACING,
       game
     );
 
@@ -60,6 +77,15 @@ export class CavalryStrategy implements NapoleonicBotStrategy {
         path: [targetPos.toArray()],
         rotation: direction.angle(),
       });
+
+      // Target formation for cavalry
+      const targetFormation = "line";
+      if (unit.currentFormation !== targetFormation) {
+        formationChanges.push({
+          unitId: unit.id,
+          formationId: targetFormation,
+        });
+      }
     });
   }
 }
