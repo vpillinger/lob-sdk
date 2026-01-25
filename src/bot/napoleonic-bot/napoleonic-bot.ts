@@ -1,8 +1,19 @@
 import { IBot, OnBotPlayScript } from "../types";
 import { Vector2 } from "@lob-sdk/vector";
-import { OrderType, AnyOrder, TurnSubmission, IServerGame } from "@lob-sdk/types";
+import {
+  OrderType,
+  AnyOrder,
+  TurnSubmission,
+  IServerGame,
+} from "@lob-sdk/types";
 import { GameDataManager } from "@lob-sdk/game-data-manager";
 import { BaseUnit } from "@lob-sdk/unit";
+import { SkirmisherStrategy } from "./strategies/skirmisher-strategy";
+import { ArtilleryStrategy } from "./strategies/artillery-strategy";
+import { InfantryStrategy } from "./strategies/infantry-strategy";
+import { CavalryStrategy } from "./strategies/cavalry-strategy";
+import { NapoleonicBotStrategy, NapoleonicBotStrategyContext } from "./types";
+import { splitIntoLines } from "./formation-utils";
 
 /**
  * A bot implementation for Napoleonic era gameplay.
@@ -13,8 +24,15 @@ export class NapoleonicBot implements IBot {
   private _scriptName: string | null = null;
   private _team: number;
 
+  private readonly _strategies: Record<string, NapoleonicBotStrategy> = {
+    skirmishers: new SkirmisherStrategy(),
+    artillery: new ArtilleryStrategy(),
+    infantry: new InfantryStrategy(),
+    cavalry: new CavalryStrategy(),
+  };
+
   /**
-   * Creates a new BotNapoleonic instance.
+   * Static mapping of unit categories to bot formation groups.
    * @param gameDataManager - The game data manager instance.
    * @param game - The server game instance.
    * @param playerNumber - The player number this bot controls.
@@ -45,10 +63,6 @@ export class NapoleonicBot implements IBot {
     return this._scriptName;
   }
 
-  /**
-   * Executes the bot's turn, generating orders for all controlled units.
-   * @returns A promise that resolves to the turn submission with orders.
-   */
   /**
    * Executes the bot's turn, generating orders for all controlled units.
    * @returns A promise that resolves to the turn submission with orders.
@@ -135,52 +149,9 @@ export class NapoleonicBot implements IBot {
     const unitSpacing = 40; // Distance between units in a line
     const lineSpacing = 32; // Distance between lines
 
-    // 4. Calculate positions for each group
+    // 4. Calculate positions for each group via strategies
     const orders: AnyOrder[] = [];
-
-    // Line 1: Skirmishers
-    this._assignPositionsToLine(
-      groups.skirmishers,
-      formationCenter,
-      direction,
-      perpendicular,
-      0, // First line
-      unitSpacing,
-      forwardAngle,
-      orders,
-      OrderType.Walk,
-    );
-
-    // Line 2: Artillery
-    this._assignPositionsToLine(
-      groups.artillery,
-      formationCenter,
-      direction,
-      perpendicular,
-      -lineSpacing, // Second line (behind skirmishers)
-      unitSpacing * 1.5,
-      forwardAngle,
-      orders,
-      OrderType.Run,
-    );
-
-    // Line 3 & 4: Infantry
-    const infantryLines = this._splitIntoLines(groups.infantry, 10); // Max 10 units per line
-    infantryLines.forEach((line, index) => {
-      this._assignPositionsToLine(
-        line,
-        formationCenter,
-        direction,
-        perpendicular,
-        -lineSpacing * (index + 2), // Behind artillery
-        unitSpacing,
-        forwardAngle,
-        orders,
-      );
-    });
-
-    // Flanks: Cavalry
-    const cavalrySplit = this._splitCavalry(groups.cavalry);
+    const infantryLines = splitIntoLines(groups.infantry, 10);
     const mainBodyWidth =
       Math.max(
         groups.skirmishers.length,
@@ -188,26 +159,46 @@ export class NapoleonicBot implements IBot {
         infantryLines.length > 0 ? infantryLines[0].length : 0,
       ) * unitSpacing;
 
-    this._assignPositionsToFlank(
-      cavalrySplit.left,
+    const strategyContext: NapoleonicBotStrategyContext = {
       formationCenter,
       direction,
       perpendicular,
-      -mainBodyWidth / 2 - unitSpacing, // Left flank
+      unitSpacing,
       lineSpacing,
+      mainBodyWidth,
       forwardAngle,
+    };
+
+    this._strategies.skirmishers.assignOrders(
+      groups.skirmishers,
+      this._game,
+      enemies,
       orders,
+      strategyContext,
     );
 
-    this._assignPositionsToFlank(
-      cavalrySplit.right,
-      formationCenter,
-      direction,
-      perpendicular,
-      mainBodyWidth / 2 + unitSpacing, // Right flank
-      lineSpacing,
-      forwardAngle,
+    this._strategies.artillery.assignOrders(
+      groups.artillery,
+      this._game,
+      enemies,
       orders,
+      strategyContext,
+    );
+
+    this._strategies.infantry.assignOrders(
+      groups.infantry,
+      this._game,
+      enemies,
+      orders,
+      strategyContext,
+    );
+
+    this._strategies.cavalry.assignOrders(
+      groups.cavalry,
+      this._game,
+      enemies,
+      orders,
+      strategyContext,
     );
 
     turnSubmission.orders = orders;
@@ -259,101 +250,6 @@ export class NapoleonicBot implements IBot {
       infantry: groups.infantry,
       cavalry: groups.cavalry,
     };
-  }
-
-  private _assignPositionsToLine(
-    units: BaseUnit[],
-    center: Vector2,
-    direction: Vector2,
-    perpendicular: Vector2,
-    forwardOffset: number,
-    spacing: number,
-    angle: number,
-    orders: AnyOrder[],
-    orderType: OrderType.Walk | OrderType.Run | OrderType.Fallback | OrderType.FireAndAdvance = OrderType.Walk,
-  ) {
-    if (units.length === 0) return;
-
-    const lineCenter = center.add(direction.scale(forwardOffset));
-    const startOffset = -((units.length - 1) * spacing) / 2;
-
-    units.forEach((unit, i) => {
-      const pos = lineCenter.add(
-        perpendicular.scale(startOffset + i * spacing),
-      );
-      const clampedPos = this._clampToMap(pos);
-      orders.push({
-        id: unit.id,
-        type: orderType,
-        path: [clampedPos.toArray()],
-        rotation: angle,
-      });
-    });
-  }
-
-  private _assignPositionsToFlank(
-    units: BaseUnit[],
-    center: Vector2,
-    direction: Vector2,
-    perpendicular: Vector2,
-    sideOffset: number,
-    spacing: number,
-    angle: number,
-    orders: AnyOrder[],
-  ) {
-    if (units.length === 0) return;
-
-    const maxRows = 2;
-    const unitsPerLine = Math.ceil(units.length / maxRows);
-    const flankStart = center.add(perpendicular.scale(sideOffset));
-
-    units.forEach((unit: BaseUnit, i: number) => {
-      const row = Math.floor(i / unitsPerLine);
-      const col = i % unitsPerLine;
-
-      // Adjust lateral position based on sideOffset (if sideOffset > 0 it's right, else it's left)
-      // We want to expand outwards from the main body.
-      const lateralDirection = sideOffset > 0 ? 1 : -1;
-      const lateralOffset = col * spacing * lateralDirection;
-
-      const pos = flankStart
-        .add(perpendicular.scale(lateralOffset))
-        .subtract(direction.scale(row * spacing));
-
-      const clampedPos = this._clampToMap(pos);
-      orders.push({
-        id: unit.id,
-        type: OrderType.Walk,
-        path: [clampedPos.toArray()],
-        rotation: angle,
-      });
-    });
-  }
-
-  private _clampToMap(pos: Vector2): Vector2 {
-    const margin = 50; // Keep units away from the very edge
-    return new Vector2(
-      Math.max(margin, Math.min(this._game.map.width - margin, pos.x)),
-      Math.max(margin, Math.min(this._game.map.height - margin, pos.y)),
-    );
-  }
-
-  private _splitIntoLines(units: BaseUnit[], maxPerLine: number): BaseUnit[][] {
-    const lines: BaseUnit[][] = [];
-    for (let i = 0; i < units.length; i += maxPerLine) {
-      lines.push(units.slice(i, i + maxPerLine));
-    }
-    return lines;
-  }
-
-  private _splitCavalry(units: BaseUnit[]) {
-    const left: BaseUnit[] = [];
-    const right: BaseUnit[] = [];
-    units.forEach((unit: BaseUnit, i: number) => {
-      if (i % 2 === 0) left.push(unit);
-      else right.push(unit);
-    });
-    return { left, right };
   }
 
   private _getMyUnits() {
