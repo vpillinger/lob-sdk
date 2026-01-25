@@ -1,7 +1,7 @@
 import { OrderType } from "@lob-sdk/types";
 import { BaseUnit } from "@lob-sdk/unit";
 import { NapoleonicBotStrategy, NapoleonicBotStrategyContext, INapoleonicBot } from "../types";
-import { calculateLinePositions, sortUnitsAlongVector, findHighGroundNearby } from "../formation-utils";
+import { calculateLinePositions, sortUnitsAlongVector, findHighGroundNearby, calculatePath } from "../formation-utils";
 
 /**
  * Strategy for artillery: always run to position, but prefer high ground 
@@ -81,7 +81,13 @@ export class ArtilleryStrategy implements NapoleonicBotStrategy {
       orders.push({
         id: unit.id,
         type: OrderType.Run,
-        path: [targetPos.toArray()],
+        path: calculatePath(
+          unit.position,
+          targetPos,
+          unit,
+          game,
+          this._bot.getGameDataManager()
+        ).map(p => p.toArray()),
         rotation: direction.angle(),
       });
 

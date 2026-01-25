@@ -5,7 +5,12 @@ import {
   NapoleonicBotStrategyContext,
   INapoleonicBot
 } from "../types";
-import { calculateLinePositions, splitIntoLines, sortUnitsAlongVector } from "../formation-utils";
+import { 
+  calculateLinePositions, 
+  splitIntoLines, 
+  sortUnitsAlongVector,
+  calculatePath 
+} from "../formation-utils";
 import { Vector2 } from "@lob-sdk/vector";
 
 /**
@@ -95,7 +100,13 @@ export class InfantryStrategy implements NapoleonicBotStrategy {
 
         let orderType: OrderType = OrderType.Walk;
         let targetFormation = "column";
-        let finalPath = [targetPos.toArray()];
+        let finalPath = calculatePath(
+          unit.position,
+          targetPos,
+          unit,
+          game,
+          this._bot.getGameDataManager()
+        ).map(p => p.toArray());
 
         if (threatenedSides >= 2) {
           targetFormation = "square";

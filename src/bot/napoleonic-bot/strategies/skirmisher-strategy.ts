@@ -1,7 +1,7 @@
 import { OrderType } from "@lob-sdk/types";
 import { BaseUnit } from "@lob-sdk/unit";
 import { NapoleonicBotStrategy, NapoleonicBotStrategyContext, INapoleonicBot } from "../types";
-import { calculateLinePositions, sortUnitsAlongVector, findCoverNearby } from "../formation-utils";
+import { calculateLinePositions, sortUnitsAlongVector, findCoverNearby, calculatePath } from "../formation-utils";
 
 /**
  * Strategy for skirmishers: dynamic based on enemies and stamina.
@@ -87,7 +87,13 @@ export class SkirmisherStrategy implements NapoleonicBotStrategy {
       orders.push({
         id: unit.id,
         type: orderType,
-        path: [targetPos.toArray()],
+        path: calculatePath(
+          unit.position,
+          targetPos,
+          unit,
+          game,
+          this._bot.getGameDataManager()
+        ).map(p => p.toArray()),
         rotation: direction.angle(),
       });
 

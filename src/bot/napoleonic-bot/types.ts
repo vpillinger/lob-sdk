@@ -2,6 +2,7 @@ import { AnyOrder, IServerGame, UnitFormationChange } from "@lob-sdk/types";
 import { BaseUnit } from "@lob-sdk/unit";
 import { Vector2 } from "@lob-sdk/vector";
 import { IBot } from "../types";
+import { GameDataManager } from "@lob-sdk/game-data-manager";
 
 /**
  * Interface for Napoleonic unit strategies.
@@ -36,4 +37,9 @@ export interface INapoleonicBot extends IBot {
    * @returns The group name (e.g., "infantry", "cavalry").
    */
   getGroup(categoryId: string): string;
+
+  /**
+   * Gets the game data manager instance.
+   */
+  getGameDataManager(): GameDataManager;
 }

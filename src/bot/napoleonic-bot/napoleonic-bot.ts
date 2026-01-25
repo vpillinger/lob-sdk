@@ -266,6 +266,13 @@ export class NapoleonicBot implements INapoleonicBot {
     return this._playerNumber;
   }
 
+  /**
+   * Gets the game data manager instance.
+   */
+  getGameDataManager(): GameDataManager {
+    return this._gameDataManager;
+  }
+
 
 
   /**

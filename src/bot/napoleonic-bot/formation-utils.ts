@@ -1,6 +1,8 @@
 import { IServerGame, TerrainType } from "@lob-sdk/types";
 import { BaseUnit } from "@lob-sdk/unit";
 import { Vector2 } from "@lob-sdk/vector";
+import { GameDataManager } from "@lob-sdk/game-data-manager";
+import { AStar } from "../../a-star";
 
 /**
  * Clamps a position to the map boundaries with a margin.
@@ -127,6 +129,8 @@ export function findHighGroundNearby(
 
   let bestX = centerX;
   let bestY = centerY;
+  const tilesX = Math.floor(game.map.width / tileSize);
+  const tilesY = Math.floor(game.map.height / tileSize);
   let maxHeight = map.heightMap[centerX]?.[centerY] ?? 0;
 
   for (let dx = -searchRadiusTiles; dx <= searchRadiusTiles; dx++) {
@@ -134,7 +138,7 @@ export function findHighGroundNearby(
       const tx = centerX + dx;
       const ty = centerY + dy;
 
-      if (tx >= 0 && tx < map.width && ty >= 0 && ty < map.height) {
+      if (tx >= 0 && tx < tilesX && ty >= 0 && ty < tilesY) {
         const height = map.heightMap[tx][ty];
         if (height > maxHeight) {
           maxHeight = height;
@@ -166,12 +170,15 @@ export function findCoverNearby(
   let bestCoverPos: Vector2 | null = null;
   let bestScore = -1; // 2 for building, 1 for forest, 0 for nothing
 
+  const tilesX = Math.floor(game.map.width / tileSize);
+  const tilesY = Math.floor(game.map.height / tileSize);
+
   for (let dx = -searchRadiusTiles; dx <= searchRadiusTiles; dx++) {
     for (let dy = -searchRadiusTiles; dy <= searchRadiusTiles; dy++) {
       const tx = centerX + dx;
       const ty = centerY + dy;
 
-      if (tx >= 0 && tx < map.width && ty >= 0 && ty < map.height) {
+      if (tx >= 0 && tx < tilesX && ty >= 0 && ty < tilesY) {
         const terrain = map.terrains[tx][ty];
         let score = 0;
         
@@ -191,4 +198,211 @@ export function findCoverNearby(
   }
 
   return bestCoverPos || pos;
+}
+
+/**
+ * Checks if a position is passable for a unit, with an optional safety radius.
+ */
+export function isPassable(
+  pos: Vector2,
+  game: IServerGame,
+  gameDataManager: GameDataManager,
+  safetyRadiusTiles: number = 0,
+): boolean {
+  const tileSize = 16;
+  const tx = Math.floor(pos.x / tileSize);
+  const ty = Math.floor(pos.y / tileSize);
+
+  const tilesX = Math.floor(game.map.width / tileSize);
+  const tilesY = Math.floor(game.map.height / tileSize);
+
+  if (tx < 0 || tx >= tilesX || ty < 0 || ty >= tilesY) {
+    return false;
+  }
+
+  // Check if primary tile is passable
+  const checkTile = (x: number, y: number) => {
+    if (x < 0 || x >= tilesX || y < 0 || y >= tilesY) return false;
+    const terrainType = game.map.terrains[x][y];
+    const terrainConfig = gameDataManager.getTerrains().find((t) => t.id === terrainType);
+    if (!terrainConfig) return false;
+    const categoryConfig = gameDataManager.getTerrainCategories()[terrainConfig.category];
+    return !categoryConfig?.impassable;
+  };
+
+  if (!checkTile(tx, ty)) return false;
+
+  // Check safety radius
+  if (safetyRadiusTiles > 0) {
+    for (let dx = -safetyRadiusTiles; dx <= safetyRadiusTiles; dx++) {
+      for (let dy = -safetyRadiusTiles; dy <= safetyRadiusTiles; dy++) {
+        if (dx === 0 && dy === 0) continue;
+        if (!checkTile(tx + dx, ty + dy)) return false;
+      }
+    }
+  }
+
+  return true;
+}
+
+/**
+ * Checks if there is a clear straight path between two positions.
+ */
+export function isPathClear(
+  start: Vector2,
+  end: Vector2,
+  game: IServerGame,
+  gameDataManager: GameDataManager,
+): boolean {
+  const diff = end.subtract(start);
+  const distance = diff.length();
+  
+  if (distance < 16) return true; // Already there or very close
+
+  const steps = Math.ceil(distance / 8); // Check every 8 pixels (half a tile)
+  const stepVec = diff.scale(1 / steps);
+
+  for (let i = 1; i <= steps; i++) {
+    const checkPos = start.add(stepVec.scale(i));
+    if (!isPassable(checkPos, game, gameDataManager, 1)) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+/**
+ * Finds the nearest passable position to a target using BFS.
+ */
+export function findReachablePosition(
+  target: Vector2,
+  game: IServerGame,
+  gameDataManager: GameDataManager,
+): Vector2 {
+  // 1. Try with safety margin (1 tile)
+  if (isPassable(target, game, gameDataManager, 1)) {
+    return target;
+  }
+
+  const tileSize = 16;
+  const centerX = Math.floor(target.x / tileSize);
+  const centerY = Math.floor(target.y / tileSize);
+
+  const tilesX = Math.floor(game.map.width / tileSize);
+  const tilesY = Math.floor(game.map.height / tileSize);
+
+  const queue: [number, number][] = [[centerX, centerY]];
+  const visited = new Set<string>();
+  visited.add(`${centerX},${centerY}`);
+
+  // Two-pass search: first for "safe" tiles, then for "any" passable tile
+  let fallbackPos: Vector2 | null = null;
+
+  // Max search range of 100 tiles total
+  let steps = 0;
+  while (queue.length > 0 && steps < 100) {
+    const [tx, ty] = queue.shift()!;
+    steps++;
+
+    const neighbors: [number, number][] = [
+      [tx + 1, ty],
+      [tx - 1, ty],
+      [tx, ty + 1],
+      [tx, ty - 1],
+      [tx + 1, ty + 1],
+      [tx - 1, ty - 1],
+      [tx + 1, ty - 1],
+      [tx - 1, ty + 1],
+    ];
+
+    for (const [nx, ny] of neighbors) {
+      if (nx < 0 || nx >= tilesX || ny < 0 || ny >= tilesY) continue;
+      const key = `${nx},${ny}`;
+      if (visited.has(key)) continue;
+
+      const pos = new Vector2(nx * tileSize + tileSize / 2, ny * tileSize + tileSize / 2);
+      
+      // Check for safety first
+      if (isPassable(pos, game, gameDataManager, 1)) {
+        return pos;
+      }
+      
+      // If not safe but passable, store as fallback
+      if (!fallbackPos && isPassable(pos, game, gameDataManager, 0)) {
+        fallbackPos = pos;
+      }
+
+      visited.add(key);
+      queue.push([nx, ny]);
+    }
+  }
+
+  return fallbackPos || target;
+}
+
+/**
+ * Calculates a path from start to end, avoiding obstacles.
+ */
+export function calculatePath(
+  start: Vector2,
+  end: Vector2,
+  unit: BaseUnit,
+  game: IServerGame,
+  gameDataManager: GameDataManager,
+): Vector2[] {
+  const tileSize = 16;
+  
+  // 1. Ensure end is reachable
+  const reachableEnd = findReachablePosition(end, game, gameDataManager);
+  
+  // 2. Optimization: Check if direct path is clear
+  if (isPathClear(start, reachableEnd, game, gameDataManager)) {
+    return [reachableEnd];
+  }
+  
+  // 3. Setup A*
+  const unitTemplate = gameDataManager.getUnitTemplateManager().getTemplate(unit.type);
+  const unitCategory = unitTemplate.category;
+  const terrainCategories = gameDataManager.getTerrainCategories();
+  const terrains = gameDataManager.getTerrains();
+
+  const tilesX = Math.floor(game.map.width / tileSize);
+  const tilesY = Math.floor(game.map.height / tileSize);
+
+  const astar = new AStar(tilesX, tilesY, (from, to) => {
+    // 1. Check destination tile passability
+    const terrainType = game.map.terrains[to.x][to.y];
+    const terrainConfig = terrains.find((t) => t.id === terrainType);
+    if (!terrainConfig) return Infinity;
+
+    const categoryConfig = terrainCategories[terrainConfig.category];
+    if (categoryConfig?.impassable) return Infinity;
+
+    // 2. Prevent diagonal clipping
+    const dx = to.x - from.x;
+    const dy = to.y - from.y;
+    // If it's a diagonal move, both horizontal/vertical neighbor tiles must be passable
+    if (dx !== 0 && dy !== 0) {
+      if (!isPassable(new Vector2(from.x * tileSize, to.y * tileSize), game, gameDataManager) ||
+          !isPassable(new Vector2(to.x * tileSize, from.y * tileSize), game, gameDataManager)) {
+        return Infinity;
+      }
+    }
+
+    const moveModifier = categoryConfig?.movementModifier?.[unitCategory] || 0;
+    // Speed factor: 1 is base, higher is faster (lower cost)
+    return 1 / (1 + moveModifier);
+  });
+
+  const startTile = { x: Math.floor(start.x / tileSize), y: Math.floor(start.y / tileSize) };
+  const endTile = { x: Math.floor(reachableEnd.x / tileSize), y: Math.floor(reachableEnd.y / tileSize) };
+
+  const path = astar.findPath(startTile, endTile);
+  if (!path) {
+    return [reachableEnd];
+  }
+
+  // 3. Convert tile path back to world coordinates
+  return path.map((p) => new Vector2(p.x * tileSize + tileSize / 2, p.y * tileSize + tileSize / 2));
 }

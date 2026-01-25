@@ -1,7 +1,7 @@
 import { OrderType } from "@lob-sdk/types";
 import { BaseUnit } from "@lob-sdk/unit";
 import { NapoleonicBotStrategy, NapoleonicBotStrategyContext, INapoleonicBot } from "../types";
-import { calculateFlankPositions, splitCavalry, sortUnitsAlongVector } from "../formation-utils";
+import { calculateFlankPositions, splitCavalry, sortUnitsAlongVector, calculatePath } from "../formation-utils";
 
 /**
  * Strategy for cavalry: flank protection.
@@ -66,7 +66,13 @@ export class CavalryStrategy implements NapoleonicBotStrategy {
       orders.push({
         id: unit.id,
         type: OrderType.Walk,
-        path: [targetPos.toArray()],
+        path: calculatePath(
+          unit.position,
+          targetPos,
+          unit,
+          game,
+          this._bot.getGameDataManager()
+        ).map(p => p.toArray()),
         rotation: direction.angle(),
       });
 
@@ -97,7 +103,13 @@ export class CavalryStrategy implements NapoleonicBotStrategy {
       orders.push({
         id: unit.id,
         type: OrderType.Walk,
-        path: [targetPos.toArray()],
+        path: calculatePath(
+          unit.position,
+          targetPos,
+          unit,
+          game,
+          this._bot.getGameDataManager()
+        ).map(p => p.toArray()),
         rotation: direction.angle(),
       });
 
