@@ -44,17 +44,62 @@ export class InfantryStrategy implements NapoleonicBotStrategy {
     }
 
     // Check composition for strict slot assignment
-    const currentIds = units.map(u => String(u.id)).sort();
-    const assignedIdsSorted = [...this._assignedUnitIds].sort();
-    const compositionChanged = currentIds.length !== assignedIdsSorted.length || 
-                                currentIds.some((id, i) => id !== assignedIdsSorted[i]);
+    const currentIds = units.map(u => String(u.id));
+    const assignedIdsSet = new Set(this._assignedUnitIds);
+    const missingIds = this._assignedUnitIds.filter(id => !currentIds.includes(id));
+    const addedIds = currentIds.filter(id => !assignedIdsSet.has(id));
 
-    if (compositionChanged) {
+    if (addedIds.length > 0 || this._assignedUnitIds.length === 0) {
       const sorted = sortUnitsAlongVector(units, perpendicular);
       this._assignedUnitIds = sorted.map(u => String(u.id));
+    } else if (missingIds.length > 0) {
+      // Units lost. Replenish front line gaps if any.
+      const oldLen = this._assignedUnitIds.length;
+      let oldUnitsPerLine = oldLen;
+      if (oldLen >= 20) oldUnitsPerLine = Math.ceil(oldLen / 2);
+
+      const frontLinePositions = calculateLinePositions(
+        new Array(oldUnitsPerLine).fill(null),
+        formationCenter,
+        direction,
+        perpendicular,
+        -InfantryStrategy.LINE_SPACING * 2,
+        InfantryStrategy.UNIT_SPACING,
+        game,
+      );
+
+      for (const mId of missingIds) {
+        const mIdx = this._assignedUnitIds.indexOf(mId);
+        if (mIdx !== -1 && mIdx < oldUnitsPerLine && frontLinePositions[mIdx]) {
+          // Gap in front line. Find closest reserve.
+          const gapPos = frontLinePositions[mIdx];
+          let bestReserveIdx = -1;
+          let minDist = Infinity;
+
+          for (let j = oldUnitsPerLine; j < oldLen; j++) {
+            const resId = this._assignedUnitIds[j];
+            const resUnit = units.find(u => String(u.id) === resId);
+            if (resUnit && !resUnit.isRouting()) {
+              const d = resUnit.position.distanceTo(gapPos);
+              if (d < minDist) {
+                minDist = d;
+                bestReserveIdx = j;
+              }
+            }
+          }
+
+          if (bestReserveIdx !== -1) {
+            // Swap ID in stable list
+            const resId = this._assignedUnitIds[bestReserveIdx];
+            this._assignedUnitIds[mIdx] = resId;
+            this._assignedUnitIds[bestReserveIdx] = mId;
+          }
+        }
+      }
+      this._assignedUnitIds = this._assignedUnitIds.filter(id => currentIds.includes(id));
     }
 
-    const sortedUnits = this._assignedUnitIds
+    let sortedUnits = this._assignedUnitIds
       .map(id => units.find(u => String(u.id) === id))
       .filter((u): u is BaseUnit => u !== undefined);
 
@@ -62,6 +107,57 @@ export class InfantryStrategy implements NapoleonicBotStrategy {
     let unitsPerLine = sortedUnits.length;
     if (sortedUnits.length >= 20) {
       unitsPerLine = Math.ceil(sortedUnits.length / 2);
+    }
+
+    // --- Routing Replenishment Logic ---
+    // If a front line unit is routing, swap it with the closest functional reserve unit.
+    if (sortedUnits.length > unitsPerLine) {
+      const frontLinePositions = calculateLinePositions(
+        sortedUnits.slice(0, unitsPerLine),
+        formationCenter,
+        direction,
+        perpendicular,
+        -InfantryStrategy.LINE_SPACING * 2,
+        InfantryStrategy.UNIT_SPACING,
+        game,
+      );
+
+      for (let i = 0; i < unitsPerLine; i++) {
+        const unit = sortedUnits[i];
+        if (unit.isRouting()) {
+          const gapPos = frontLinePositions[i];
+          let bestReserveIdx = -1;
+          let minDist = Infinity;
+
+          for (let j = unitsPerLine; j < sortedUnits.length; j++) {
+            const resUnit = sortedUnits[j];
+            if (!resUnit.isRouting()) {
+              const d = resUnit.position.distanceTo(gapPos);
+              if (d < minDist) {
+                minDist = d;
+                bestReserveIdx = j;
+              }
+            }
+          }
+
+          if (bestReserveIdx !== -1) {
+            const idA = String(unit.id);
+            const idB = String(sortedUnits[bestReserveIdx].id);
+            const idxA = this._assignedUnitIds.indexOf(idA);
+            const idxB = this._assignedUnitIds.indexOf(idB);
+
+            if (idxA !== -1 && idxB !== -1) {
+              this._assignedUnitIds[idxA] = idB;
+              this._assignedUnitIds[idxB] = idA;
+              
+              // Local swap for current frame
+              const temp = sortedUnits[i];
+              sortedUnits[i] = sortedUnits[bestReserveIdx];
+              sortedUnits[bestReserveIdx] = temp;
+            }
+          }
+        }
+      }
     }
 
     const infantryLines = splitIntoLines(sortedUnits, unitsPerLine);
