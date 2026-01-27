@@ -1,8 +1,9 @@
-import { OrderType } from "@lob-sdk/types";
+import { EntityId, OrderType } from "@lob-sdk/types";
 import { BaseUnit } from "@lob-sdk/unit";
 import { NapoleonicBotStrategy, NapoleonicBotStrategyContext, INapoleonicBot } from "../types";
 import { calculateLinePositions, sortUnitsAlongVector, findPreferredTerrain, calculatePath } from "../formation-utils";
 import { TerrainCategoryType } from "@lob-sdk/types";
+import { KeyedList } from "@lob-sdk/data-structures";
 
 /**
  * Strategy for artillery: always run to position, but prefer high ground 
@@ -11,7 +12,7 @@ import { TerrainCategoryType } from "@lob-sdk/types";
 export class ArtilleryStrategy implements NapoleonicBotStrategy {
   private static readonly UNIT_SPACING = 60; // 40 * 1.5
   private static readonly LINE_SPACING = 32;
-  private _assignedUnitIds: string[] = [];
+  private _assignedUnits = new KeyedList<EntityId, BaseUnit>();
 
   constructor(private _bot: INapoleonicBot) {}
 
@@ -29,25 +30,12 @@ export class ArtilleryStrategy implements NapoleonicBotStrategy {
       perpendicular, 
     } = context;
 
-    if (units.length === 0) {
-      this._assignedUnitIds = [];
-      return;
+    if (this._assignedUnits.hasCompositionChanged(units, u => u.id)) {
+      this._assignedUnits.setOrder(sortUnitsAlongVector(units, perpendicular).map(u => u.id));
     }
+    this._assignedUnits.sync(units, u => u.id);
 
-    // Check composition for strict slot assignment
-    const currentIds = units.map(u => String(u.id)).sort();
-    const assignedIdsSorted = [...this._assignedUnitIds].sort();
-    const compositionChanged = currentIds.length !== assignedIdsSorted.length || 
-                                currentIds.some((id, i) => id !== assignedIdsSorted[i]);
-
-    if (compositionChanged) {
-      const sorted = sortUnitsAlongVector(units, perpendicular);
-      this._assignedUnitIds = sorted.map(u => String(u.id));
-    }
-
-    const sortedUnits = this._assignedUnitIds
-      .map(id => units.find(u => String(u.id) === id))
-      .filter((u): u is BaseUnit => u !== undefined);
+    const sortedUnits = this._assignedUnits.getValues();
 
     const baseTargetPositions = calculateLinePositions(
       sortedUnits,

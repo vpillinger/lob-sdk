@@ -19,6 +19,7 @@ import {
   INapoleonicBot,
 } from "./types";
 import { splitIntoLines } from "./formation-utils";
+import { medianPoint } from "../../utils/utils";
 
 /**
  * A bot implementation for Napoleonic era gameplay.
@@ -129,7 +130,9 @@ export class NapoleonicBot implements INapoleonicBot {
     let targetObjectivePos: Vector2 | null = null;
     let enemyBigObjectivePos: Vector2 | null = null;
 
-    const myCentroid = Vector2.center(myUnits.map((u: BaseUnit) => u.position));
+    const myCentroid = Vector2.fromPoint(
+      medianPoint(myUnits.map((u: BaseUnit) => u.position))
+    );
 
     const enemyBigObjective = this.getClosestEnemyBigObjective(myCentroid);
     if (enemyBigObjective) {
@@ -155,7 +158,9 @@ export class NapoleonicBot implements INapoleonicBot {
     if (isWinningBig && targetObjectivePos) {
       enemyTargetPos = targetObjectivePos;
     } else if (enemies.length > 0) {
-      enemyTargetPos = Vector2.center(enemies.map((u: BaseUnit) => u.position));
+      enemyTargetPos = Vector2.fromPoint(
+        medianPoint(enemies.map((u: BaseUnit) => u.position))
+      );
     } else {
       enemyTargetPos = new Vector2(
         this._game.map.width / 2,

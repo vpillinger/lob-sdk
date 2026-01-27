@@ -110,7 +110,7 @@ export function sortUnitsAlongVector(units: BaseUnit[], vector: Vector2): BaseUn
     const projB = b.position.dot(normVec);
 
     if (Math.abs(projA - projB) < 1) {
-      return String(a.id).localeCompare(String(b.id));
+      return a.id - b.id;
     }
 
     return projA - projB;
