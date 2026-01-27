@@ -13,10 +13,10 @@ import { SkirmisherStrategy } from "./strategies/skirmisher-strategy";
 import { ArtilleryStrategy } from "./strategies/artillery-strategy";
 import { InfantryStrategy } from "./strategies/infantry-strategy";
 import { CavalryStrategy } from "./strategies/cavalry-strategy";
-import { 
-  NapoleonicBotStrategy, 
+import {
+  NapoleonicBotStrategy,
   NapoleonicBotStrategyContext,
-  INapoleonicBot
+  INapoleonicBot,
 } from "./types";
 import { splitIntoLines } from "./formation-utils";
 
@@ -43,7 +43,7 @@ export class NapoleonicBot implements INapoleonicBot {
     private _playerNumber: number,
   ) {
     this._team = this._game.getPlayerTeam(this._playerNumber);
-    
+
     this._strategies = {
       skirmishers: new SkirmisherStrategy(this),
       artillery: new ArtilleryStrategy(this),
@@ -77,7 +77,10 @@ export class NapoleonicBot implements INapoleonicBot {
   async play(): Promise<TurnSubmission> {
     if (this._onBotPlayScript) {
       try {
-        const result = await this._onBotPlayScript(this._game, this._playerNumber);
+        const result = await this._onBotPlayScript(
+          this._game,
+          this._playerNumber,
+        );
 
         if (result) {
           /**
@@ -109,7 +112,7 @@ export class NapoleonicBot implements INapoleonicBot {
     // Determine if we should retreat based on VP
     const myTeamVp = this._game.getTeamVictoryPoints(this._team);
     let bestEnemyVp = 0;
-    this._game.getPlayers().forEach(p => {
+    this._game.getPlayers().forEach((p) => {
       const pTeam = this._game.getPlayerTeam(p.playerNumber);
       if (pTeam !== this._team) {
         const enemyVp = this._game.getTeamVictoryPoints(pTeam);
@@ -119,24 +122,40 @@ export class NapoleonicBot implements INapoleonicBot {
       }
     });
 
-    const isLosingBadly = myTeamVp <= bestEnemyVp * 0.85;
-    let fallbackObjectivePos: Vector2 | null = null;
+    // Determine if we should retreat or advance aggressively based on VP
+    // Retreat: 20% less than the best enemy. Advance: 25% more than the best enemy.
+    const isLosingBadly = myTeamVp <= bestEnemyVp * 0.8;
+    const isWinningBig = myTeamVp >= bestEnemyVp * 1.25;
+    let targetObjectivePos: Vector2 | null = null;
+    let enemyBigObjectivePos: Vector2 | null = null;
+
+    const myCentroid = Vector2.center(myUnits.map((u: BaseUnit) => u.position));
+
+    const enemyBigObjective = this.getClosestEnemyBigObjective(myCentroid);
+    if (enemyBigObjective) {
+      enemyBigObjectivePos = enemyBigObjective.position;
+    }
 
     if (isLosingBadly) {
-      const bigObjective = this._game.getObjectives().find(o => 
-        o.team === this._team && o.type === ObjectiveType.Big
-      );
+      // Find our own big objective to retreat to
+      const bigObjective = this.getClosestAllyBigObjective(myCentroid);
       if (bigObjective) {
-        fallbackObjectivePos = bigObjective.position;
+        targetObjectivePos = bigObjective.position;
+      }
+    } else if (isWinningBig) {
+      // Find the best enemy's big objective to advance to
+      const enemyBigObjective = this.getClosestEnemyBigObjective(myCentroid);
+      if (enemyBigObjective) {
+        targetObjectivePos = enemyBigObjective.position;
       }
     }
 
-    // Determine direction towards enemy (always face the enemy)
+    // Determine direction towards enemy (always face the target)
     let enemyTargetPos: Vector2;
-    if (enemies.length > 0) {
-      enemyTargetPos = Vector2.center(
-        enemies.map((u: BaseUnit) => u.position),
-      );
+    if (isWinningBig && targetObjectivePos) {
+      enemyTargetPos = targetObjectivePos;
+    } else if (enemies.length > 0) {
+      enemyTargetPos = Vector2.center(enemies.map((u: BaseUnit) => u.position));
     } else {
       enemyTargetPos = new Vector2(
         this._game.map.width / 2,
@@ -144,9 +163,6 @@ export class NapoleonicBot implements INapoleonicBot {
       );
     }
 
-    const myCentroid = Vector2.center(
-      myUnits.map((u: BaseUnit) => u.position),
-    );
     const direction = enemyTargetPos.subtract(myCentroid).normalize();
     if (direction.isZero()) {
       return turnSubmission;
@@ -160,10 +176,13 @@ export class NapoleonicBot implements INapoleonicBot {
 
     // 3. Determine formation center
     let formationCenter: Vector2;
-    if (fallbackObjectivePos) {
+    if (isLosingBadly && targetObjectivePos) {
       // If retreating, the formation center is offset forward so the rear (at ~160) is at the objective
       const rearDepth = 160;
-      formationCenter = fallbackObjectivePos.add(direction.scale(rearDepth));
+      formationCenter = targetObjectivePos.add(direction.scale(rearDepth));
+    } else if (isWinningBig && targetObjectivePos) {
+      // If winning big, the formation center is directly the enemy objective (aggressive advance)
+      formationCenter = targetObjectivePos;
     } else {
       // Advance Logic: base the formation center on the furthest skirmisher in the direction of the enemy
       const referenceUnits =
@@ -201,6 +220,7 @@ export class NapoleonicBot implements INapoleonicBot {
       mainBodyWidth,
       forwardAngle,
       isRetreating: isLosingBadly,
+      closestEnemyObjectivePos: enemyBigObjectivePos,
     };
 
     this._strategies.skirmishers.assignOrders(
@@ -208,20 +228,11 @@ export class NapoleonicBot implements INapoleonicBot {
       strategyContext,
     );
 
-    this._strategies.artillery.assignOrders(
-      groups.artillery,
-      strategyContext,
-    );
+    this._strategies.artillery.assignOrders(groups.artillery, strategyContext);
 
-    this._strategies.infantry.assignOrders(
-      groups.infantry,
-      strategyContext,
-    );
+    this._strategies.infantry.assignOrders(groups.infantry, strategyContext);
 
-    this._strategies.cavalry.assignOrders(
-      groups.cavalry,
-      strategyContext,
-    );
+    this._strategies.cavalry.assignOrders(groups.cavalry, strategyContext);
 
     turnSubmission.orders = orders;
     turnSubmission.formationChanges = formationChanges;
@@ -238,10 +249,10 @@ export class NapoleonicBot implements INapoleonicBot {
     };
 
     units.forEach((unit) => {
-      const category = this._gameDataManager.getUnitTemplateManager().getTemplate(
-        unit.type,
-      ).category;
-      
+      const category = this._gameDataManager
+        .getUnitTemplateManager()
+        .getTemplate(unit.type).category;
+
       const groupName = this.getGroup(category);
       if (groupName && groups[groupName]) {
         groups[groupName].push(unit);
@@ -277,7 +288,7 @@ export class NapoleonicBot implements INapoleonicBot {
     // Round to nearest integer, but allow fractional costs for positive modifiers
     return cost;
   }
-  
+
   /**
    * Gets the high-level group name for a given unit category.
    * @param categoryId - The unit category ID.
@@ -302,14 +313,40 @@ export class NapoleonicBot implements INapoleonicBot {
     return this._gameDataManager;
   }
 
-
-
   /**
    * Gets the team number this bot belongs to.
    * @returns The team number.
    */
   getTeam(): number {
     return this._team;
+  }
+
+  getClosestAllyBigObjective(position: Vector2) {
+    const objectives = this._game
+      .getObjectives()
+      .filter((o) => o.team === this._team && o.type === ObjectiveType.Big);
+
+    if (objectives.length === 0) return null;
+
+    return objectives.reduce((prev, curr) => {
+      const prevDist = position.squaredDistanceTo(prev.position);
+      const currDist = position.squaredDistanceTo(curr.position);
+      return currDist < prevDist ? curr : prev;
+    });
+  }
+
+  getClosestEnemyBigObjective(position: Vector2) {
+    const objectives = this._game
+      .getObjectives()
+      .filter((o) => o.team !== this._team && o.type === ObjectiveType.Big);
+
+    if (objectives.length === 0) return null;
+
+    return objectives.reduce((prev, curr) => {
+      const prevDist = position.squaredDistanceTo(prev.position);
+      const currDist = position.squaredDistanceTo(curr.position);
+      return currDist < prevDist ? curr : prev;
+    });
   }
 
   private static readonly _CATEGORY_TO_GROUP: Record<string, string> = {

@@ -3,6 +3,7 @@ import { BaseUnit } from "@lob-sdk/unit";
 import { Vector2 } from "@lob-sdk/vector";
 import { GameDataManager } from "@lob-sdk/game-data-manager";
 import { AStar } from "../../a-star";
+import { TerrainPreference } from "./types";
 
 /**
  * Clamps a position to the map boundaries with a margin.
@@ -117,64 +118,35 @@ export function sortUnitsAlongVector(units: BaseUnit[], vector: Vector2): BaseUn
 }
 
 /**
- * Finds the highest ground point within a search radius of a starting position.
- * Useful for artillery placement.
+ * Finds the most preferred position nearby based on categories and elevation.
+ * Unified API for artillery high ground and skirmisher cover.
  */
-export function findHighGroundNearby(
+export function findPreferredTerrain(
   pos: Vector2,
   game: IServerGame,
-  searchRadiusTiles: number = 3,
-): Vector2 {
-  const tileSize = 16; // Standard for Napoleonic era
-  const map = game.map;
-  const centerX = Math.floor(pos.x / tileSize);
-  const centerY = Math.floor(pos.y / tileSize);
-
-  let bestX = centerX;
-  let bestY = centerY;
-  const tilesX = Math.floor(game.map.width / tileSize);
-  const tilesY = Math.floor(game.map.height / tileSize);
-  let maxHeight = map.heightMap[centerX]?.[centerY] ?? 0;
-
-  for (let dx = -searchRadiusTiles; dx <= searchRadiusTiles; dx++) {
-    for (let dy = -searchRadiusTiles; dy <= searchRadiusTiles; dy++) {
-      const tx = centerX + dx;
-      const ty = centerY + dy;
-
-      if (tx >= 0 && tx < tilesX && ty >= 0 && ty < tilesY) {
-        const height = map.heightMap[tx][ty];
-        if (height > maxHeight) {
-          maxHeight = height;
-          bestX = tx;
-          bestY = ty;
-        }
-      }
-    }
-  }
-
-  // Return the center of the best tile
-  return new Vector2(bestX * tileSize + tileSize / 2, bestY * tileSize + tileSize / 2);
-}
-
-/**
- * Finds the best cover (buildings, then forests) nearby a position.
- * Useful for skirmisher placement.
- */
-export function findCoverNearby(
-  pos: Vector2,
-  game: IServerGame,
-  searchRadiusTiles: number = 3,
+  gameDataManager: GameDataManager,
+  preference: TerrainPreference,
+  searchRadiusTiles: number = 4,
 ): Vector2 {
   const tileSize = 16;
   const map = game.map;
   const centerX = Math.floor(pos.x / tileSize);
   const centerY = Math.floor(pos.y / tileSize);
 
-  let bestCoverPos: Vector2 | null = null;
-  let bestScore = -1; // 2 for building, 1 for forest, 0 for nothing
-
   const tilesX = Math.floor(game.map.width / tileSize);
   const tilesY = Math.floor(game.map.height / tileSize);
+
+  let bestPos = pos;
+  let bestScore = -Infinity;
+
+  // Pre-calculate category scores for performance
+  const categoryScores = new Map<string, number>();
+  Object.entries(preference.categoryPriority).forEach(([cat, priority]) => {
+    if (priority === undefined) return;
+    // User said: lower is better, e.g. 1 is highest priority.
+    // We map 1 -> 1000, 2 -> 900, etc. (assuming priorities are 1-10)
+    categoryScores.set(cat, (11 - priority) * 100);
+  });
 
   for (let dx = -searchRadiusTiles; dx <= searchRadiusTiles; dx++) {
     for (let dy = -searchRadiusTiles; dy <= searchRadiusTiles; dy++) {
@@ -182,25 +154,67 @@ export function findCoverNearby(
       const ty = centerY + dy;
 
       if (tx >= 0 && tx < tilesX && ty >= 0 && ty < tilesY) {
-        const terrain = map.terrains[tx][ty];
-        let score = 0;
+        const checkPos = new Vector2(tx * tileSize + tileSize / 2, ty * tileSize + tileSize / 2);
         
-        // Priority: Building/City > Forest
-        if (terrain === TerrainType.Building || terrain === TerrainType.City) {
-          score = 2;
-        } else if (terrain === TerrainType.Forest || terrain === TerrainType.ForestWinter) {
-          score = 1;
+        // Skip impassable tiles
+        if (!isPassable(checkPos, game, gameDataManager)) continue;
+
+        const terrainType = map.terrains[tx][ty];
+        const category = gameDataManager.getCategoryByTerrain(terrainType);
+        
+        let score = categoryScores.get(category) || 0;
+
+        if (preference.preferHighGround) {
+          const height = map.heightMap[tx][ty] || 0;
+          // Every meter of height counts as 10 score points if high ground is preferred
+          score += height * 10;
         }
+
+        // Slight penalty for distance from ideal center to prevent unnecessary flickering
+        const distToCenter = Math.sqrt(dx * dx + dy * dy);
+        score -= distToCenter;
 
         if (score > bestScore) {
           bestScore = score;
-          bestCoverPos = new Vector2(tx * tileSize + tileSize / 2, ty * tileSize + tileSize / 2);
+          bestPos = checkPos;
         }
       }
     }
   }
 
-  return bestCoverPos || pos;
+  return bestPos;
+}
+
+/**
+ * @deprecated Use findPreferredTerrain instead
+ */
+export function findHighGroundNearby(
+  pos: Vector2,
+  game: IServerGame,
+  searchRadiusTiles: number = 3,
+): Vector2 {
+  return findPreferredTerrain(pos, game, GameDataManager.get("napoleonic"), {
+    preferHighGround: true,
+    categoryPriority: {} // No preference
+  }, searchRadiusTiles);
+}
+
+/**
+ * @deprecated Use findPreferredTerrain instead
+ */
+export function findCoverNearby(
+  pos: Vector2,
+  game: IServerGame,
+  searchRadiusTiles: number = 3,
+): Vector2 {
+  const { TerrainCategoryType } = require("@lob-sdk/types");
+  return findPreferredTerrain(pos, game, GameDataManager.get("napoleonic"), {
+    preferHighGround: false,
+    categoryPriority: {
+      [TerrainCategoryType.Building]: 1,
+      [TerrainCategoryType.Forest]: 1
+    }
+  }, searchRadiusTiles);
 }
 
 /**

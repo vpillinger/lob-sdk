@@ -1,8 +1,8 @@
-import { OrderType } from "@lob-sdk/types";
+import { OrderType, TerrainCategoryType } from "@lob-sdk/types";
 import { BaseUnit } from "@lob-sdk/unit";
 import { NapoleonicBotStrategy, NapoleonicBotStrategyContext, INapoleonicBot } from "../types";
 import { Vector2 } from "@lob-sdk/vector";
-import { calculateFlankPositions, splitCavalry, sortUnitsAlongVector, calculatePath } from "../formation-utils";
+import { calculateFlankPositions, splitCavalry, sortUnitsAlongVector, calculatePath, findPreferredTerrain } from "../formation-utils";
 
 /**
  * Strategy for cavalry: flank protection.
@@ -11,11 +11,11 @@ export class CavalryStrategy implements NapoleonicBotStrategy {
   private static readonly UNIT_SPACING = 40;
   private static readonly LINE_SPACING = 32;
   private static readonly REAR_OFFSET = -160; // Behind infantry
-  private static readonly CHARGE_ORG_THRESHOLD = 0.6;
   private static readonly MAX_CHARGE_DISTANCE = 600;
   private static readonly INFANTRY_LINE_RADIUS = 400;
   private static readonly MAX_CHARGERS_PER_TARGET = 2;
   private static readonly OBSTACLE_RADIUS = 40;
+  private static readonly ISOLATION_RADIUS = 250;
   private _assignedUnitIds: string[] = [];
 
   constructor(private _bot: INapoleonicBot) {}
@@ -82,7 +82,7 @@ export class CavalryStrategy implements NapoleonicBotStrategy {
           const dist = unit.position.distanceTo(enemy.position);
           if (dist > CavalryStrategy.MAX_CHARGE_DISTANCE) continue;
 
-          if (this._isPriorityTarget(enemy, formationCenter) && !this._isPathBlocked(unit, enemy, visibleEnemies)) {
+          if (this._isPriorityTarget(unit, enemy, formationCenter, visibleEnemies) && !this._isPathBlocked(unit, enemy, visibleEnemies)) {
             potentialCharges.push({ unit, target: enemy, dist });
           }
         }
@@ -112,7 +112,13 @@ export class CavalryStrategy implements NapoleonicBotStrategy {
       let targetRotation = direction.angle();
 
       if (context.isRetreating) {
-        orderType = OrderType.Fallback;
+        let movesTowardsEnemyObjective = false;
+        if (context.closestEnemyObjectivePos && targetPos) {
+          const currentDist = unit.position.distanceTo(context.closestEnemyObjectivePos);
+          const targetDist = targetPos.distanceTo(context.closestEnemyObjectivePos);
+          movesTowardsEnemyObjective = targetDist < currentDist - 1;
+        }
+        orderType = movesTowardsEnemyObjective ? OrderType.Walk : OrderType.Fallback;
       } else if (assignedTarget) {
         targetPos = assignedTarget.position;
         orderType = OrderType.Run;
@@ -126,8 +132,17 @@ export class CavalryStrategy implements NapoleonicBotStrategy {
           id: unit.id,
           type: OrderType.Run,
           targetId: assignedTarget.id,
-        } as any);
+        });
       } else {
+        if (targetPos && !context.isRetreating) {
+          targetPos = findPreferredTerrain(
+            targetPos,
+            game,
+            this._bot.getGameDataManager(),
+            this.getTerrainPreference(),
+            3
+          );
+        }
         orders.push({
           id: unit.id,
           type: orderType,
@@ -172,7 +187,13 @@ export class CavalryStrategy implements NapoleonicBotStrategy {
       let targetRotation = direction.angle();
 
       if (context.isRetreating) {
-        orderType = OrderType.Fallback;
+        let movesTowardsEnemyObjective = false;
+        if (context.closestEnemyObjectivePos && targetPos) {
+          const currentDist = unit.position.distanceTo(context.closestEnemyObjectivePos);
+          const targetDist = targetPos.distanceTo(context.closestEnemyObjectivePos);
+          movesTowardsEnemyObjective = targetDist < currentDist - 1;
+        }
+        orderType = movesTowardsEnemyObjective ? OrderType.Walk : OrderType.Fallback;
       } else if (assignedTarget) {
         targetPos = assignedTarget.position;
         orderType = OrderType.Run;
@@ -186,8 +207,17 @@ export class CavalryStrategy implements NapoleonicBotStrategy {
           id: unit.id,
           type: OrderType.Run,
           targetId: assignedTarget.id,
-        } as any);
+        });
       } else {
+        if (targetPos && !context.isRetreating) {
+          targetPos = findPreferredTerrain(
+            targetPos,
+            game,
+            this._bot.getGameDataManager(),
+            this.getTerrainPreference(),
+            3
+          );
+        }
         orders.push({
           id: unit.id,
           type: orderType,
@@ -213,7 +243,20 @@ export class CavalryStrategy implements NapoleonicBotStrategy {
     });
   }
 
-  private _isPriorityTarget(enemy: BaseUnit, formationCenter: Vector2): boolean {
+  getTerrainPreference() {
+    return {
+      preferHighGround: false,
+      categoryPriority: {
+        [TerrainCategoryType.Land]: 1,
+        [TerrainCategoryType.Path]: 1,
+        [TerrainCategoryType.Forest]: 2,
+        [TerrainCategoryType.Building]: 3,
+        [TerrainCategoryType.ShallowWater]: 4,
+      },
+    };
+  }
+
+  private _isPriorityTarget(unit: BaseUnit, enemy: BaseUnit, formationCenter: Vector2, visibleEnemies: BaseUnit[]): boolean {
     const enemyGroup = this._bot.getGroup(enemy.category);
 
     // 1. Enemy cav near infantry line
@@ -224,8 +267,34 @@ export class CavalryStrategy implements NapoleonicBotStrategy {
       }
     }
 
-    // 2. Weak enemy infantry
-    if (enemyGroup === "infantry" && enemy.getOrgProportion() <= CavalryStrategy.CHARGE_ORG_THRESHOLD) {
+    // 2. Weak enemy infantry or isolated support
+    const isWeakInfantry = enemyGroup === "infantry" && enemy.getOrgProportion() <= unit.getOrgProportion() - 0.3;
+    if (isWeakInfantry || 
+        enemyGroup === "artillery" || 
+        enemyGroup === "skirmishers") {
+      
+      if (enemy.isRouting()) {
+        // If routing, only charge if isolated from non-routing allies
+        const isSupported = visibleEnemies.some(other => {
+          if (other.id === enemy.id || other.player !== enemy.player) return false;
+          if (other.isRouting()) return false;
+          return other.position.distanceTo(enemy.position) <= CavalryStrategy.ISOLATION_RADIUS;
+        });
+
+        if (isSupported) return false;
+      } else if (enemyGroup === "artillery" || enemyGroup === "skirmishers") {
+        // If it's a healthy support unit, still check if it's isolated from main combat units
+        const isSupported = visibleEnemies.some(other => {
+          if (other.id === enemy.id || other.player !== enemy.player) return false;
+          if (other.isRouting()) return false;
+          const oGroup = this._bot.getGroup(other.category);
+          if (oGroup !== "infantry" && oGroup !== "cavalry") return false;
+          return other.position.distanceTo(enemy.position) <= CavalryStrategy.ISOLATION_RADIUS;
+        });
+        
+        if (isSupported) return false;
+      }
+      
       return true;
     }
 
@@ -237,8 +306,8 @@ export class CavalryStrategy implements NapoleonicBotStrategy {
       if (enemy.id === target.id) continue;
 
       const enemyGroup = this._bot.getGroup(enemy.category);
-      // "Solid" units: infantry with > 60% org
-      const isSolid = enemyGroup === "infantry" && enemy.getOrgProportion() > CavalryStrategy.CHARGE_ORG_THRESHOLD;
+      // "Solid" units: infantry with relative org parity or better
+      const isSolid = enemyGroup === "infantry" && enemy.getOrgProportion() > unit.getOrgProportion() - 0.3;
 
       if (isSolid) {
         const dist = this._distanceToSegment(enemy.position, unit.position, target.position);

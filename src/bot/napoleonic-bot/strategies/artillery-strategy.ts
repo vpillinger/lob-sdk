@@ -1,7 +1,8 @@
 import { OrderType } from "@lob-sdk/types";
 import { BaseUnit } from "@lob-sdk/unit";
 import { NapoleonicBotStrategy, NapoleonicBotStrategyContext, INapoleonicBot } from "../types";
-import { calculateLinePositions, sortUnitsAlongVector, findHighGroundNearby, calculatePath } from "../formation-utils";
+import { calculateLinePositions, sortUnitsAlongVector, findPreferredTerrain, calculatePath } from "../formation-utils";
+import { TerrainCategoryType } from "@lob-sdk/types";
 
 /**
  * Strategy for artillery: always run to position, but prefer high ground 
@@ -62,15 +63,24 @@ export class ArtilleryStrategy implements NapoleonicBotStrategy {
       let targetPos = baseTargetPositions[i];
       if (!targetPos) return;
 
-      // 1. High Ground Preference
-      // Search nearby for better elevation
-      targetPos = findHighGroundNearby(targetPos, game, 4); // 4 tiles radius
+      // 1. Terrain Preference
+      targetPos = findPreferredTerrain(
+        targetPos, 
+        game, 
+        this._bot.getGameDataManager(),
+        this.getTerrainPreference(),
+        4
+      );
+
+      let targetRotation = direction.angle();
 
       // 2. Stop if in range (unless retreating)
       const range = unit.getMaxRange();
-      const inRangeOfAnyEnemy = !context.isRetreating && visibleEnemies.some(
+      const nearbyEnemies = visibleEnemies.filter(
         (enemy) => unit.position.distanceTo(enemy.position) <= range
       );
+
+      const inRangeOfAnyEnemy = !context.isRetreating && nearbyEnemies.length > 0;
 
       // If we are already in range, we might want to stay put 
       // instead of moving closer to the formation center.
@@ -88,7 +98,7 @@ export class ArtilleryStrategy implements NapoleonicBotStrategy {
           game,
           this._bot.getGameDataManager()
         ).map(p => p.toArray()),
-        rotation: direction.angle(),
+        rotation: targetRotation,
       });
 
       // Target formation for artillery
@@ -100,5 +110,18 @@ export class ArtilleryStrategy implements NapoleonicBotStrategy {
         });
       }
     });
+  }
+
+  getTerrainPreference() {
+    return {
+      preferHighGround: true,
+      categoryPriority: {
+        [TerrainCategoryType.Land]: 1,
+        [TerrainCategoryType.Path]: 1,
+        [TerrainCategoryType.Forest]: 2,
+        [TerrainCategoryType.Building]: 3,
+        [TerrainCategoryType.ShallowWater]: 4,
+      },
+    };
   }
 }

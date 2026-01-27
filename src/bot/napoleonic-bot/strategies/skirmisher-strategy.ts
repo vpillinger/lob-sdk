@@ -1,13 +1,13 @@
 import { OrderType, TerrainCategoryType } from "@lob-sdk/types";
 import { BaseUnit } from "@lob-sdk/unit";
 import { NapoleonicBotStrategy, NapoleonicBotStrategyContext, INapoleonicBot } from "../types";
-import { calculateLinePositions, sortUnitsAlongVector, findCoverNearby, calculatePath } from "../formation-utils";
+import { calculateLinePositions, sortUnitsAlongVector, findPreferredTerrain, calculatePath } from "../formation-utils";
 
 /**
  * Strategy for skirmishers: dynamic based on enemies and stamina.
  */
 export class SkirmisherStrategy implements NapoleonicBotStrategy {
-  private static readonly UNIT_SPACING = 40;
+  private static readonly UNIT_SPACING = 64;
   private _assignedUnitIds: string[] = [];
 
   constructor(private _bot: INapoleonicBot) {}
@@ -71,9 +71,16 @@ export class SkirmisherStrategy implements NapoleonicBotStrategy {
         let targetPos = targetPositions[i];
         if (!targetPos) return;
 
+        let movesTowardsEnemyObjective = false;
+        if (context.closestEnemyObjectivePos) {
+          const currentDist = unit.position.distanceTo(context.closestEnemyObjectivePos);
+          const targetDist = targetPos.distanceTo(context.closestEnemyObjectivePos);
+          movesTowardsEnemyObjective = targetDist < currentDist - 1;
+        }
+
         orders.push({
           id: unit.id,
-          type: OrderType.Fallback,
+          type: movesTowardsEnemyObjective ? OrderType.Walk : OrderType.Fallback,
           path: calculatePath(
             unit.position,
             targetPos,
@@ -123,7 +130,13 @@ export class SkirmisherStrategy implements NapoleonicBotStrategy {
         if (!targetPos) return;
 
         // Prefers cover (forests, buildings) if nearby
-        targetPos = findCoverNearby(targetPos, game, 4); // 4 tiles radius
+        targetPos = findPreferredTerrain(
+          targetPos, 
+          game, 
+          gameDataManager,
+          this.getTerrainPreference(),
+          4
+        );
 
         const staminaProportion = unit.getStaminaProportion();
         const orderType = staminaProportion >= 0.75 ? OrderType.Run : OrderType.Walk;
@@ -151,5 +164,18 @@ export class SkirmisherStrategy implements NapoleonicBotStrategy {
         });
       }
     });
+  }
+
+  getTerrainPreference() {
+    return {
+      preferHighGround: false,
+      categoryPriority: {
+        [TerrainCategoryType.Building]: 1,
+        [TerrainCategoryType.Forest]: 2,
+        [TerrainCategoryType.Land]: 3,
+        [TerrainCategoryType.Path]: 3,
+        [TerrainCategoryType.ShallowWater]: 4,
+      },
+    };
   }
 }
