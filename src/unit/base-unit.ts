@@ -48,6 +48,12 @@ export abstract class BaseUnit extends Entity {
   abstract runStartUpMovement: number;
   abstract runMovement: number;
   abstract timeToRun: number;
+
+  /**
+   * Safe status updated by the organization system.
+   * This is a volatile property not shared over network.
+   */
+  isSafe: boolean = false;
   abstract runCost: number;
   abstract accumulatedRun: number;
   abstract category: UnitCategoryId;
@@ -368,6 +374,11 @@ export abstract class BaseUnit extends Entity {
     const gameDataManager = GameDataManager.get(this.era);
 
     if (this.isRunRouting()) {
+      // If the unit is routing and has reached a safe distance, it should walk.
+      if (this.isSafe) {
+        return false;
+      }
+
       return true;
     }
 
