@@ -289,7 +289,7 @@
       "end": 0.65,
       "modifier": -0.25
     },
-    "ranges": [{ "start": 85, "end": 250, "startMod": 0.1, "endMod": 0.05 }],
+    "ranges": [{ "start": 90, "end": 250, "startMod": 0.1, "endMod": 0.05 }],
     "arcHeight": 0,
     "enfiladeFire": false,
     "cannotUseAfterRun": true,
@@ -739,7 +739,7 @@
       },
       {
         "start": 69,
-        "end": 85,
+        "end": 90,
         "startMod": 2.2,
         "endMod": 1.8,
         "name": "long"
