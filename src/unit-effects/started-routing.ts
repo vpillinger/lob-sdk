@@ -30,7 +30,31 @@ export class StartedRouting extends BaseUnitEffect {
         color:
           organization.startedRoutingOrgRadiusModifier < 0 ? "red" : "green",
       },
+      {
+        label: "unitStat.orgRadius",
+        type: "text",
+        value: organization.startedRoutingOrgRadiusDistance,
+        color: "red",
+      },
+      {
+        label: "unitStat.movement",
+        type: "percentage",
+        value: organization.startedRoutingOrgRadiusDistanceRunSpeedBonus,
+        color: "green",
+      },
+      {
+        label: "unitStat.runCost",
+        type: "percentage",
+        value: organization.startedRoutingRunCostModifier,
+        color: "red",
+      },
     ];
+  }
+
+  getOrgRadiusValue(unit: BaseUnit): number {
+    const gameDataManager = GameDataManager.get(unit.era);
+    const { organization } = gameDataManager.getGameRules();
+    return organization.startedRoutingOrgRadiusDistance;
   }
 }
 
