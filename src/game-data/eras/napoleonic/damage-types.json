@@ -179,8 +179,8 @@
       "modifier": -0.25
     },
     "ranges": [{ "start": 110, "end": 250, "startMod": 0.15, "endMod": 0 }],
-    "arcHeight": 0,
-    "enfiladeFire": false,
+    "arcHeight": 0.001,
+    "enfiladeFire": true,
     "cannotUseAfterRun": true,
     "projectilePenetration": 0.75,
     "areaOfEffect": {
@@ -239,8 +239,8 @@
         "name": "long"
       }
     ],
-    "arcHeight": 0.0,
-    "enfiladeFire": false,
+    "arcHeight": 0.001,
+    "enfiladeFire": true,
     "cannotUseAfterRun": true,
     "projectilePenetration": 0.75,
     "areaOfEffect": {
@@ -290,8 +290,8 @@
       "modifier": -0.25
     },
     "ranges": [{ "start": 90, "end": 250, "startMod": 0.1, "endMod": 0.05 }],
-    "arcHeight": 0,
-    "enfiladeFire": false,
+    "arcHeight": 0.001,
+    "enfiladeFire": true,
     "cannotUseAfterRun": true,
     "projectilePenetration": 0.75,
     "areaOfEffect": {
@@ -350,8 +350,8 @@
         "name": "long"
       }
     ],
-    "arcHeight": 0,
-    "enfiladeFire": false,
+    "arcHeight": 0.001,
+    "enfiladeFire": true,
     "cannotUseAfterRun": true,
     "projectilePenetration": 0.75,
     "areaOfEffect": {
@@ -410,8 +410,8 @@
         "name": "long"
       }
     ],
-    "arcHeight": 0,
-    "enfiladeFire": false,
+    "arcHeight": 0.001,
+    "enfiladeFire": true,
     "cannotUseAfterRun": false,
     "projectilePenetration": 0.75,
     "areaOfEffect": {
@@ -470,7 +470,7 @@
         "name": "long"
       }
     ],
-    "arcHeight": 0,
+    "arcHeight": 0.001,
     "enfiladeFire": true,
     "cannotUseAfterRun": false,
     "projectilePenetration": 0.75,
