@@ -46,7 +46,7 @@
   },
   "objectives": {
     "radius": 64,
-    "pressureThreshold": 0.3
+    "pressureThreshold": 0.41
   },
   "organization": {
     "speedModifier": -0.15,

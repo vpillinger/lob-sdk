@@ -920,7 +920,7 @@
         "endMod": 0.75
       }
     ],
-    "arcHeight": 0.75,
+    "arcHeight": 0,
     "cannotUseAfterRun": true,
     "projectilePenetration": 0.75,
     "areaOfEffect": {
