@@ -1,4 +1,4 @@
-import { IServerGame, TerrainType } from "@lob-sdk/types";
+import { IServerGame } from "@lob-sdk/types";
 import { BaseUnit } from "@lob-sdk/unit";
 import { Vector2 } from "@lob-sdk/vector";
 import { GameDataManager } from "@lob-sdk/game-data-manager";
