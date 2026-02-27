@@ -1,6 +1,6 @@
 import {
   DynamicBattleType,
-  GameTurnTimeLimit,
+  GameTimePresetId,
   ScenarioName,
   SkinTier,
   TeamSize,
@@ -664,7 +664,7 @@ export interface MapSizeTemplate {
 export interface MatchmakingPreset {
   id: string;
   image: string;
-  turnTimeLimits: GameTurnTimeLimit[];
+  gameTimePresets: GameTimePresetId[];
   scenarios: string[];
   dynamicBattleTypes: DynamicBattleType[];
   teamSizes: TeamSize[];

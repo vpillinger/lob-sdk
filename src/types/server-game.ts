@@ -192,6 +192,12 @@ export interface GameData {
   turnTimeLimit: number;
 
   /**
+   * The Fischer preset used for this game. null for legacy games created
+   * before the Fischer preset system.
+   */
+  gameTimePresetId?: string | null;
+
+  /**
    * Fischer timing: initial time bank in seconds per player.
    * 0 means Fischer timing is disabled (legacy mode).
    */
@@ -1066,6 +1072,8 @@ export interface ServerGameProps {
   turnStartedTime: number;
   /** Turn duration limit in seconds. */
   turnTimeLimit: number;
+  /** Fischer preset ID, null for legacy games. */
+  gameTimePresetId?: string | null;
   /** Fischer timing: initial time bank in seconds. 0 = disabled (legacy). */
   initialTimeBankSeconds?: number;
   /** Fischer timing: increment added to bank per turn. */
