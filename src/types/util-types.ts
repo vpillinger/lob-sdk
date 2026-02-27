@@ -12,6 +12,7 @@ export enum GameTurnTimeLimit {
   TwoMinutes = "2m",
   ThreeMinutes = "3m",
   FiveMinutes = "5m",
+  TenMinutes = "10m",
   OneDay = "1d",
   ThreeDays = "3d",
   SevenDays = "7d",

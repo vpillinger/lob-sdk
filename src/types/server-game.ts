@@ -191,6 +191,29 @@ export interface GameData {
    */
   turnTimeLimit: number;
 
+  /**
+   * Fischer timing: initial time bank in seconds per player.
+   * 0 means Fischer timing is disabled (legacy mode).
+   */
+  initialTimeBankSeconds?: number;
+
+  /**
+   * Fischer timing: seconds added to a player's bank after each submitted turn.
+   * 0 means no increment (pure time-bank mode).
+   */
+  incrementSeconds?: number;
+
+  /**
+   * Fischer timing: maximum time bank in seconds (bank cannot exceed this).
+   */
+  maxTimeBankSeconds?: number;
+
+  /**
+   * Fischer timing: maximum wall-clock seconds for a single turn in fast games.
+   * null means no per-turn cap (daily/correspondence games).
+   */
+  turnCapSeconds?: number | null;
+
   /** Dynamic battle type configuration, if applicable. */
   dynamicBattleType: DynamicBattleType | null;
   /** Maximum number of turns before the game ends. */
@@ -1043,6 +1066,14 @@ export interface ServerGameProps {
   turnStartedTime: number;
   /** Turn duration limit in seconds. */
   turnTimeLimit: number;
+  /** Fischer timing: initial time bank in seconds. 0 = disabled (legacy). */
+  initialTimeBankSeconds?: number;
+  /** Fischer timing: increment added to bank per turn. */
+  incrementSeconds?: number;
+  /** Fischer timing: maximum allowed time bank. */
+  maxTimeBankSeconds?: number;
+  /** Fischer timing: per-turn wall-clock cap for fast games. null = no cap. */
+  turnCapSeconds?: number | null;
   /** Whether the game has started. */
   started: boolean;
   /** Whether the game has finished. */
