@@ -1,6 +1,6 @@
+import { GameTimePresetId } from "@lob-sdk/game-time-preset";
 import {
   DynamicBattleType,
-  GameTimePresetId,
   ScenarioName,
   SkinTier,
   TeamSize,

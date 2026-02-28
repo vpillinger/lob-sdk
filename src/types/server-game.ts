@@ -30,6 +30,7 @@ import { Point2, Vector2 } from "@lob-sdk/vector";
 import { BaseUnit } from "@lob-sdk/unit";
 import { BaseVpService } from "@lob-sdk/vp-service";
 import { BaseObjective } from "@lob-sdk/objective";
+import { GameTimePresetId } from "@lob-sdk/game-time-preset";
 
 /**
  * A unique identifier for game entities (units, objectives, etc.).
@@ -180,45 +181,16 @@ export interface GameData {
   ranked: boolean;
   /** Reason why the game ended, if finished. */
   endReason: GameEndReason | null;
-
   /**
    * Timestamp in seconds for the start of the current turn.
    */
   turnStartedTime: number;
 
   /**
-   * Turn duration limit in seconds.
-   */
-  turnTimeLimit: number;
-
-  /**
    * The Fischer preset used for this game. null for legacy games created
    * before the Fischer preset system.
    */
-  gameTimePresetId?: string | null;
-
-  /**
-   * Fischer timing: initial time bank in seconds per player.
-   * 0 means Fischer timing is disabled (legacy mode).
-   */
-  initialTimeBankSeconds?: number;
-
-  /**
-   * Fischer timing: seconds added to a player's bank after each submitted turn.
-   * 0 means no increment (pure time-bank mode).
-   */
-  incrementSeconds?: number;
-
-  /**
-   * Fischer timing: maximum time bank in seconds (bank cannot exceed this).
-   */
-  maxTimeBankSeconds?: number;
-
-  /**
-   * Fischer timing: maximum wall-clock seconds for a single turn in fast games.
-   * null means no per-turn cap (daily/correspondence games).
-   */
-  turnCapSeconds?: number | null;
+  gameTimePresetId: GameTimePresetId;
 
   /** Dynamic battle type configuration, if applicable. */
   dynamicBattleType: DynamicBattleType | null;
@@ -1070,18 +1042,14 @@ export interface ServerGameProps {
   players: Player[];
   /** Timestamp (milliseconds) when the current turn started. */
   turnStartedTime: number;
-  /** Turn duration limit in seconds. */
-  turnTimeLimit: number;
-  /** Fischer preset ID, null for legacy games. */
-  gameTimePresetId?: string | null;
-  /** Fischer timing: initial time bank in seconds. 0 = disabled (legacy). */
-  initialTimeBankSeconds?: number;
-  /** Fischer timing: increment added to bank per turn. */
+  /** Fischer preset ID */
+  gameTimePresetId: GameTimePresetId;
+  /** Fischer timing: time bank per player (initial + ceiling). 0 = disabled. */
+  bankTimeSeconds?: number;
+  /** Fischer timing: increment added to bank per turn. 0 = no increment. */
   incrementSeconds?: number;
-  /** Fischer timing: maximum allowed time bank. */
-  maxTimeBankSeconds?: number;
-  /** Fischer timing: per-turn wall-clock cap for fast games. null = no cap. */
-  turnCapSeconds?: number | null;
+  /** Fischer timing: per-turn wall-clock cap for fast games. 0 = no cap. */
+  turnCapSeconds?: number;
   /** Whether the game has started. */
   started: boolean;
   /** Whether the game has finished. */

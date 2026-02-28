@@ -29,7 +29,7 @@ export interface Player {
   discordId?: string;
   discordUsername?: string;
   countryCode?: string;
-  /** Current Fischer time bank in seconds. Starts at initialTimeBankSeconds and updates after each turn. */
+  /** Current Fischer time bank in seconds. Starts at bankTimeSeconds and updates after each turn. */
   currentTimeBankSeconds?: number;
 }
 
