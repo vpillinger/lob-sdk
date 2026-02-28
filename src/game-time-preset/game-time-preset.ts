@@ -104,6 +104,26 @@ export class GameTimePresetManager {
   public getPresetIds(): GameTimePresetId[] {
     return Array.from(this._presets.keys());
   }
+
+  public getFastPresets(): GameTimePresetId[] {
+    const result: GameTimePresetId[] = [];
+    for (const [id, preset] of this._presets.entries()) {
+      if (preset.gameSpeed === GameSpeed.Fast) {
+        result.push(id);
+      }
+    }
+    return result;
+  }
+
+  public getSlowPresets(): GameTimePresetId[] {
+    const result: GameTimePresetId[] = [];
+    for (const [id, preset] of this._presets.entries()) {
+      if (preset.gameSpeed === GameSpeed.Slow) {
+        result.push(id);
+      }
+    }
+    return result;
+  }
 }
 
 export enum GameSpeed {
