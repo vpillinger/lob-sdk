@@ -1,11 +1,12 @@
 /** Game time preset IDs — config is the source of truth in @common/game-time-presets */
 export type GameTimePresetId =
+  | "bullet"
   | "blitz"
   | "rapid"
-  | "strategic"
-  | "active"
-  | "standard"
-  | "epic";
+  | "daily"
+  | "correspondence"
+  | "marathon"
+  | "offline";
 
 /**
  * Game time presets use a Fischer timing system with three control parameters:
@@ -30,30 +31,36 @@ export interface GameTimePresetConfig {
   incrementSeconds: number;
   /** Per-turn wall-clock cap. 0 = no cap (daily presets). */
   turnCapSeconds: number;
+  /** Whether the preset is intended for offline use only (e.g. replays) and should be hidden from selection menus. */
+  isOffline?: boolean;
 }
 
 export class GameTimePresetManager {
   private static _instance: GameTimePresetManager | null = null;
   private _presets: Map<GameTimePresetId, GameTimePresetConfig> = new Map();
 
+  public static readonly DEFAULT_PRESET_ID: GameTimePresetId = "blitz";
+  public static readonly DEFAULT_FAST_PRESET_IDS: GameTimePresetId[] = ["bullet"];
+  public static readonly DEFAULT_SLOW_PRESET_IDS: GameTimePresetId[] = ["daily"];
+
   private constructor() {
     const presets: GameTimePresetConfig[] = [
       {
-        id: "blitz",
+        id: "bullet",
         gameSpeed: GameSpeed.Fast,
         bankTimeSeconds: 180, // 3 min
         incrementSeconds: 30,
         turnCapSeconds: 120, // 2 min
       },
       {
-        id: "rapid",
+        id: "blitz",
         gameSpeed: GameSpeed.Fast,
         bankTimeSeconds: 600, // 10 min
         incrementSeconds: 60,
         turnCapSeconds: 300, // 5 min
       },
       {
-        id: "strategic",
+        id: "rapid",
         gameSpeed: GameSpeed.Fast,
         bankTimeSeconds: 1800, // 30 min
         incrementSeconds: 120,
@@ -61,25 +68,33 @@ export class GameTimePresetManager {
       },
 
       {
-        id: "active",
+        id: "daily",
         gameSpeed: GameSpeed.Slow,
         bankTimeSeconds: 86400, // 1 day
         incrementSeconds: 14400, // 4 h
         turnCapSeconds: 0,
       },
       {
-        id: "standard",
+        id: "correspondence",
         gameSpeed: GameSpeed.Slow,
         bankTimeSeconds: 259200, // 3 days
         incrementSeconds: 43200, // 12 h
         turnCapSeconds: 0,
       },
       {
-        id: "epic",
+        id: "marathon",
         gameSpeed: GameSpeed.Slow,
         bankTimeSeconds: 604800, // 7 days
         incrementSeconds: 86400, // 1 day
         turnCapSeconds: 0,
+      },
+      {
+        id: "offline",
+        gameSpeed: GameSpeed.Slow,
+        bankTimeSeconds: Number.MAX_SAFE_INTEGER,
+        incrementSeconds: 0,
+        turnCapSeconds: 0,
+        isOffline: true,
       },
     ];
 
@@ -108,7 +123,7 @@ export class GameTimePresetManager {
   public getFastPresets(): GameTimePresetId[] {
     const result: GameTimePresetId[] = [];
     for (const [id, preset] of this._presets.entries()) {
-      if (preset.gameSpeed === GameSpeed.Fast) {
+      if (preset.gameSpeed === GameSpeed.Fast && !preset.isOffline) {
         result.push(id);
       }
     }
@@ -118,7 +133,7 @@ export class GameTimePresetManager {
   public getSlowPresets(): GameTimePresetId[] {
     const result: GameTimePresetId[] = [];
     for (const [id, preset] of this._presets.entries()) {
-      if (preset.gameSpeed === GameSpeed.Slow) {
+      if (preset.gameSpeed === GameSpeed.Slow && !preset.isOffline) {
         result.push(id);
       }
     }
