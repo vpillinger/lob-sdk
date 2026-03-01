@@ -49,22 +49,22 @@ export class GameTimePresetManager {
         id: "bullet",
         gameSpeed: GameSpeed.Fast,
         bankTimeSeconds: 180, // 3 min
-        incrementSeconds: 30,
-        turnCapSeconds: 120, // 2 min
+        incrementSeconds: 45,
+        turnCapSeconds: 90, // 1:30 min
       },
       {
         id: "blitz",
         gameSpeed: GameSpeed.Fast,
-        bankTimeSeconds: 600, // 10 min
-        incrementSeconds: 60,
-        turnCapSeconds: 300, // 5 min
+        bankTimeSeconds: 300, // 5 min
+        incrementSeconds: 90,
+        turnCapSeconds: 180, // 3 min
       },
       {
         id: "rapid",
         gameSpeed: GameSpeed.Fast,
-        bankTimeSeconds: 1800, // 30 min
-        incrementSeconds: 120,
-        turnCapSeconds: 900, // 15 min
+        bankTimeSeconds: 360, // 6 min
+        incrementSeconds: 150,
+        turnCapSeconds: 240, // 4 min
       },
 
       {
