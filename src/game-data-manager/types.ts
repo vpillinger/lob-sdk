@@ -191,7 +191,7 @@ export interface GameConstants {
   EFFECT_HAS_RAN_TICKS: number;
   EFFECT_STARTED_ROUTING_TICKS: number;
 
-  DEPLOYMENT_TURN_ADDITIONAL_SECONDS: number;
+
   /**
    * Maximum angle (in degrees) between a unit's movement direction and the direction
    * toward another unit for the collision to be considered "head-on".
