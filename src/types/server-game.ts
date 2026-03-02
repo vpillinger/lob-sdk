@@ -1050,6 +1050,8 @@ export interface ServerGameProps {
   incrementSeconds?: number;
   /** Fischer timing: per-turn wall-clock cap for fast games. 0 = no cap. */
   turnCapSeconds?: number;
+  /** Deployment turn wall-clock cap. If defined, Fischer timing is bypassed for turn 0. */
+  deploymentTimeSeconds?: number;
   /** Whether the game has started. */
   started: boolean;
   /** Whether the game has finished. */

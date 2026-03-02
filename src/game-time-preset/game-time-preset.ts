@@ -31,6 +31,8 @@ export interface GameTimePresetConfig {
   incrementSeconds: number;
   /** Per-turn wall-clock cap. 0 = no cap (daily presets). */
   turnCapSeconds: number;
+  /** Optional turn cap for the deployment turn (turn 0). If defined, Fischer timing is bypassed for that turn. */
+  deploymentTimeSeconds?: number;
   /** Whether the preset is intended for offline use only (e.g. replays) and should be hidden from selection menus. */
   isOffline?: boolean;
 }
