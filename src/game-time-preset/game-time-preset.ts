@@ -1,3 +1,7 @@
+const SECONDS_PER_MINUTE = 60;
+const SECONDS_PER_HOUR = 3600;
+const SECONDS_PER_DAY = 86400;
+
 /** Game time preset IDs — config is the source of truth in @common/game-time-presets */
 export type GameTimePresetId =
   | "bullet"
@@ -158,9 +162,6 @@ export const getPresetTurnDurationSeconds = (id: GameTimePresetId): number => {
   return preset.turnCapSeconds || preset.bankTimeSeconds;
 };
 
-const SECONDS_PER_MINUTE = 60;
-const SECONDS_PER_HOUR = 3600;
-const SECONDS_PER_DAY = 86400;
 
 /** Converts seconds to a compact, human-readable label for preset cards. */
 export const formatPresetTime = (seconds: number): string => {
