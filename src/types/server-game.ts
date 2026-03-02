@@ -1045,11 +1045,11 @@ export interface ServerGameProps {
   /** Fischer preset ID */
   gameTimePresetId: GameTimePresetId;
   /** Fischer timing: time bank per player (initial + ceiling). 0 = disabled. */
-  bankTimeSeconds?: number;
+  bankTimeSeconds: number;
   /** Fischer timing: increment added to bank per turn. 0 = no increment. */
-  incrementSeconds?: number;
+  incrementSeconds: number;
   /** Fischer timing: per-turn wall-clock cap for fast games. 0 = no cap. */
-  turnCapSeconds?: number;
+  turnCapSeconds: number;
   /** Deployment turn wall-clock cap. If defined, Fischer timing is bypassed for turn 0. */
   deploymentTimeSeconds?: number;
   /** Whether the game has started. */
