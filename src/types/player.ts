@@ -29,7 +29,10 @@ export interface Player {
   discordId?: string;
   discordUsername?: string;
   countryCode?: string;
-  /** Current Fischer time bank in seconds. Starts at bankTimeSeconds and updates after each turn. */
+  /** 
+   * Current Fischer time bank in seconds. Optional to save network data; 
+   * omitted if bank time is disabled or not available in the current context. 
+   */
   currentTimeBankSeconds?: number;
 }
 
@@ -61,7 +64,10 @@ export interface PlayerInfo {
   unitsGained: UnitCounts | null;
   ammoReserve: number;
   baseAmmoReserve: number;
-  /** Fischer timing: current remaining time bank (optional; not always available in display contexts). */
+  /** 
+   * Fischer timing: current remaining time bank. Optional to save network data; 
+   * omitted if bank time is disabled or not available in the current context. 
+   */
   currentTimeBankSeconds?: number;
   countryCode?: string;
 }
