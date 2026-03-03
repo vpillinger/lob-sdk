@@ -30,7 +30,7 @@ import { Point2, Vector2 } from "@lob-sdk/vector";
 import { BaseUnit } from "@lob-sdk/unit";
 import { BaseVpService } from "@lob-sdk/vp-service";
 import { BaseObjective } from "@lob-sdk/objective";
-import { GameTimePresetId } from "@lob-sdk/game-time-preset";
+import { GameTimePresetId, GameTimePreset } from "@lob-sdk/game-time-preset";
 
 /**
  * A unique identifier for game entities (units, objectives, etc.).
@@ -1042,16 +1042,8 @@ export interface ServerGameProps {
   players: Player[];
   /** Timestamp (milliseconds) when the current turn started. */
   turnStartedTime: number;
-  /** Fischer preset ID */
-  gameTimePresetId: GameTimePresetId;
-  /** Fischer timing: time bank per player (initial + ceiling). 0 = disabled. */
-  bankTimeSeconds: number;
-  /** Fischer timing: increment added to bank per turn. 0 = no increment. */
-  incrementSeconds: number;
-  /** Fischer timing: per-turn wall-clock cap for fast games. 0 = no cap. */
-  turnCapSeconds: number;
-  /** Deployment turn wall-clock cap. If defined, Fischer timing is bypassed for turn 0. */
-  deploymentTimeSeconds?: number;
+  /** Fischer preset */
+  timePreset: GameTimePreset;
   /** Whether the game has started. */
   started: boolean;
   /** Whether the game has finished. */

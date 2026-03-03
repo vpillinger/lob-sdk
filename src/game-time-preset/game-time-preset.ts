@@ -26,7 +26,7 @@ export type GameTimePresetId =
  *    a player with a large bank from taking an extremely long single turn.
  *    `0` means no cap (used by daily/correspondence presets).
  */
-export interface GameTimePresetConfig {
+export interface GameTimePreset {
   id: GameTimePresetId;
   gameSpeed: GameSpeed;
   /** Starting bank per player; also the maximum the bank can reach after increments. */
@@ -43,14 +43,14 @@ export interface GameTimePresetConfig {
 
 export class GameTimePresetManager {
   private static _instance: GameTimePresetManager | null = null;
-  private _presets: Map<GameTimePresetId, GameTimePresetConfig> = new Map();
+  private _presets: Map<GameTimePresetId, GameTimePreset> = new Map();
 
   public static readonly DEFAULT_PRESET_ID: GameTimePresetId = "blitz";
   public static readonly DEFAULT_FAST_PRESET_IDS: GameTimePresetId[] = ["bullet"];
   public static readonly DEFAULT_SLOW_PRESET_IDS: GameTimePresetId[] = ["daily"];
 
   private constructor() {
-    const presets: GameTimePresetConfig[] = [
+    const presets: GameTimePreset[] = [
       {
         id: "bullet",
         gameSpeed: GameSpeed.Fast,
@@ -114,11 +114,11 @@ export class GameTimePresetManager {
     return this._instance;
   }
 
-  public get(id: GameTimePresetId): GameTimePresetConfig {
+  public get(id: GameTimePresetId): GameTimePreset {
     return this._presets.get(id)!;
   }
 
-  public tryGet(id: GameTimePresetId): GameTimePresetConfig | null {
+  public tryGet(id: GameTimePresetId): GameTimePreset | null {
     return this._presets.get(id) ?? null;
   }
 
