@@ -8,7 +8,7 @@ import {
   UnitType,
 } from "@lob-sdk/types";
 
-export type GameEra = "napoleonic" | "ww2";
+export type GameEra = "napoleonic" | "ww2" | "rome";
 
 export type DamageTypeId = number;
 export type DamageTypeName = string;

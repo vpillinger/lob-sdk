@@ -1,0 +1,13 @@
+[
+  {
+    "id": "line",
+    "frontBackArc": 160,
+    "collisionCircles": 1,
+    "collisionCircleSize": 20,
+    "checkPoints": [
+      { "x": 0, "y": 0, "weight": 1 }
+    ],
+    "shootingAngle": 100,
+    "shootingMaxTargets": 1
+  }
+]

@@ -101,6 +101,22 @@ import ww2BattleOfMoscow from "@lob-sdk/game-data/eras/ww2/scenarios/battle-of-m
 import ww2Fields from "@lob-sdk/game-data/eras/ww2/scenarios/fields.json";
 import ww2France from "@lob-sdk/game-data/eras/ww2/scenarios/battle-of-france.json";
 
+import romeBattleTypes from "@lob-sdk/game-data/eras/rome/battle-types.json";
+import romeOrders from "@lob-sdk/game-data/eras/rome/orders.json";
+import romeUnitTemplates from "@lob-sdk/game-data/eras/rome/unit-templates.json";
+import romeGameConstants from "@lob-sdk/game-data/eras/rome/game-constants.json";
+import romeAvatars from "@lob-sdk/game-data/eras/rome/avatars.json";
+import romeDamageTypes from "@lob-sdk/game-data/eras/rome/damage-types.json";
+import romeTerrains from "@lob-sdk/game-data/eras/rome/terrains.json";
+import romeTerrainCategories from "@lob-sdk/game-data/eras/rome/terrain-categories.json";
+import romeObjectiveSkins from "@lob-sdk/game-data/eras/rome/objective-skins.json";
+import romeUnitCategories from "@lob-sdk/game-data/eras/rome/unit-categories.json";
+import romeUnitSkins from "@lob-sdk/game-data/eras/rome/unit-skins.json";
+import romeGameRules from "@lob-sdk/game-data/eras/rome/game-rules.json";
+import romeFormations from "@lob-sdk/game-data/eras/rome/formations.json";
+import romeMapSizes from "@lob-sdk/game-data/eras/rome/map-sizes.json";
+import romeMatchmakingPresets from "@lob-sdk/game-data/eras/rome/matchmaking-presets.json";
+
 // Shared
 import gameConstantCategories from "@lob-sdk/game-data/shared/game-constant-categories.json";
 import { FormationTemplate, OrderTemplate, OrderType } from "@lob-sdk/types";
@@ -336,6 +352,33 @@ export class GameDataManager {
           "battle-of-france": ww2France as GameScenario,
           "battle-of-moscow": ww2BattleOfMoscow as GameScenario,
         };
+
+        break;
+      case "rome":
+        this._orders = romeOrders as OrderTemplate[];
+        this.battleTypes = romeBattleTypes as unknown as Record<
+          DynamicBattleType,
+          BattleTypeTemplate
+        >;
+        this._unitTemplateManager.load(
+          romeUnitTemplates as unknown as UnitTemplate[]
+        );
+        this.gameConstants = romeGameConstants as unknown as GameConstants;
+        this.avatars = romeAvatars as Avatar[];
+        this.damageTypes = romeDamageTypes as DamageTypeTemplate[];
+        this.terrains = romeTerrains as unknown as GameDataManager["terrains"];
+        this.terrainCategories =
+          romeTerrainCategories as unknown as GameDataManager["terrainCategories"];
+        this.objectiveSkins = romeObjectiveSkins as ObjectiveSkin[];
+        this.unitCategories = romeUnitCategories as UnitCategoryTemplate[];
+        this.unitSkins = romeUnitSkins as unknown as UnitSkin[];
+        this.gameRules = romeGameRules as unknown as GameRules;
+        this._formationManager.load(romeFormations as FormationTemplate[]);
+        this.mapSizes =
+          romeMapSizes as unknown as Record<Size, MapSizeTemplate>;
+        this.matchmakingPresets =
+          romeMatchmakingPresets as unknown as MatchmakingPresetsData;
+        this.scenarios = {};
 
         break;
       default:
@@ -701,7 +744,7 @@ export class GameDataManager {
    * Get all available eras
    */
   static getAvailableEras(): GameEra[] {
-    return ["napoleonic", "ww2"];
+    return ["rome", "napoleonic", "ww2"];
   }
 
   // Damage type methods (moved from DamageTypeService)

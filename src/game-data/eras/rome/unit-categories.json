@@ -1,0 +1,90 @@
+[
+  {
+    "id": "infantry",
+    "deploymentSection": "center",
+    "firingAltitude": 0.9,
+    "captureSpeed": 2.0,
+    "allyCollisionLevel": 2,
+    "enemyCollisionLevel": 2,
+    "routingBehavior": {
+      "baseSpeed": "run"
+    },
+    "enfiladeFire": {
+      "damageModifier": 0.5,
+      "orgModifier": 0.25
+    },
+    "rearFire": {
+      "orgModifier": 1.5
+    },
+    "autofirePriority": {
+      "artillery": 1,
+      "skirmishInfantry": -1
+    },
+    "impactAltitude": 1.1,
+    "grazingAltitude": 2.5,
+    "allowedOrders": [
+      "walk",
+      "run",
+      "shoot",
+      "fireAndAdvance",
+      "placeEntity",
+      "fallback",
+      "rotate"
+    ]
+  },
+  {
+    "id": "archers",
+    "deploymentSection": "center",
+    "firingAltitude": 0.9,
+    "captureSpeed": 1.0,
+    "allyCollisionLevel": 2,
+    "enemyCollisionLevel": 2,
+    "routingBehavior": {
+      "baseSpeed": "run"
+    },
+    "enfiladeFire": {
+      "damageModifier": 0.5,
+      "orgModifier": 0.25
+    },
+    "rearFire": {
+      "orgModifier": 1.5
+    },
+    "autofirePriority": {
+      "artillery": 1,
+      "skirmishInfantry": -1
+    },
+    "impactAltitude": 1.1,
+    "grazingAltitude": 2.5,
+    "allowedOrders": [
+      "walk",
+      "run",
+      "shoot",
+      "fireAndAdvance",
+      "placeEntity",
+      "fallback",
+      "rotate"
+    ]
+  },
+  {
+    "id": "cavalry",
+    "deploymentSection": "flank",
+    "firingAltitude": 0.9,
+    "allyCollisionLevel": 2,
+    "enemyCollisionLevel": 2,
+    "routingBehavior": {
+      "baseSpeed": "run"
+    },
+    "damageTypeResistances": {},
+    "impactAltitude": 1.1,
+    "grazingAltitude": 2.5,
+    "allowedOrders": [
+      "walk",
+      "run",
+      "shoot",
+      "fireAndAdvance",
+      "placeEntity",
+      "fallback",
+      "rotate"
+    ]
+  }
+]
