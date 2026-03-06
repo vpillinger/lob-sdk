@@ -69,7 +69,7 @@ export const OFFLINE_TIME_SETTINGS: CustomGameTimeSettings = {
  *    `0` means no cap (used by daily/correspondence presets).
  */
 export interface GameTimePreset extends CustomGameTimeSettings {
-  id?: GameTimePresetId;
+  id: GameTimePresetId;
   /** Whether the preset is intended for offline use only (e.g. replays) and should be hidden from selection menus. */
   isOffline?: boolean;
 }
@@ -149,7 +149,7 @@ export class GameTimePresetManager {
       },
     ];
 
-    presets.forEach((p) => this._presets.set(p.id!, p));
+    presets.forEach((p) => this._presets.set(p.id, p));
   }
 
   public static getInstance(): GameTimePresetManager {
