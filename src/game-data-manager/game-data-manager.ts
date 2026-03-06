@@ -117,6 +117,11 @@ export class GameDataManager {
   readonly era: GameEra;
   private static instances: Map<GameEra, GameDataManager> = new Map();
 
+  /**
+   * Terrain is considered globally impassable (e.g., Deep Water) if the modifier is this or less.
+   */
+  public static readonly IMPASSABLE_THRESHOLD = -10;
+
   // Centralized data cache
   private battleTypes: Record<DynamicBattleType, BattleTypeTemplate> =
     {} as Record<DynamicBattleType, BattleTypeTemplate>;
@@ -386,6 +391,51 @@ export class GameDataManager {
       this._damageTypeMap.set(damageType.id, damageType);
       this._damageTypeNameMap.set(damageType.name, damageType);
     });
+
+    this.expandTerrainCategoryWildcards();
+  }
+
+  /**
+   * Expands wildcard '*' in terrain category modifiers to all unit categories.
+   */
+  private expandTerrainCategoryWildcards(): void {
+    if (!this.terrainCategories) {
+      throw new Error("Terrain Categories should be defined");
+    }
+
+    // Narrowing the keys to those that share the modifier map shape.
+    // 'as const' allows TS to know exactly which strings are in the array.
+    const modifierFields = [
+      "movementModifier",
+      "attackModifier",
+      "defenseModifier",
+      "rangedAttackModifier",
+      "chargeResistanceModifier",
+      "chargeBonusModifier",
+    ] as const;
+
+    // Using Object.values avoids the need to cast keys from 'for...in'
+    for (const category of Object.values(this.terrainCategories)) {
+      if (!category) continue;
+
+      for (const field of modifierFields) {
+        // Because all keys in 'modifierFields' map to the same type in 
+        // TerrainCategoryConfig, TS safely resolves the common return type.
+        const modifierMap = category[field];
+
+        if (modifierMap && "*" in modifierMap) {
+          const defaultValue = modifierMap["*"];
+          if (defaultValue === undefined) continue;
+
+          for (const unitCategory of this.unitCategories) {
+            // UnitCategoryId is a string, so bracket access is safe and supported.
+            if (!(unitCategory.id in modifierMap)) {
+              modifierMap[unitCategory.id] = defaultValue;
+            }
+          }
+        }
+      }
+    }
   }
 
   /**
@@ -931,12 +981,13 @@ export class GameDataManager {
   }
 
   /**
-   * Check if terrain is passable
+   * Check if terrain is passable.
+   * If no category is provided, it falls back to the supplyLines.movementCategory or "infantry".
+   * Terrain is considered impassable if the movement modifier is -10 or less.
    */
-  public isPassable(terrainType: TerrainType): boolean {
-    const category = this.getCategoryByTerrain(terrainType);
-    const terrainCategory = this.terrainCategories![category]; // This indirection on lookup is painful, becuase its done many times. Replace with direct lookup
-    return !terrainCategory?.impassable;  // these conditionals cause big-suck on performance, set defaults at initialization
+  public isPassable(terrainType: TerrainType, unitCategory: UnitCategoryId): boolean {
+    const modifier = this.getMovementModifier(terrainType, unitCategory);
+    return modifier > GameDataManager.IMPASSABLE_THRESHOLD;
   }
 
   /**
@@ -1117,5 +1168,33 @@ export class GameDataManager {
    */
   public getMatchmakingPresets(): MatchmakingPresetsData {
     return this.matchmakingPresets!;
+  }
+
+  /**
+   * Gets movement speed modifier based on current supply for mechanized units.
+   */
+  public getSupplyMovementModifier(
+    unitCategory: UnitCategoryId,
+    supply: number | null,
+    maxSupply: number | null
+  ): number {
+    const supplyLines = this.getGameRules().supplyLines;
+    if (
+      !supplyLines ||
+      !supplyLines.noSupplyMovementPenalty ||
+      supply === null ||
+      maxSupply === null ||
+      maxSupply === 0
+    ) {
+      return 0;
+    }
+
+    const penalty = supplyLines.noSupplyMovementPenalty[unitCategory];
+    if (penalty !== undefined) {
+      // Speed scales linearly based on supply proportion
+      return penalty * (1 - supply / maxSupply);
+    }
+
+    return 0;
   }
 }
