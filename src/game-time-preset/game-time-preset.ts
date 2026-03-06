@@ -13,8 +13,14 @@ export type GameTimePresetId =
   | "offline"
   | "custom";
 
+/**
+ * Classifies game time controls by typical pace.
+ * @see getGameSpeed
+ */
 export enum GameSpeed {
+  /** Short time controls (e.g. bank or turn cap under 1 day). */
   Fast = "fast",
+  /** Long time controls (e.g. daily, correspondence; bank or turn cap ≥ 1 day). */
   Slow = "slow",
 }
 
