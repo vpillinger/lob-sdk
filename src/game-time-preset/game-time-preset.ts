@@ -93,6 +93,13 @@ export class GameTimePresetManager {
   public static readonly DEFAULT_PRESET_ID: GameTimePresetId = "blitz";
   public static readonly DEFAULT_FAST_PRESET_IDS: GameTimePresetId[] = ["bullet"];
   public static readonly DEFAULT_SLOW_PRESET_IDS: GameTimePresetId[] = ["daily"];
+  /** Preset ID used when game was created with custom time values (not a named preset). */
+  public static readonly CUSTOM_PRESET_ID: GameTimePresetId = "custom";
+  /** Preset IDs that are not shown in time-preset selection (e.g. create custom game). */
+  public static readonly HIDDEN_FROM_SELECTION_IDS: readonly GameTimePresetId[] = [
+    "offline",
+    GameTimePresetManager.CUSTOM_PRESET_ID,
+  ];
 
   private constructor() {
     const presets: GameTimePreset[] = [
@@ -169,6 +176,13 @@ export class GameTimePresetManager {
 
   public getPresetIds(): GameTimePresetId[] {
     return Array.from(this._presets.keys());
+  }
+
+  /** Preset IDs that are available in time-preset selection (excludes offline, custom, etc.). */
+  public getSelectablePresetIds(): GameTimePresetId[] {
+    return this.getPresetIds().filter(
+      (id) => !GameTimePresetManager.HIDDEN_FROM_SELECTION_IDS.includes(id)
+    );
   }
 
   public getFastPresets(): GameTimePresetId[] {
