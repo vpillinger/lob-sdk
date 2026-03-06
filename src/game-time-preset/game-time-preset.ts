@@ -93,11 +93,13 @@ export class GameTimePresetManager {
   public static readonly DEFAULT_PRESET_ID: GameTimePresetId = "blitz";
   public static readonly DEFAULT_FAST_PRESET_IDS: GameTimePresetId[] = ["bullet"];
   public static readonly DEFAULT_SLOW_PRESET_IDS: GameTimePresetId[] = ["daily"];
+  /** Preset ID for offline/replay use (no time limit); hidden from selection. */
+  public static readonly OFFLINE_PRESET_ID: GameTimePresetId = "offline";
   /** Preset ID used when game was created with custom time values (not a named preset). */
   public static readonly CUSTOM_PRESET_ID: GameTimePresetId = "custom";
   /** Preset IDs that are not shown in time-preset selection (e.g. create custom game). */
   public static readonly HIDDEN_FROM_SELECTION_IDS: readonly GameTimePresetId[] = [
-    "offline",
+    GameTimePresetManager.OFFLINE_PRESET_ID,
     GameTimePresetManager.CUSTOM_PRESET_ID,
   ];
 
@@ -147,7 +149,7 @@ export class GameTimePresetManager {
         deploymentTimeSeconds: 0,
       },
       {
-        id: "offline",
+        id: GameTimePresetManager.OFFLINE_PRESET_ID,
         bankTimeSeconds: Number.MAX_SAFE_INTEGER,
         incrementSeconds: 0,
         turnCapSeconds: 0,
