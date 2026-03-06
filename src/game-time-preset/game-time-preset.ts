@@ -1,6 +1,11 @@
-const SECONDS_PER_MINUTE = 60;
-const SECONDS_PER_HOUR = 3600;
-const SECONDS_PER_DAY = 86400;
+/** Seconds per minute. */
+export const SECONDS_PER_MINUTE = 60;
+/** Seconds per hour. */
+export const SECONDS_PER_HOUR = 3600;
+/** Seconds per day (24 × 3600). */
+export const SECONDS_PER_DAY = 86400;
+/** Seconds per year (365 × 24 × 3600). Used as threshold for "no timing" / unlimited (e.g. offline). */
+export const SECONDS_PER_YEAR = 31536000;
 
 /** Game time preset IDs — config is the source of truth in @common/game-time-presets */
 export type GameTimePresetId =
@@ -25,13 +30,15 @@ export enum GameSpeed {
 }
 
 /**
- * Derives the game speed from a set of timing values.
+ * Derives the game speed from bank and turn-cap times.
  * A game is **slow** when bankTimeSeconds >= 1 day OR turnCapSeconds >= 1 day.
  * Otherwise it is **fast**.
  */
-export const getGameSpeed = (settings: CustomGameTimeSettings): GameSpeed =>
-  settings.bankTimeSeconds >= SECONDS_PER_DAY ||
-  settings.turnCapSeconds >= SECONDS_PER_DAY
+export const getGameSpeed = (
+  bankTimeSeconds: number,
+  turnCapSeconds: number
+): GameSpeed =>
+  bankTimeSeconds >= SECONDS_PER_DAY || turnCapSeconds >= SECONDS_PER_DAY
     ? GameSpeed.Slow
     : GameSpeed.Fast;
 
@@ -196,7 +203,7 @@ export class GameTimePresetManager {
   public getFastPresets(): GameTimePresetId[] {
     const result: GameTimePresetId[] = [];
     for (const [id, preset] of this._presets.entries()) {
-      if (getGameSpeed(preset) === GameSpeed.Fast && !preset.isOffline) {
+      if (getGameSpeed(preset.bankTimeSeconds, preset.turnCapSeconds) === GameSpeed.Fast && !preset.isOffline) {
         result.push(id);
       }
     }
@@ -206,7 +213,7 @@ export class GameTimePresetManager {
   public getSlowPresets(): GameTimePresetId[] {
     const result: GameTimePresetId[] = [];
     for (const [id, preset] of this._presets.entries()) {
-      if (getGameSpeed(preset) === GameSpeed.Slow && !preset.isOffline) {
+      if (getGameSpeed(preset.bankTimeSeconds, preset.turnCapSeconds) === GameSpeed.Slow && !preset.isOffline) {
         result.push(id);
       }
     }
