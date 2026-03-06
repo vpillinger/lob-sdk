@@ -30,7 +30,7 @@ import { Point2, Vector2 } from "@lob-sdk/vector";
 import { BaseUnit } from "@lob-sdk/unit";
 import { BaseVpService } from "@lob-sdk/vp-service";
 import { BaseObjective } from "@lob-sdk/objective";
-import { GameTimePresetId, GameTimePreset } from "@lob-sdk/game-time-preset";
+import { GameTimePresetId, GameTimePreset, CustomGameTimeSettings } from "@lob-sdk/game-time-preset";
 
 /**
  * A unique identifier for game entities (units, objectives, etc.).
@@ -187,10 +187,19 @@ export interface GameData {
   turnStartedTime: number;
 
   /**
-   * The Fischer preset used for this game. null for legacy games created
-   * before the Fischer preset system.
+   * The Fischer timing settings.
    */
-  gameTimePresetId: GameTimePresetId;
+  bankTimeSeconds: number;
+  incrementSeconds: number;
+  turnCapSeconds: number;
+  deploymentTimeSeconds: number;
+
+  /**
+   * @deprecated Use raw timing fields instead.
+   * The Fischer preset used for this game. null for legacy games created
+   * before the Fischer preset system or true custom games.
+   */
+  gameTimePresetId?: GameTimePresetId;
 
   /** Dynamic battle type configuration, if applicable. */
   dynamicBattleType: DynamicBattleType | null;

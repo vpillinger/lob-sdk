@@ -10,7 +10,52 @@ export type GameTimePresetId =
   | "daily"
   | "correspondence"
   | "marathon"
-  | "offline";
+  | "offline"
+  | "custom";
+
+export enum GameSpeed {
+  Fast = "fast",
+  Slow = "slow",
+}
+
+/**
+ * Derives the game speed from a set of timing values.
+ * A game is **slow** when bankTimeSeconds >= 1 day OR turnCapSeconds >= 1 day.
+ * Otherwise it is **fast**.
+ */
+export const getGameSpeed = (settings: {
+  bankTimeSeconds: number;
+  turnCapSeconds: number;
+}): GameSpeed =>
+  settings.bankTimeSeconds >= SECONDS_PER_DAY ||
+  settings.turnCapSeconds >= SECONDS_PER_DAY
+    ? GameSpeed.Slow
+    : GameSpeed.Fast;
+
+/**
+ * Four raw Fischer timing values that fully describe a game's time controls.
+ * This is the canonical representation stored in the DB and used in game settings.
+ */
+export interface CustomGameTimeSettings {
+  /** Starting bank per player; also the maximum the bank can reach after increments. */
+  bankTimeSeconds: number;
+  /** Seconds added to the bank after each submitted turn. 0 = no increment. */
+  incrementSeconds: number;
+  /** Per-turn wall-clock cap. 0 = no cap (daily presets). */
+  turnCapSeconds: number;
+  /**
+   * Optional turn cap for the deployment turn (turn 0). If defined,
+   * Fischer timing is bypassed for that turn. 0 = not set.
+   */
+  deploymentTimeSeconds: number;
+}
+
+export const OFFLINE_TIME_SETTINGS: CustomGameTimeSettings = {
+  bankTimeSeconds: Number.MAX_SAFE_INTEGER,
+  incrementSeconds: 0,
+  turnCapSeconds: 0,
+  deploymentTimeSeconds: 0,
+};
 
 /**
  * Game time presets use a Fischer timing system with three control parameters:
@@ -26,23 +71,23 @@ export type GameTimePresetId =
  *    a player with a large bank from taking an extremely long single turn.
  *    `0` means no cap (used by daily/correspondence presets).
  */
-export interface GameTimePreset {
+export interface GameTimePreset extends CustomGameTimeSettings {
   id: GameTimePresetId;
-  gameSpeed: GameSpeed;
-  /** Starting bank per player; also the maximum the bank can reach after increments. */
-  bankTimeSeconds: number;
-  /** Seconds added to the bank after each submitted turn. 0 = no increment. */
-  incrementSeconds: number;
-  /** Per-turn wall-clock cap. 0 = no cap (daily presets). */
-  turnCapSeconds: number;
-  /**
-   * Optional turn cap for the deployment turn (turn 0). If defined,
-   * Fischer timing is bypassed for that turn.
-   **/
-  deploymentTimeSeconds?: number;
   /** Whether the preset is intended for offline use only (e.g. replays) and should be hidden from selection menus. */
   isOffline?: boolean;
 }
+
+/**
+ * Synthesizes a GameTimePreset from a CustomGameTimeSettings.
+ * Used when a game was created with custom values rather than a named preset.
+ */
+export const customTimeSettingsToPreset = (
+  s: CustomGameTimeSettings,
+  id: GameTimePresetId = "custom"
+): GameTimePreset => ({
+  id,
+  ...s,
+});
 
 export class GameTimePresetManager {
   private static _instance: GameTimePresetManager | null = null;
@@ -56,53 +101,53 @@ export class GameTimePresetManager {
     const presets: GameTimePreset[] = [
       {
         id: "bullet",
-        gameSpeed: GameSpeed.Fast,
         bankTimeSeconds: 180, // 3 min
         incrementSeconds: 45,
         turnCapSeconds: 90, // 1:30 min
+        deploymentTimeSeconds: 0,
       },
       {
         id: "blitz",
-        gameSpeed: GameSpeed.Fast,
         bankTimeSeconds: 300, // 5 min
         incrementSeconds: 90,
         turnCapSeconds: 180, // 3 min
+        deploymentTimeSeconds: 0,
       },
       {
         id: "rapid",
-        gameSpeed: GameSpeed.Fast,
         bankTimeSeconds: 360, // 6 min
         incrementSeconds: 150,
         turnCapSeconds: 240, // 4 min
+        deploymentTimeSeconds: 0,
       },
 
       {
         id: "daily",
-        gameSpeed: GameSpeed.Slow,
         bankTimeSeconds: 86400, // 1 day
         incrementSeconds: 14400, // 4 h
         turnCapSeconds: 0,
+        deploymentTimeSeconds: 0,
       },
       {
         id: "correspondence",
-        gameSpeed: GameSpeed.Slow,
         bankTimeSeconds: 259200, // 3 days
         incrementSeconds: 43200, // 12 h
         turnCapSeconds: 0,
+        deploymentTimeSeconds: 0,
       },
       {
         id: "marathon",
-        gameSpeed: GameSpeed.Slow,
         bankTimeSeconds: 604800, // 7 days
         incrementSeconds: 86400, // 1 day
         turnCapSeconds: 0,
+        deploymentTimeSeconds: 0,
       },
       {
         id: "offline",
-        gameSpeed: GameSpeed.Slow,
         bankTimeSeconds: Number.MAX_SAFE_INTEGER,
         incrementSeconds: 0,
         turnCapSeconds: 0,
+        deploymentTimeSeconds: 0,
         isOffline: true,
       },
     ];
@@ -132,7 +177,7 @@ export class GameTimePresetManager {
   public getFastPresets(): GameTimePresetId[] {
     const result: GameTimePresetId[] = [];
     for (const [id, preset] of this._presets.entries()) {
-      if (preset.gameSpeed === GameSpeed.Fast && !preset.isOffline) {
+      if (getGameSpeed(preset) === GameSpeed.Fast && !preset.isOffline) {
         result.push(id);
       }
     }
@@ -142,7 +187,7 @@ export class GameTimePresetManager {
   public getSlowPresets(): GameTimePresetId[] {
     const result: GameTimePresetId[] = [];
     for (const [id, preset] of this._presets.entries()) {
-      if (preset.gameSpeed === GameSpeed.Slow && !preset.isOffline) {
+      if (getGameSpeed(preset) === GameSpeed.Slow && !preset.isOffline) {
         result.push(id);
       }
     }
@@ -201,11 +246,6 @@ export class GameTimePresetManager {
       return a.timeRemaining - b.timeRemaining;
     });
   }
-}
-
-export enum GameSpeed {
-  Fast = "fast",
-  Slow = "slow",
 }
 
 
