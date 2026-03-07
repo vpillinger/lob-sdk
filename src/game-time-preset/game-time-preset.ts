@@ -73,24 +73,14 @@ export interface GameTimePreset {
   isOffline?: boolean;
 }
 
-export const OFFLINE_TIME_SETTINGS: Omit<GameTimePreset, "id" | "isOffline"> = {
+export const OFFLINE_TIME_SETTINGS: GameTimePreset = {
+  id: "offline",
   bankTimeSeconds: Number.MAX_SAFE_INTEGER,
   incrementSeconds: 0,
   turnCapSeconds: 0,
   deploymentTimeSeconds: 0,
 };
 
-/**
- * Synthesizes a GameTimePreset from raw timing values.
- * Used when a game was created with custom values rather than a named preset.
- */
-export const customTimeSettingsToPreset = (
-  s: Omit<GameTimePreset, "id" | "isOffline">,
-  id: GameTimePresetId = "custom"
-): GameTimePreset => ({
-  id,
-  ...s,
-});
 
 export class GameTimePresetManager {
   private static _instance: GameTimePresetManager | null = null;
