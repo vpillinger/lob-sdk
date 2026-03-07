@@ -30,7 +30,7 @@ import { Point2, Vector2 } from "@lob-sdk/vector";
 import { BaseUnit } from "@lob-sdk/unit";
 import { BaseVpService } from "@lob-sdk/vp-service";
 import { BaseObjective } from "@lob-sdk/objective";
-import { GameTimePresetId, GameTimePreset, CustomGameTimeSettings } from "@lob-sdk/game-time-preset";
+import { GameTimePresetId, GameTimePreset } from "@lob-sdk/game-time-preset";
 
 /**
  * A unique identifier for game entities (units, objectives, etc.).
