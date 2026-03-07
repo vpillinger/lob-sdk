@@ -191,6 +191,11 @@ export interface GameData {
    */
   timePreset: GameTimePreset;
 
+  /**
+   * The ID of the time preset used (e.g. "blitz", "custom").
+   */
+  timePresetId: GameTimePresetId;
+
   /** Dynamic battle type configuration, if applicable. */
   dynamicBattleType: DynamicBattleType | null;
   /** Maximum number of turns before the game ends. */
@@ -1043,6 +1048,8 @@ export interface ServerGameProps {
   turnStartedTime: number;
   /** Fischer timing settings */
   timePreset: GameTimePreset;
+  /** The ID of the time preset usado */
+  timePresetId: GameTimePresetId;
   /** Whether the game has started. */
   started: boolean;
   /** Whether the game has finished. */
