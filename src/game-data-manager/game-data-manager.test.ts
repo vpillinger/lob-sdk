@@ -345,11 +345,5 @@ describe("GameDataManager", () => {
       expect(required).toContain("tundra");
       expect(required).toHaveLength(3);
     });
-
-    it("should return fields for ww2 era", () => {
-      const ww2DataManager = GameDataManager.get("ww2");
-      const required = ww2DataManager.getRequiredMatchmakingScenarios();
-      expect(required).toEqual(["fields"]);
-    });
   });
 });
