@@ -205,6 +205,8 @@ export interface GameData {
   fogOfWar: boolean;
   /** Tournament ID, if this is a tournament game. Required for the client to know a game is a tournament game. */
   tournamentId?: number;
+  /** Arena ID, if this is an arena game. */
+  arenaId?: number;
   /** Timestamp in seconds when the game was created. */
   createdAt: number;
   /** Additional metadata for the game. */
@@ -1057,6 +1059,8 @@ export interface ServerGameProps {
   playerSetups?: PlayerSetup[];
   /** Tournament ID, if this is a tournament game. */
   tournamentId?: number;
+  /** Arena ID, if this is an arena game. */
+  arenaId?: number;
   /** Turn number when draw offers become available. */
   drawUnlockTurn: number;
   /** Last actions executed, if any. */

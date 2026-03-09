@@ -228,6 +228,22 @@ export class GameTimePresetManager {
     }
   }
 
+  /**
+   * Returns whether a turn is past its time limit (rancid) given an explicit limit.
+   * Use this when the limit comes from the DB (e.g. custom games) rather than a preset id.
+   */
+  public isRancidWithLimit(
+    turnStartedTime: number | null | undefined,
+    limitSeconds: number,
+    nowSeconds: number,
+    marginSeconds: number
+  ): boolean {
+    if (turnStartedTime === null || turnStartedTime === undefined) {
+      return false;
+    }
+    return turnStartedTime + limitSeconds + marginSeconds < nowSeconds;
+  }
+
   public isRancid(
     id: GameTimePresetId | null | undefined,
     turnStartedTime: number | null | undefined,
@@ -240,7 +256,12 @@ export class GameTimePresetManager {
 
     try {
       const limit = this.getPresetTurnDurationSeconds(id);
-      return turnStartedTime + limit + marginSeconds < nowSeconds;
+      return this.isRancidWithLimit(
+        turnStartedTime,
+        limit,
+        nowSeconds,
+        marginSeconds
+      );
     } catch (e) {
       return false;
     }
