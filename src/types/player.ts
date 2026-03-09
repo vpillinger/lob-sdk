@@ -35,10 +35,10 @@ export interface Player {
    */
   currentTimeBankSeconds?: number;
   /**
-   * Unix timestamp when this player submitted their turn. Used for Fischer timing
+   * Timestamp when this player submitted their turn. Used for Fischer timing
    * to calculate how much time each player individually used. Null if player hasn't submitted.
    */
-  submittedAt: number | null;
+  submittedAt: Date | null;
 }
 
 export interface PlayerInfo {
@@ -76,7 +76,7 @@ export interface PlayerInfo {
   currentTimeBankSeconds?: number;
   countryCode?: string;
   /**
-   * Unix timestamp when this player submitted their turn. Used for Fischer timing.
+   * Timestamp when this player submitted their turn. Used for Fischer timing.
    */
-  submittedAt: number | null;
+  submittedAt: Date | null;
 }
