@@ -38,7 +38,7 @@ export interface Player {
    * Timestamp when this player submitted their turn (seconds since epoch).
    * Used for Fischer timing. Null if player hasn't submitted.
    */
-  submittedAt: Date | null;
+  submittedAt: number | null;
 }
 
 export interface PlayerInfo {
@@ -79,5 +79,5 @@ export interface PlayerInfo {
    * Timestamp when this player submitted their turn (seconds since epoch).
    * Used for Fischer timing. Null if player hasn't submitted.
    */
-  submittedAt: Date | null;
+  submittedAt: number | null;
 }
