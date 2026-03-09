@@ -477,18 +477,18 @@ export class Ww2Bot implements IBot {
 
     const getStepCost = (from: Point2, to: Point2) => {
       const terrain = this._game.map.terrains[to.x][to.y];
-
       const modifier = this._gameDataManager.getMovementModifier(
         terrain,
         unit.category,
       );
 
-      const terrainCost = this._getTerrainCost(modifier);
-      const isPassable = this._gameDataManager.isPassable(terrain);
+      const isPassable = this._gameDataManager.isPassable(terrain, unit.category);
 
       if (!isPassable) {
         return Infinity;
       }
+
+      const terrainCost = this._getTerrainCost(modifier);
 
       // Check for allied units at the target position
       const positionToCheck = {

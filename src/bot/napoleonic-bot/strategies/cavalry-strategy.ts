@@ -158,6 +158,7 @@ export class CavalryStrategy implements NapoleonicBotStrategy {
             game,
             this._bot.getGameDataManager(),
             this.getTerrainPreference(),
+            unit.category,
             3,
           );
         }
