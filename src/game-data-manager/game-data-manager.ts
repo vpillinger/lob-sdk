@@ -1172,9 +1172,10 @@ export class GameDataManager {
 
   /**
    * Gets scenario IDs that must always be included in matchmaking for this era.
-   * Returns only names that exist in this era and are ranked (matchmaking-eligible).
+   * Only when ranked; returns only names that exist in this era and are ranked (matchmaking-eligible).
    */
-  public getRequiredMatchmakingScenarios(): ScenarioName[] {
+  public getRequiredMatchmakingScenarios(isRanked = true): ScenarioName[] {
+    if (!isRanked) return [];
     const raw: ScenarioName[] = this.matchmakingPresets?.requiredScenarios ?? [];
     return raw.filter((name) => {
       const scenario = this.scenarios[name];
