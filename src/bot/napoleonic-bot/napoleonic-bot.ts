@@ -270,17 +270,30 @@ export class NapoleonicBot implements INapoleonicBot {
     return turnSubmission;
   }
 
+  /**
+   * Keeps {@link _armyGroups} in sync with the current set of units.
+   *
+   * 1. **Cleanup**: Removes from each group any unit that no longer exists (e.g. dead).
+   *    Drops army groups that end up with no units.
+   *
+   * 2. **Reassign unassigned units**: Finds units that are not in any group. For each
+   *    such unit, tries to add it to an existing group if it is within
+   *    {@link ARMY_GROUP_DISTANCE_THRESHOLD} of any unit in that group (first matching
+   *    group wins).
+   *
+   * 3. **New groups from clusters**: Units that still have no group are clustered by
+   *    proximity (two units are in the same cluster if within
+   *    {@link ARMY_GROUP_DISTANCE_THRESHOLD}). Each cluster becomes a new
+   *    {@link ArmyGroup} and is appended to {@link _armyGroups}.
+   *
+   * @param units - All units (e.g. from the current game state) used to build the
+   *   current unit set and to resolve unassigned units.
+   */
   private _maintainArmyGroups(units: BaseUnit[]) {
     const currentUnitMap = new Map<EntityId, BaseUnit>();
     units.forEach(u => currentUnitMap.set(u.id, u));
 
-    this._armyGroups.forEach((group) => {
-      for (const id of group.getUnits()) {
-        if (!currentUnitMap.has(id)) {
-          group.removeUnit(id);
-        }
-      }
-    });
+    this._removeDeadUnits(currentUnitMap);
 
     this._armyGroups = this._armyGroups.filter(g => g.size > 0);
 
@@ -314,40 +327,51 @@ export class NapoleonicBot implements INapoleonicBot {
     });
 
     if (stillUnassigned.length > 0) {
-      const clusters: BaseUnit[][] = [];
-      const visited = new Set<EntityId>();
-
-      stillUnassigned.forEach(unit => {
-        if (visited.has(unit.id)) return;
-
-        const cluster: BaseUnit[] = [];
-        const queue: BaseUnit[] = [unit];
-        visited.add(unit.id);
-
-        while (queue.length > 0) {
-          const current = queue.shift()!;
-          cluster.push(current);
-
-          stillUnassigned.forEach((other) => {
-            if (
-              !visited.has(other.id) &&
-              current.position.distanceTo(other.position) <=
-                NapoleonicBot.ARMY_GROUP_DISTANCE_THRESHOLD
-            ) {
-              visited.add(other.id);
-              queue.push(other);
-            }
-          });
-        }
-        clusters.push(cluster);
-      });
-
-      clusters.forEach(cluster => {
-        const group = new ArmyGroup(this);
-        cluster.forEach(u => group.addUnit(u.id));
-        this._armyGroups.push(group);
-      });
+      this._createNewGroupsFromClusters(stillUnassigned);
     }
+  }
+
+  /**
+   * Clusters unassigned units by proximity (within {@link ARMY_GROUP_DISTANCE_THRESHOLD})
+   * and creates a new {@link ArmyGroup} for each cluster, appending them to
+   * {@link _armyGroups}.
+   *
+   * @param stillUnassigned - Units that are not in any existing army group.
+   */
+  private _createNewGroupsFromClusters(stillUnassigned: BaseUnit[]) {
+    const clusters: BaseUnit[][] = [];
+    const visited = new Set<EntityId>();
+
+    stillUnassigned.forEach(unit => {
+      if (visited.has(unit.id)) return;
+
+      const cluster: BaseUnit[] = [];
+      const queue: BaseUnit[] = [unit];
+      visited.add(unit.id);
+
+      while (queue.length > 0) {
+        const current = queue.shift()!;
+        cluster.push(current);
+
+        stillUnassigned.forEach((other) => {
+          if (
+            !visited.has(other.id) &&
+            current.position.distanceTo(other.position) <=
+              NapoleonicBot.ARMY_GROUP_DISTANCE_THRESHOLD
+          ) {
+            visited.add(other.id);
+            queue.push(other);
+          }
+        });
+      }
+      clusters.push(cluster);
+    });
+
+    clusters.forEach(cluster => {
+      const group = new ArmyGroup(this);
+      cluster.forEach(u => group.addUnit(u.id));
+      this._armyGroups.push(group);
+    });
   }
 
   private _groupUnits(units: BaseUnit[]) {
@@ -513,5 +537,15 @@ export class NapoleonicBot implements INapoleonicBot {
     return myCentroid.add(
       direction.scale(armyFront + advanceDistance + anchorOffset),
     );
+  }
+
+  private _removeDeadUnits(currentUnitMap: Map<EntityId, BaseUnit>) {
+    this._armyGroups.forEach((group) => {
+      for (const id of group.getUnits()) {
+        if (!currentUnitMap.has(id)) {
+          group.removeUnit(id);
+        }
+      }
+    });
   }
 }
