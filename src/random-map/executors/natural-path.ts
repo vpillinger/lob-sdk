@@ -81,7 +81,6 @@ export class NaturalPathExecutor {
 
     for (let i = 0; i < amountNumber; i++) {
       let pathPoints = this.generatePathPoints();
-      console.log(pathPoints);
       naturalPathGenerator.generatePath(pathPoints);
     }
   }

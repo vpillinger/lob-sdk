@@ -426,8 +426,10 @@ export interface InstructionObjectiveLayer extends BaseInstruction {
   chance?: number;
   /** Optional - Terrain filter. */
   terrainFilter?: TerrainFilter;
-  /** Optional - Minimum distance between this objective layer and the nearest objective. */
+  /** Optional - Minimum distance between this objective layer and the nearest objective. NOTE: This parameter ignores the bounds arguemnt.*/
   minDistance?: number;
+  /** Optional - Specify a maximum number of objectives to create */
+  maxObj?: number;
 }
 
 /**
