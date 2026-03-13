@@ -81,6 +81,7 @@ export class NaturalPathExecutor {
 
     for (let i = 0; i < amountNumber; i++) {
       let pathPoints = this.generatePathPoints();
+      console.log(pathPoints);
       naturalPathGenerator.generatePath(pathPoints);
     }
   }
@@ -274,28 +275,25 @@ export class NaturalPathExecutor {
     end: { xRange: Range; yRange: Range };
   } {
     // Helper function to get a random edge point with specified edge
-    const getEdgeRange = (edge: number): { xRange: Range; yRange: Range } => {
-      switch (edge) {
-        case 0: // top edge
-          return { xRange: range, yRange: TOP_EDGE };
-        case 1: // right edge
-          return { xRange: RIGHT_EDGE, yRange: range };
-        case 2: // bottom edge
-          return { xRange: range, yRange: BOTTOM_EDGE };
-        default: // left edge (3)
-          return { xRange: LEFT_EDGE, yRange: range };
-      }
-    };
+    const edges = [
+      { xRange: range, yRange: TOP_EDGE }, // 0: Top
+      { xRange: RIGHT_EDGE, yRange: range }, // 1: Right
+      { xRange: range, yRange: BOTTOM_EDGE }, // 2: Bottom
+      { xRange: LEFT_EDGE, yRange: range }, // 3: Left
+    ];
 
     // Get first random edge
     const startEdge = getRandomInt(0, 3, this.random);
 
     // Get second edge (ensuring it's different from the first)
     let endEdge = getRandomInt(0, 3, this.random);
-    if ((endEdge = startEdge)) endEdge = 3;
+    if (endEdge >= startEdge) {
+      // this works by shifting ALL probabilities, not just the collison probability
+      endEdge++;
+    }
 
-    const start = getEdgeRange(startEdge);
-    const end = getEdgeRange(endEdge);
+    const start = edges[startEdge];
+    const end = edges[endEdge];
 
     return { start, end };
   }
