@@ -82,8 +82,6 @@ export interface BattleTypeTemplate {
   goldToAmmoRate: number;
   /** Optional ratio for spawning skirmishers [skirmisherRatio, coreUnitsRatio]. */
   skirmisherRatio?: number[];
-  /** Whether fog of war is enabled. */
-  fogOfWar: boolean;
   /** Maximum number of each unit type allowed. */
   unitCaps: Record<UnitType, number>;
   /** ELO K-factor for rating calculations. */
@@ -203,6 +201,8 @@ export interface GameData {
   clientEvents: GameClientEventDto[] | null;
   /** Whether fog of war is enabled. */
   fogOfWar: boolean;
+  /** When true, spectators see the full map (no fog of war) in ongoing games. */
+  spectatorFullVision: boolean;
   /** Tournament ID, if this is a tournament game. Required for the client to know a game is a tournament game. */
   tournamentId?: number;
   /** Timestamp in seconds when the game was created. */
@@ -1065,6 +1065,8 @@ export interface ServerGameProps {
   clientEvents?: GameClientEventDto[] | null;
   /** Whether fog of war is enabled. */
   fogOfWar?: boolean;
+  /** When true, spectators see the full map (no fog of war) in ongoing games. */
+  spectatorFullVision: boolean;
   /** Timestamp (milliseconds) when the game was created. */
   createdAt?: number;
   /** Additional metadata for the game. */
