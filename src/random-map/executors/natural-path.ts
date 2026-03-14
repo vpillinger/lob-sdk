@@ -39,8 +39,49 @@ export class NaturalPathExecutor {
       this.random,
     );
 
+    const { random, terrains, heightMap } = this;
+    const {
+      width,
+      terrainReplacements,
+      terrainCosts,
+      terrain,
+      height,
+      curveLen,
+      curveWeight,
+      noiseWeight,
+      noiseSmoothness,
+      edgeDistance,
+      edgeWeight,
+      uphillHeightCost,
+      downHillHeightCost,
+      heightDiffCost, // deprecated
+      printNoiseDebug,
+    } = this.instruction;
+
+    const naturalPathGenerator = new NaturalPathGenerator(
+      random,
+      terrains,
+      heightMap,
+      terrain,
+      height,
+      width,
+      terrainReplacements,
+      terrainCosts,
+      curveLen,
+      curveWeight,
+      noiseWeight,
+      noiseSmoothness,
+      edgeDistance,
+      edgeWeight,
+      uphillHeightCost,
+      downHillHeightCost,
+      heightDiffCost,
+      printNoiseDebug,
+    );
+
     for (let i = 0; i < amountNumber; i++) {
-      this.generatePath(this.generatePathPoints());
+      let pathPoints = this.generatePathPoints();
+      naturalPathGenerator.generatePath(pathPoints);
     }
   }
 
@@ -130,51 +171,6 @@ export class NaturalPathExecutor {
     ];
 
     return pathPoints;
-  }
-
-  private generatePath(pathPoints: Point2[]) {
-    const { random, terrains, heightMap } = this;
-
-    const {
-      width,
-      terrainReplacements,
-      terrainCosts,
-      terrain,
-      height,
-      curveLen,
-      curveWeight,
-      noiseWeight,
-      noiseSmoothness,
-      edgeDistance,
-      edgeWeight,
-      uphillHeightCost,
-      downHillHeightCost,
-      heightDiffCost, // deprecated
-    } = this.instruction;
-
-    const naturalPathGenerator = new NaturalPathGenerator(
-      random,
-      terrains,
-      heightMap,
-      terrain,
-      height,
-      width,
-      terrainReplacements,
-      terrainCosts,
-      curveLen,
-      curveWeight,
-      noiseWeight,
-      noiseSmoothness,
-      edgeDistance,
-      edgeWeight,
-      uphillHeightCost,
-      downHillHeightCost,
-      heightDiffCost,
-    );
-
-    for (let i = 0; i < pathPoints.length - 1; i++) {
-      naturalPathGenerator.generatePath(pathPoints[i], pathPoints[i + 1]);
-    }
   }
 
   /**
@@ -278,28 +274,25 @@ export class NaturalPathExecutor {
     end: { xRange: Range; yRange: Range };
   } {
     // Helper function to get a random edge point with specified edge
-    const getEdgeRange = (edge: number): { xRange: Range; yRange: Range } => {
-      switch (edge) {
-        case 0: // top edge
-          return { xRange: range, yRange: TOP_EDGE };
-        case 1: // right edge
-          return { xRange: RIGHT_EDGE, yRange: range };
-        case 2: // bottom edge
-          return { xRange: range, yRange: BOTTOM_EDGE };
-        default: // left edge (3)
-          return { xRange: LEFT_EDGE, yRange: range };
-      }
-    };
+    const edges = [
+      { xRange: range, yRange: TOP_EDGE }, // 0: Top
+      { xRange: RIGHT_EDGE, yRange: range }, // 1: Right
+      { xRange: range, yRange: BOTTOM_EDGE }, // 2: Bottom
+      { xRange: LEFT_EDGE, yRange: range }, // 3: Left
+    ];
 
     // Get first random edge
     const startEdge = getRandomInt(0, 3, this.random);
 
     // Get second edge (ensuring it's different from the first)
-    let endEdge = getRandomInt(0, 3, this.random);
-    if ((endEdge = startEdge)) endEdge = 3;
+    let endEdge = getRandomInt(0, 2, this.random);
+    if (endEdge >= startEdge) {
+      // this works by shifting ALL probabilities, not just the collison probability
+      endEdge++;
+    }
 
-    const start = getEdgeRange(startEdge);
-    const end = getEdgeRange(endEdge);
+    const start = edges[startEdge];
+    const end = edges[endEdge];
 
     return { start, end };
   }

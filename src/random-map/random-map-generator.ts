@@ -67,19 +67,8 @@ export class RandomMapGenerator {
       terrains[x] = [];
       heightMap[x] = [];
       for (let y = 0; y < tilesY; y++) {
-        terrains[x][y] = TerrainType.Grass;
+        terrains[x][y] = scenario.baseTerrain ?? TerrainType.Grass;
         heightMap[x][y] = 0;
-      }
-    }
-
-    // Use baseTerrain from scenario if present, otherwise default to Grass
-    const baseTerrain = scenario.baseTerrain ?? TerrainType.Grass;
-
-    // Generate terrain and height
-    for (let x = 0; x < tilesX; x++) {
-      for (let y = 0; y < tilesY; y++) {
-        // Start with base terrain
-        terrains[x][y] = baseTerrain;
       }
     }
 
@@ -91,8 +80,6 @@ export class RandomMapGenerator {
       objectives,
       widthPx,
       heightPx,
-      tilesX,
-      tilesY,
       tileSize,
       battleSize,
     );
@@ -118,8 +105,6 @@ export class RandomMapGenerator {
     objectives: ObjectiveDto<false>[],
     widthPx: number,
     heightPx: number,
-    tilesX: number,
-    tilesY: number,
     tileSize: number,
     battleSize: Size,
   ) {
@@ -240,8 +225,12 @@ export class RandomMapGenerator {
               boundedTerrains,
               boundedHeightMap,
               objectives,
-              tilesX,
-              tilesY,
+              Math.floor(
+                ((instruction.xBounds?.min ?? 0) / 100) * terrains.length,
+              ),
+              Math.floor(
+                ((instruction.yBounds?.min ?? 0) / 100) * terrains[0].length,
+              ),
             ).execute();
             break;
           }
