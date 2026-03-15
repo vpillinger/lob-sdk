@@ -1,5 +1,5 @@
-import { getDeploymentZoneBySize, getMapSizeIndex } from "./map-size";
-import { Size } from "@lob-sdk/types";
+import { getDeploymentZonesBySize, getMapSizeIndex } from "./map-size";
+import { Size, TeamDeploymentZones } from "@lob-sdk/types";
 import {
   ObjectiveDto,
   TeamDeploymentZone,
@@ -51,9 +51,9 @@ export class RandomMapGenerator {
     const widthPx = tilesX * tileSize;
     const heightPx = tilesY * tileSize;
 
-    const deploymentZones: [TeamDeploymentZone, TeamDeploymentZone] = [
-      getDeploymentZoneBySize(battleSize, widthPx, heightPx, 1, era, tileSize),
-      getDeploymentZoneBySize(battleSize, widthPx, heightPx, 2, era, tileSize),
+    const deploymentZones: [TeamDeploymentZones, TeamDeploymentZones] = [
+      getDeploymentZonesBySize(battleSize, widthPx, heightPx, 1, era, tileSize),
+      getDeploymentZonesBySize(battleSize, widthPx, heightPx, 2, era, tileSize),
     ];
     const objectives: ObjectiveDto<false>[] = [];
 

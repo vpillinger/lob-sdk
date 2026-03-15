@@ -311,7 +311,7 @@
   },
   {
     "id": "skirmishInfantry",
-    "deploymentSection": "forward",
+    "deploymentSection": "front",
     "firingAltitude": 0.9,
     "allyCollisionLevel": -1,
     "enemyCollisionLevel": 1,

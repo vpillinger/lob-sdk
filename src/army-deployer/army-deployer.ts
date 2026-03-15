@@ -1,5 +1,12 @@
-import { UnitCategoryId, UnitDtoPartialId, UnitType, UnitCounts, DynamicBattleType, Zone,  } from "@lob-sdk/types"
-import { GameDataManager } from "@lob-sdk/game-data-manager"
+import {
+  UnitCategoryId,
+  UnitDtoPartialId,
+  UnitType,
+  UnitCounts,
+  DynamicBattleType,
+  Zone,
+} from "@lob-sdk/types";
+import { GameDataManager } from "@lob-sdk/game-data-manager";
 import { DeploymentSection } from "@lob-sdk/game-data-manager";
 import { divideArrayInHalf, getClosestPointInsideZone } from "@lob-sdk/utils";
 
@@ -35,8 +42,6 @@ interface SectionMetrics {
   rightFlankSpacing: number;
   /** Y coordinate for deploying units in the center section. */
   centerY: number;
-  /** Y coordinate for deploying forward units (e.g., skirmishers). */
-  forwardY: number;
   /** Y coordinate for deploying front units. */
   frontY: number;
   /** Y coordinate for deploying flank units. */
@@ -53,16 +58,11 @@ export class ArmyDeployer {
   private readonly MARGIN = 12;
 
   private readonly units: UnitCounts;
-  private readonly deploymentZone: Zone;
-  private readonly player: number;
   private readonly team: number;
   private readonly dynamicBattleType: DynamicBattleType;
   private readonly unitDtos: UnitDtoPartialId[] = [];
 
-  private readonly metrics: SectionMetrics;
   private readonly rotation: number;
-
-  private readonly forwardDeploymentZoneOffset: number;
 
   /**
    * Creates a new ArmyDeployer instance.
@@ -76,23 +76,20 @@ export class ArmyDeployer {
   constructor(
     private gameDataManager: GameDataManager,
     units: UnitCounts,
-    deploymentZone: Zone,
-    player: number,
+    private readonly mainDeploymentZone: Zone,
+    private readonly forwardDeploymentZone: Zone,
+    private readonly player: number,
     team: number,
-    dynamicBattleType?: DynamicBattleType
+    dynamicBattleType?: DynamicBattleType,
   ) {
     this.units = units;
-    this.deploymentZone = deploymentZone;
     this.player = player;
     this.team = team;
-    this.dynamicBattleType = dynamicBattleType ?? gameDataManager.getGameConstants().DEFAULT_BATTLE_TYPE;
+    this.dynamicBattleType =
+      dynamicBattleType ??
+      gameDataManager.getGameConstants().DEFAULT_BATTLE_TYPE;
     this.rotation =
       this.team === 1 ? 270 * (Math.PI / 180) : 90 * (Math.PI / 180);
-    this.metrics = this.calculateSectionMetrics();
-
-    const { FORWARD_DEPLOYMENT_ZONE_OFFSET = 0 } =
-      gameDataManager.getGameConstants();
-    this.forwardDeploymentZoneOffset = FORWARD_DEPLOYMENT_ZONE_OFFSET;
   }
 
   /**
@@ -100,19 +97,37 @@ export class ArmyDeployer {
    * @returns An array of unit DTOs with their positions and rotations set.
    */
   public deploy(): UnitDtoPartialId[] {
+    const mainMetrics = this.calculateSectionMetrics(this.mainDeploymentZone);
+    const forwardMetrics = this.calculateSectionMetrics(
+      this.forwardDeploymentZone,
+    );
+
     const unitsByCategory = this.getArmyCompositionByCategory(
       this.gameDataManager,
-      this.units
+      this.units,
     );
 
     // Group units by deployment section in a single pass for efficiency
     const unitsByDeploymentSection =
       this.groupUnitsByDeploymentSection(unitsByCategory);
 
-    this.deployFlank(unitsByDeploymentSection.flank);
-    this.deployCenter(unitsByDeploymentSection.center);
-    this.deployForward(unitsByDeploymentSection.forward);
-    this.deployFront(unitsByDeploymentSection.front);
+    this.deployFlank(unitsByDeploymentSection.mainGroup.flank, mainMetrics);
+    this.deployCenter(unitsByDeploymentSection.mainGroup.center, mainMetrics);
+    this.deployFront(unitsByDeploymentSection.mainGroup.front, mainMetrics);
+
+    this.deployFlank(
+      unitsByDeploymentSection.forwardGroup.flank,
+      forwardMetrics,
+    );
+    this.deployCenter(
+      unitsByDeploymentSection.forwardGroup.center,
+      forwardMetrics,
+    );
+    this.deployFront(
+      unitsByDeploymentSection.forwardGroup.front,
+      forwardMetrics,
+    );
+
     return this.unitDtos;
   }
 
@@ -121,12 +136,16 @@ export class ArmyDeployer {
    * This avoids iterating through categories multiple times.
    */
   private groupUnitsByDeploymentSection(
-    unitsByCategory: Partial<Record<UnitCategoryId, UnitType[]>>
-  ): Record<DeploymentSection, UnitType[]> {
-    const grouped: Record<DeploymentSection, UnitType[]> = {
+    unitsByCategory: Partial<Record<UnitCategoryId, UnitType[]>>,
+  ) {
+    const mainGroup: Record<DeploymentSection, UnitType[]> = {
       flank: [],
       center: [],
-      forward: [],
+      front: [],
+    };
+    const forwardGroup: Record<DeploymentSection, UnitType[]> = {
+      flank: [],
+      center: [],
       front: [],
     };
 
@@ -139,10 +158,19 @@ export class ArmyDeployer {
         categoryTemplate.deploymentSection ?? "center";
 
       const categoryUnits = unitsByCategory[categoryId] ?? [];
-      grouped[templateDeploymentSection].push(...categoryUnits);
+      for (const unitType of categoryUnits) {
+        const template = this.gameDataManager
+          .getUnitTemplateManager()
+          .getTemplate(unitType);
+        if (template.canDeployForward) {
+          forwardGroup[templateDeploymentSection].push(unitType);
+        } else {
+          mainGroup[templateDeploymentSection].push(unitType);
+        }
+      }
     }
 
-    return grouped;
+    return { mainGroup, forwardGroup };
   }
 
   /**
@@ -155,14 +183,15 @@ export class ArmyDeployer {
     const template = this.gameDataManager
       .getUnitTemplateManager()
       .getTemplate(type);
-    // Apply a buffer for units that can deploy forward
-    let buffer = 0;
-    if (template.canDeployForward) {
-      buffer = this.forwardDeploymentZoneOffset;
-    }
+
     this.unitDtos.push({
       player: this.player,
-      pos: getClosestPointInsideZone(this.deploymentZone, { x, y }, buffer),
+      pos: getClosestPointInsideZone(
+        template.canDeployForward
+          ? this.forwardDeploymentZone
+          : this.mainDeploymentZone,
+        { x, y },
+      ),
       rotation: this.rotation,
       type,
     });
@@ -185,7 +214,7 @@ export class ArmyDeployer {
     sectionWidth: number,
     maxUnitsPerRow: number,
     spacing: number,
-    reverseY: boolean
+    reverseY: boolean,
   ) {
     const unitCount = units.length;
     const lines = Math.ceil(unitCount / maxUnitsPerRow);
@@ -193,7 +222,7 @@ export class ArmyDeployer {
     for (let lineIndex = 0; lineIndex < lines; lineIndex++) {
       const unitsInLine = Math.min(
         maxUnitsPerRow,
-        unitCount - lineIndex * maxUnitsPerRow
+        unitCount - lineIndex * maxUnitsPerRow,
       );
       const totalLineWidth =
         unitsInLine * (this.DEFAULT_UNIT_HEIGHT + spacing) - spacing;
@@ -202,20 +231,10 @@ export class ArmyDeployer {
       for (let i = 0; i < unitsInLine; i++) {
         const unitIndex = lineIndex * maxUnitsPerRow + i;
         const unitType = units[unitIndex];
-        const template = this.gameDataManager
-          .getUnitTemplateManager()
-          .getTemplate(unitType);
-        const deploymentBuffer = template.canDeployForward
-          ? this.forwardDeploymentZoneOffset
-          : 0;
         const posX = lineStartX + i * (this.DEFAULT_UNIT_HEIGHT + spacing);
         const posY = reverseY
-          ? baseY -
-            lineIndex * (this.DEFAULT_UNIT_HEIGHT + this.MARGIN) +
-            deploymentBuffer
-          : baseY +
-            lineIndex * (this.DEFAULT_UNIT_HEIGHT + this.MARGIN) -
-            deploymentBuffer;
+          ? baseY - lineIndex * (this.DEFAULT_UNIT_HEIGHT + this.MARGIN)
+          : baseY + lineIndex * (this.DEFAULT_UNIT_HEIGHT + this.MARGIN);
 
         this.addUnit(unitType, posX, posY);
       }
@@ -226,8 +245,8 @@ export class ArmyDeployer {
    * Calculates metrics for each deployment section (left flank, center, right flank).
    * @returns A SectionMetrics object containing calculated dimensions and positions.
    */
-  calculateSectionMetrics(): SectionMetrics {
-    const { x, y, width, height } = this.deploymentZone;
+  calculateSectionMetrics(deploymentZone: Zone): SectionMetrics {
+    const { x, y, width, height } = deploymentZone;
     const leftFlankWidth = width * 0.25;
     const centerWidth = width * 0.5;
     const rightFlankWidth = width * 0.25;
@@ -239,17 +258,19 @@ export class ArmyDeployer {
     // Ensure at least one unit if the section width can accommodate a unit
     const leftFlankMaxUnits = Math.max(
       1,
-      Math.floor(leftFlankWidth / (this.DEFAULT_UNIT_HEIGHT + this.MIN_SPACING))
+      Math.floor(
+        leftFlankWidth / (this.DEFAULT_UNIT_HEIGHT + this.MIN_SPACING),
+      ),
     );
     const centerMaxUnits = Math.max(
       1,
-      Math.floor(centerWidth / (this.DEFAULT_UNIT_HEIGHT + this.MIN_SPACING))
+      Math.floor(centerWidth / (this.DEFAULT_UNIT_HEIGHT + this.MIN_SPACING)),
     );
     const rightFlankMaxUnits = Math.max(
       1,
       Math.floor(
-        rightFlankWidth / (this.DEFAULT_UNIT_HEIGHT + this.MIN_SPACING)
-      )
+        rightFlankWidth / (this.DEFAULT_UNIT_HEIGHT + this.MIN_SPACING),
+      ),
     );
 
     // Adjust spacing to prevent negative values
@@ -258,7 +279,7 @@ export class ArmyDeployer {
         ? Math.max(
             this.MIN_SPACING,
             (leftFlankWidth - leftFlankMaxUnits * this.DEFAULT_UNIT_HEIGHT) /
-              (leftFlankMaxUnits > 1 ? leftFlankMaxUnits - 1 : 1)
+              (leftFlankMaxUnits > 1 ? leftFlankMaxUnits - 1 : 1),
           )
         : this.MIN_SPACING;
     const centerSpacing =
@@ -266,7 +287,7 @@ export class ArmyDeployer {
         ? Math.max(
             this.MIN_SPACING,
             (centerWidth - centerMaxUnits * this.DEFAULT_UNIT_HEIGHT) /
-              (centerMaxUnits > 1 ? centerMaxUnits - 1 : 1)
+              (centerMaxUnits > 1 ? centerMaxUnits - 1 : 1),
           )
         : this.MIN_SPACING;
     const rightFlankSpacing =
@@ -274,13 +295,12 @@ export class ArmyDeployer {
         ? Math.max(
             this.MIN_SPACING,
             (rightFlankWidth - rightFlankMaxUnits * this.DEFAULT_UNIT_HEIGHT) /
-              (rightFlankMaxUnits > 1 ? rightFlankMaxUnits - 1 : 1)
+              (rightFlankMaxUnits > 1 ? rightFlankMaxUnits - 1 : 1),
           )
         : this.MIN_SPACING;
 
     const topY = this.team === 1 ? y + this.MARGIN : y + height - this.MARGIN;
     const centerY = this.team === 1 ? topY + this.MARGIN : topY - this.MARGIN;
-    const forwardY = this.team === 1 ? topY - this.MARGIN : topY + this.MARGIN;
     const frontY = this.team === 1 ? topY - this.MARGIN : topY + this.MARGIN;
     const flankY = this.team === 1 ? topY - this.MARGIN : topY + this.MARGIN;
 
@@ -298,7 +318,6 @@ export class ArmyDeployer {
       centerSpacing,
       rightFlankSpacing,
       centerY,
-      forwardY,
       frontY,
       flankY,
     };
@@ -308,63 +327,27 @@ export class ArmyDeployer {
    * Deploys units in the flank sections (left and right).
    * @param flankUnits - The units to deploy in the flanks.
    */
-  private deployFlank(flankUnits: UnitType[]) {
-    const unitsWithBuffer: UnitType[] = [];
-    const unitsWithoutBuffer: UnitType[] = [];
-
-    flankUnits.forEach((type) => {
-      const template = this.gameDataManager
-        .getUnitTemplateManager()
-        .getTemplate(type);
-      if (template.canDeployForward) {
-        unitsWithBuffer.push(type);
-      } else {
-        unitsWithoutBuffer.push(type);
-      }
-    });
-
-    const [flankLeft, flankRight] = divideArrayInHalf(unitsWithoutBuffer);
-    const [lightFlankLeft, lightFlankRight] =
-      divideArrayInHalf(unitsWithBuffer);
+  private deployFlank(flankUnits: UnitType[], metrics: SectionMetrics) {
+    const [flankLeft, flankRight] = divideArrayInHalf(flankUnits);
 
     this.deployUnitsInLines(
       flankLeft,
-      this.metrics.flankY,
-      this.metrics.leftFlankStartX,
-      this.metrics.leftFlankWidth,
-      this.metrics.leftFlankMaxUnits,
-      this.metrics.leftFlankSpacing,
-      this.team !== 1
+      metrics.flankY,
+      metrics.leftFlankStartX,
+      metrics.leftFlankWidth,
+      metrics.leftFlankMaxUnits,
+      metrics.leftFlankSpacing,
+      this.team !== 1,
     );
 
     this.deployUnitsInLines(
       flankRight,
-      this.metrics.flankY,
-      this.metrics.rightFlankStartX,
-      this.metrics.rightFlankWidth,
-      this.metrics.rightFlankMaxUnits,
-      this.metrics.rightFlankSpacing,
-      this.team !== 1
-    );
-
-    this.deployUnitsInLines(
-      lightFlankLeft,
-      this.metrics.flankY,
-      this.metrics.leftFlankStartX,
-      this.metrics.leftFlankWidth,
-      this.metrics.leftFlankMaxUnits,
-      this.metrics.leftFlankSpacing,
-      this.team !== 1
-    );
-
-    this.deployUnitsInLines(
-      lightFlankRight,
-      this.metrics.flankY,
-      this.metrics.rightFlankStartX,
-      this.metrics.rightFlankWidth,
-      this.metrics.rightFlankMaxUnits,
-      this.metrics.rightFlankSpacing,
-      this.team !== 1
+      metrics.flankY,
+      metrics.rightFlankStartX,
+      metrics.rightFlankWidth,
+      metrics.rightFlankMaxUnits,
+      metrics.rightFlankSpacing,
+      this.team !== 1,
     );
   }
 
@@ -372,68 +355,15 @@ export class ArmyDeployer {
    * Deploys units in the center section.
    * @param centerUnits - The units to deploy in the center.
    */
-  private deployCenter(centerUnits: UnitType[]) {
-    const unitsWithBuffer: UnitType[] = [];
-    const unitsWithoutBuffer: UnitType[] = [];
-
-    centerUnits.forEach((type) => {
-      const template = this.gameDataManager
-        .getUnitTemplateManager()
-        .getTemplate(type);
-      if (template.canDeployForward) {
-        unitsWithBuffer.push(type);
-      } else {
-        unitsWithoutBuffer.push(type);
-      }
-    });
-
+  private deployCenter(centerUnits: UnitType[], metrics: SectionMetrics) {
     this.deployUnitsInLines(
-      unitsWithBuffer,
-      this.metrics.centerY,
-      this.metrics.centerStartX,
-      this.metrics.centerWidth,
-      this.metrics.centerMaxUnits,
-      this.metrics.centerSpacing,
-      this.team !== 1
-    );
-
-    this.deployUnitsInLines(
-      unitsWithoutBuffer,
-      this.metrics.centerY,
-      this.metrics.centerStartX,
-      this.metrics.centerWidth,
-      this.metrics.centerMaxUnits,
-      this.metrics.centerSpacing,
-      this.team !== 1
-    );
-  }
-
-  /**
-   * Deploys units in the forward section (e.g., skirmishers).
-   * @param forwardUnits - The units to deploy forward.
-   */
-  private deployForward(forwardUnits: UnitType[]) {
-    const { skirmisherSpawning } = this.gameDataManager.getGameRules();
-
-    if (skirmisherSpawning) {
-      const additionalSkirmishers = ArmyDeployer.getSkirmishersAmount(
-        this.gameDataManager,
-        this.units,
-        this.dynamicBattleType
-      );
-      for (let i = 0; i < additionalSkirmishers; i++) {
-        forwardUnits.push(skirmisherSpawning.unitType);
-      }
-    }
-
-    this.deployUnitsInLines(
-      forwardUnits,
-      this.metrics.forwardY,
-      this.metrics.centerStartX,
-      this.metrics.centerWidth,
-      this.metrics.centerMaxUnits,
-      this.metrics.centerSpacing,
-      this.team !== 1
+      centerUnits,
+      metrics.centerY,
+      metrics.centerStartX,
+      metrics.centerWidth,
+      metrics.centerMaxUnits,
+      metrics.centerSpacing,
+      this.team !== 1,
     );
   }
 
@@ -441,7 +371,7 @@ export class ArmyDeployer {
    * Deploys units in the front section.
    * @param frontUnits - The units to deploy in the front.
    */
-  private deployFront(frontUnits: UnitType[]) {
+  private deployFront(frontUnits: UnitType[], metrics: SectionMetrics) {
     const frontWithBuffer: UnitType[] = [];
     const frontWithoutBuffer: UnitType[] = [];
 
@@ -458,22 +388,22 @@ export class ArmyDeployer {
 
     this.deployUnitsInLines(
       frontWithBuffer,
-      this.metrics.frontY,
-      this.metrics.centerStartX,
-      this.metrics.centerWidth,
-      this.metrics.centerMaxUnits,
-      this.metrics.centerSpacing,
-      this.team !== 1
+      metrics.frontY,
+      metrics.centerStartX,
+      metrics.centerWidth,
+      metrics.centerMaxUnits,
+      metrics.centerSpacing,
+      this.team !== 1,
     );
 
     this.deployUnitsInLines(
       frontWithoutBuffer,
-      this.metrics.frontY,
-      this.metrics.centerStartX,
-      this.metrics.centerWidth,
-      this.metrics.centerMaxUnits,
-      this.metrics.centerSpacing,
-      this.team !== 1
+      metrics.frontY,
+      metrics.centerStartX,
+      metrics.centerWidth,
+      metrics.centerMaxUnits,
+      metrics.centerSpacing,
+      this.team !== 1,
     );
   }
 
@@ -487,7 +417,7 @@ export class ArmyDeployer {
   static getSkirmishersAmount(
     gameDataManager: GameDataManager,
     units: UnitCounts,
-    dynamicBattleType: DynamicBattleType
+    dynamicBattleType: DynamicBattleType,
   ) {
     const skirmishRatio =
       gameDataManager.getBattleType(dynamicBattleType).skirmisherRatio;
@@ -525,10 +455,20 @@ export class ArmyDeployer {
    */
   private getArmyCompositionByCategory(
     gameDataManager: GameDataManager,
-    units: UnitCounts
+    units: UnitCounts,
   ) {
-    const unitsByCategory: Partial<Record<UnitCategoryId, UnitType[]>> = {};
+    const { skirmisherSpawning } = this.gameDataManager.getGameRules();
 
+    if (skirmisherSpawning) {
+      const additionalSkirmishers = ArmyDeployer.getSkirmishersAmount(
+        this.gameDataManager,
+        this.units,
+        this.dynamicBattleType,
+      );
+      units[skirmisherSpawning.unitType] = additionalSkirmishers;
+    }
+
+    const unitsByCategory: Partial<Record<UnitCategoryId, UnitType[]>> = {};
     for (const _type in units) {
       const type: UnitType = Number(_type);
       const amount = units[type];

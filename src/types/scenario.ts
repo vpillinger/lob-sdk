@@ -41,6 +41,14 @@ export interface TeamDeploymentZone {
   width: number;
   /** Height of the deployment zone. */
   height: number;
+  /** Type of the deployment zone */
+  // type: "forward" | "main"; // For future build, put type here and allow an arbritrary number of deployment zones.
+}
+
+export interface TeamDeploymentZones {
+  team: number;
+  mainZone: TeamDeploymentZone;
+  forwardZone: TeamDeploymentZone;
 }
 
 /**
@@ -52,7 +60,7 @@ export interface GameMap {
   /** Height of the map in tiles. */
   height: number;
   /** Optional deployment zones for each team. */
-  deploymentZones?: TeamDeploymentZone[];
+  deploymentZones?: TeamDeploymentZones[];
   /** 2D array of terrain types, indexed by [x][y]. */
   terrains: TerrainType[][];
   /** 2D array of height values, indexed by [x][y]. */
@@ -139,10 +147,7 @@ export interface RandomScenario extends BaseScenario {
  * Union type representing any game scenario.
  * Can be a PresetScenario, RandomScenario, or HybridScenario.
  */
-export type GameScenario =
-  | PresetScenario
-  | RandomScenario
-  | HybridScenario;
+export type GameScenario = PresetScenario | RandomScenario | HybridScenario;
 
 /**
  * Union type representing procedurally generated scenarios.

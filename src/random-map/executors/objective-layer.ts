@@ -35,8 +35,6 @@ export class ObjectiveLayerExecutor {
     const { instruction, terrains, heightMap, objectives, tileSize, random } =
       this;
 
-    console.log(terrains);
-
     const {
       player,
       objectiveType,
