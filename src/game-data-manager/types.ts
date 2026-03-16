@@ -56,13 +56,13 @@ export interface RearFireConfig {
   orgModifier: number;
 }
 
-export type DeploymentSection = "center" | "flank" | "forward" | "front";
+export type DeploymentSection = "center" | "flank" | "front";
 
 export interface UnitCategoryTemplate {
   id: UnitCategoryId;
   /**
    * The deployment section where units of this category should be deployed.
-   * Possible values: "flank" (split left/right), "center", "forward", "front"
+   * Possible values: "flank" (split left/right), "center", "front"
    * Default value: "center"
    */
   deploymentSection?: DeploymentSection;
@@ -190,7 +190,6 @@ export interface GameConstants {
 
   EFFECT_HAS_RAN_TICKS: number;
   EFFECT_STARTED_ROUTING_TICKS: number;
-
 
   /**
    * Maximum angle (in degrees) between a unit's movement direction and the direction
@@ -603,7 +602,7 @@ export interface OrganizationRule {
   /** Run speed bonus when a unit starts routing, to help them get away: 1 turns off the function */
   startedRoutingOrgRadiusDistanceRunSpeedBonus: number;
   /** Run cost modifier when a unit is routing after they finish the initial route: 1 turns off the function */
-  routingRunCostModifier: number
+  routingRunCostModifier: number;
   /** Run cost modifier when a unit starts routing: 1 turns off the function */
   startedRoutingRunCostModifier: number;
   /** HP loss reduction factor for organization radius bonus (0-1, where 1 = full reduction at 0% HP) */
@@ -667,7 +666,8 @@ export interface UnitSkin {
 
 export interface MapSizeTemplate {
   map: { tilesX: number; tilesY: number };
-  deployment: { tilesX: number; tilesY: number; zoneSeparation: number };
+  mainDeployment: { tilesX: number; tilesY: number; zoneSeparation: number };
+  forwardDeployment: { tilesX: number; tilesY: number; zoneSeparation: number };
 }
 
 export interface MatchmakingPreset {

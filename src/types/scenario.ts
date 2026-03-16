@@ -5,6 +5,8 @@ import {
   UnitDtoPartialId,
   TerrainType,
   AnyInstruction,
+  Range,
+  Size,
 } from "@lob-sdk/types";
 
 /**
@@ -41,6 +43,14 @@ export interface TeamDeploymentZone {
   width: number;
   /** Height of the deployment zone. */
   height: number;
+  /** Type of the deployment zone */
+  // type: "forward" | "main"; // For future build, put type here and allow an arbritrary number of deployment zones.
+}
+
+export interface TeamDeploymentZones {
+  team: number;
+  mainZone: TeamDeploymentZone;
+  forwardZone: TeamDeploymentZone;
 }
 
 /**
@@ -52,7 +62,7 @@ export interface GameMap {
   /** Height of the map in tiles. */
   height: number;
   /** Optional deployment zones for each team. */
-  deploymentZones?: TeamDeploymentZone[];
+  deploymentZones?: TeamDeploymentZones[];
   /** 2D array of terrain types, indexed by [x][y]. */
   terrains: TerrainType[][];
   /** 2D array of height values, indexed by [x][y]. */
@@ -122,6 +132,45 @@ export interface HybridScenario extends BaseScenario {
   objectives?: ObjectiveDto<false>[];
 }
 
+export interface RandomTeamDeploymentZones {
+  /** Specify deployment zones in tile coordinates. If you want fixed deployment zones, use the same min/max values.*/
+  topMainDeploymentZone: {
+    /* X/Y Coordinates are the top/left corner of the deployment zone in map % */
+    minX: number;
+    maxX: number;
+    minY: number;
+    maxY: number;
+    /* Width in map percent */
+    width: number;
+    /* Height in map percent */
+    height: number;
+  };
+  topForwardDeploymentZone: {
+    minX: number;
+    maxX: number;
+    minY: number;
+    maxY: number;
+    width: number;
+    height: number;
+  };
+  bottomMainDeploymentZone: {
+    minX: number;
+    maxX: number;
+    minY: number;
+    maxY: number;
+    width: number;
+    height: number;
+  };
+  bottomForwardDeploymentZone: {
+    minX: number;
+    maxX: number;
+    minY: number;
+    maxY: number;
+    width: number;
+    height: number;
+  };
+}
+
 /**
  * A randomly generated scenario created procedurally from instructions.
  * The map, terrain, and game elements are generated based on the instructions.
@@ -131,6 +180,10 @@ export interface RandomScenario extends BaseScenario {
   type: GameScenarioType.Random;
   /** Base terrain type to use for generation. */
   baseTerrain?: TerrainType;
+  /** Default deployment zone if a scaled deployment zone is not provided. Follows default map size deployment zones if not provided even if scaled deployment zones are provided. */
+  defaultDeploymentZones?: RandomTeamDeploymentZones;
+  /** Scaled deployment zones for each battle type (first is micro, second clash, and so on) */
+  scaledDeploymentZones?: Record<Size, RandomTeamDeploymentZones>;
   /** Instructions for procedural generation of the scenario. */
   instructions: AnyInstruction[];
 }
@@ -139,10 +192,7 @@ export interface RandomScenario extends BaseScenario {
  * Union type representing any game scenario.
  * Can be a PresetScenario, RandomScenario, or HybridScenario.
  */
-export type GameScenario =
-  | PresetScenario
-  | RandomScenario
-  | HybridScenario;
+export type GameScenario = PresetScenario | RandomScenario | HybridScenario;
 
 /**
  * Union type representing procedurally generated scenarios.

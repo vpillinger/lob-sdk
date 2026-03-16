@@ -1,4 +1,4 @@
-import { TeamDeploymentZone, Size } from "@lob-sdk/types";
+import { TeamDeploymentZones, Size, TeamDeploymentZone } from "@lob-sdk/types";
 import { GameEra, GameDataManager } from "@lob-sdk/game-data-manager";
 
 /**
@@ -12,7 +12,7 @@ import { GameEra, GameDataManager } from "@lob-sdk/game-data-manager";
  */
 export const getMapSizeIndex = (
   maxPlayers: number,
-  mapSizeArrayLength: number
+  mapSizeArrayLength: number,
 ): number => {
   // Calculate index: every 2 players increases index by 1
   // For 2 players: index 0, for 4 players: index 1, etc.
@@ -22,17 +22,42 @@ export const getMapSizeIndex = (
   return Math.max(0, Math.min(calculatedIndex, mapSizeArrayLength - 1));
 };
 
-export const getDeploymentZoneBySize = (
+export const getDeploymentZonesByMapSize = (
   size: Size,
   mapWidth: number,
   mapHeight: number,
   team: number,
   era: GameEra,
-  tileSize: number
-): TeamDeploymentZone => {
+  tileSize: number,
+): TeamDeploymentZones => {
   const mapSizes = GameDataManager.get(era).getMapSizes();
-  let zoneSettings = mapSizes[size].deployment;
 
+  return {
+    team,
+    mainZone: zoneSize(
+      mapSizes[size].mainDeployment,
+      mapWidth,
+      mapHeight,
+      team,
+      tileSize,
+    ),
+    forwardZone: zoneSize(
+      mapSizes[size].forwardDeployment,
+      mapWidth,
+      mapHeight,
+      team,
+      tileSize,
+    ),
+  };
+};
+
+function zoneSize(
+  zoneSettings: any,
+  mapWidth: number,
+  mapHeight: number,
+  team: number,
+  tileSize: number,
+): TeamDeploymentZone {
   // Convert tiles to pixels
   const zoneWidth = zoneSettings.tilesX * tileSize;
   const zoneHeight = zoneSettings.tilesY * tileSize;
@@ -47,6 +72,5 @@ export const getDeploymentZoneBySize = (
     team === 1
       ? (mapHeight + totalHeight) / 2 - zoneHeight
       : (mapHeight - totalHeight) / 2;
-
   return { team, width: zoneWidth, height: zoneHeight, x, y };
-};
+}

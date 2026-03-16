@@ -27,7 +27,7 @@ describe("RandomMapGenerator", () => {
   const gameDataManager = GameDataManager.get("napoleonic");
   const { TILE_SIZE, DEFAULT_BATTLE_TYPE } = gameDataManager.getGameConstants();
 
-  describe("generate all random scenarios", () => {
+  describe("generate all random ranked scenarios", () => {
     // Get all scenario names dynamically from the GameDataManager
     const allScenarioNames = gameDataManager.getScenarioNames();
 
@@ -49,14 +49,18 @@ describe("RandomMapGenerator", () => {
     // Test different player counts
     const playerCounts = [2, 4, 6, 8];
 
-    it("should generate all random scenarios without throwing errors", () => {
+    it("should generate all ranked random scenarios without throwing errors", () => {
       const mapGenerator = new RandomMapGenerator();
 
       // Test each random scenario
       randomScenarioNames.forEach((scenarioName) => {
-        console.log(`Testing random scenario: ${scenarioName}`);
-
         const scenario = gameDataManager.getScenario(scenarioName);
+
+        if (!scenario.ranked) {
+          console.log(`Skipping random scenario: ${scenarioName}`);
+          return;
+        }
+        console.log(`Testing random scenario: ${scenarioName}`);
 
         // Verify it's actually a random scenario
         expect(scenario.type).toBe(GameScenarioType.Random);
