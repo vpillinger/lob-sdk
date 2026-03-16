@@ -42,6 +42,15 @@ export interface BaseAction {
 }
 
 /**
+ * Per-player stats at the start of a turn (for replay/casting).
+ */
+export interface TurnActionPlayerStats {
+  player: number;
+  ammoReserve: number;
+  currentTimeBankSeconds: number;
+}
+
+/**
  * Action marking the start of a new turn.
  */
 export interface TurnAction extends BaseAction {
@@ -56,6 +65,11 @@ export interface TurnAction extends BaseAction {
     /** Total army power of the team. */
     armyPower: number;
   }[];
+  /**
+   * Per-player ammo and time bank at turn start (for replay/casting).
+   * Optional; older replays may not have this.
+   */
+  playerStats?: TurnActionPlayerStats[];
 }
 
 /**
