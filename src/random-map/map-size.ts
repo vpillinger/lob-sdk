@@ -22,7 +22,7 @@ export const getMapSizeIndex = (
   return Math.max(0, Math.min(calculatedIndex, mapSizeArrayLength - 1));
 };
 
-export const getDeploymentZonesBySize = (
+export const getDeploymentZonesByMapSize = (
   size: Size,
   mapWidth: number,
   mapHeight: number,

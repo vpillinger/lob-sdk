@@ -9,7 +9,7 @@ import {
 import { deriveSeed, randomSeeded } from "@lob-sdk/seed";
 import { NaturalPathGenerator } from "../natural-path-generator";
 import { Point2 } from "@lob-sdk/vector";
-import { getRandomInt, setHeightRecursively } from "@lob-sdk/utils";
+import { getRandomInt } from "@lob-sdk/utils";
 
 const TOP_EDGE: Range = { min: 0, max: 0 };
 const BOTTOM_EDGE: Range = { min: 100, max: 100 };
@@ -190,10 +190,10 @@ export class NaturalPathExecutor {
     const tilesX = this.terrains.length;
     const tilesY = this.terrains[0].length;
 
-    const minX = Math.round((xRange.min / 100) * (tilesX - 1));
-    const maxX = Math.round((xRange.max / 100) * (tilesX - 1));
-    const minY = Math.round((yRange.min / 100) * (tilesY - 1));
-    const maxY = Math.round((yRange.max / 100) * (tilesY - 1));
+    const minX = Math.floor((xRange.min / 100) * (tilesX - 1));
+    const maxX = Math.floor((xRange.max / 100) * (tilesX - 1));
+    const minY = Math.floor((yRange.min / 100) * (tilesY - 1));
+    const maxY = Math.floor((yRange.max / 100) * (tilesY - 1));
 
     const width = maxX - minX + 1;
     const height = maxY - minY + 1;
