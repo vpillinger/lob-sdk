@@ -273,6 +273,8 @@ export interface RangeUnitTemplate extends BaseUnitTemplate {
   minDistanceToFAA?: number;
   /** Ammo system properties for artillery */
   ammo?: number;
+  /** Disable ammo regen for the unit (eg. rockets) */
+  noAmmoRegain?: boolean;
   /** Units with this property will fire at the closest unit instead of ordered target with the shoot order */
   panicFireDistance?: number;
 }

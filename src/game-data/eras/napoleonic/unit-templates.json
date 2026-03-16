@@ -1144,6 +1144,7 @@
     "recoversAtOrg": 25,
     "ralliesAtOrg": 50,
     "ammo": 640,
+    "noAmmoRegain": true,
     "orgRadius": 40,
     "orgRadiusBonus": 12,
     "movementSound": "artillery-movement",
