@@ -68,7 +68,8 @@ export class ArmyDeployer {
    * Creates a new ArmyDeployer instance.
    * @param gameDataManager - The game data manager instance.
    * @param units - A record mapping unit types to their counts.
-   * @param deploymentZone - The zone where units should be deployed.
+   * @param mainDeploymentZone - The zone where normal units should be deployed.
+   * @param mainDeploymentZone - The zone where forward units should be deployed.
    * @param player - The player number.
    * @param team - The team number (1 or 2).
    * @param dynamicBattleType - The battle type (defaults to Combat).
@@ -372,32 +373,8 @@ export class ArmyDeployer {
    * @param frontUnits - The units to deploy in the front.
    */
   private deployFront(frontUnits: UnitType[], metrics: SectionMetrics) {
-    const frontWithBuffer: UnitType[] = [];
-    const frontWithoutBuffer: UnitType[] = [];
-
-    frontUnits.forEach((type) => {
-      const template = this.gameDataManager
-        .getUnitTemplateManager()
-        .getTemplate(type);
-      if (template.canDeployForward) {
-        frontWithBuffer.push(type);
-      } else {
-        frontWithoutBuffer.push(type);
-      }
-    });
-
     this.deployUnitsInLines(
-      frontWithBuffer,
-      metrics.frontY,
-      metrics.centerStartX,
-      metrics.centerWidth,
-      metrics.centerMaxUnits,
-      metrics.centerSpacing,
-      this.team !== 1,
-    );
-
-    this.deployUnitsInLines(
-      frontWithoutBuffer,
+      frontUnits,
       metrics.frontY,
       metrics.centerStartX,
       metrics.centerWidth,
