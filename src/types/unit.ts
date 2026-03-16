@@ -330,6 +330,7 @@ export interface FormationTemplate {
   checkPoints?: Array<FormationCheckPoint>;
 
   movementModifier?: number;
+  runMovementModifier?: number;
   rotationSpeedModifier?: number;
   disable180Turnaround?: boolean;
   rangedAttackModifier?: number;

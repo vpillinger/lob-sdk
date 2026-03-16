@@ -31,6 +31,7 @@
       { "x": 10, "y": 0, "weight": 1 }
     ],
     "movementModifier": 0.15,
+    "runMovementModifier": 0.15,
     "rotationSpeedModifier": 0.1,
     "rangedAttackModifier": -0.3,
     "shootingAngle": 90,
@@ -57,6 +58,7 @@
       { "x": 0, "y": 15, "weight": 1 }
     ],
     "movementModifier": -0.1,
+    "runMovementModifier": -0.5,
     "rotationSpeedModifier": -0.55,
     "rangedAttackModifier": 1,
     "rangedDamageResistance": 0.3,
@@ -69,14 +71,15 @@
     "shootingAngleMargin": 0,
     "timeToForm": 4,
     "timeToUnform": 8,
-    "minMovementModifier": -0.5
+    "minMovementModifier": -0.8
   },
   {
     "id": "square",
     "frontBackArc": 90,
     "collisionCircles": 1,
     "collisionCircleSize": 20,
-    "movementModifier": -0.8,
+    "movementModifier": -0.6,
+    "runMovementModifier": -0.9,
     "rotationSpeedModifier": -0.8,
     "chargeBonusModifier": -0.75,
     "rangedAttackModifier": 1.5,
@@ -95,7 +98,7 @@
     "timeToForm": 3,
     "timeToUnform": 4,
     "formingSpeedModifier": -1,
-    "minMovementModifier": -0.5,
+    "minMovementModifier": -0.9,
     "pushStrengthModifier": 1
   },
   {
@@ -190,6 +193,7 @@
     "rangedDamageResistance": 0.5,
     "rangedOrgResistance": 3,
     "movementModifier": -0.5,
+    "runMovementModifier": -0.5,
     "rotationSpeedModifier": 1,
     "disablesFlankMelee": true,
     "disablesRearMelee": true,
@@ -198,7 +202,7 @@
     "timeToForm": 1,
     "timeToUnform": 1,
     "receivedMeleeDamageModifier": 0.35,
-    "minMovementModifier": -0.25,
+    "minMovementModifier": -0.5,
     "projectilePassThrough": 0.8,
     "friendlyFireImmuneDamageTypes": [
       "musket",
