@@ -3,6 +3,7 @@ import {
   checkCollision,
   degreesToRadians,
   getDirectionToPoint,
+  getFlankingPercent,
   getMaxOrgProportionDebuff,
 } from "./utils";
 import { GameDataManager } from "@lob-sdk/game-data-manager";
@@ -27,20 +28,20 @@ describe("getMaxOrgProportionDebuff()", () => {
         getMaxOrgProportionDebuff(
           gameDataManager,
           organization.maxOrgDebuffMinHpProportion,
-          1
-        )
+          1,
+        ),
       ).toBe(organization.maxOrgDebuffHp);
     });
 
     it("returns MAX_ORG_DEBUFF_HP when hpProportion is below MIN_HP_PROPORTION", () => {
       expect(getMaxOrgProportionDebuff(gameDataManager, 0, 1)).toBe(
-        organization.maxOrgDebuffHp
+        organization.maxOrgDebuffHp,
       );
     });
 
     it("scales linearly for hpProportion between 1 and MIN_HP_PROPORTION", () => {
       expect(getMaxOrgProportionDebuff(gameDataManager, 0.5, 1)).toBeCloseTo(
-        0.43
+        0.43,
       );
     });
   });
@@ -52,8 +53,8 @@ describe("getMaxOrgProportionDebuff()", () => {
         getMaxOrgProportionDebuff(
           gameDataManager,
           1,
-          organization.maxOrgDebuffStaminaHighProportion
-        )
+          organization.maxOrgDebuffStaminaHighProportion,
+        ),
       ).toBe(0);
       expect(getMaxOrgProportionDebuff(gameDataManager, 1, 1)).toBe(0);
     });
@@ -63,20 +64,20 @@ describe("getMaxOrgProportionDebuff()", () => {
         getMaxOrgProportionDebuff(
           gameDataManager,
           1,
-          organization.maxOrgDebuffStaminaLowProportion
-        )
+          organization.maxOrgDebuffStaminaLowProportion,
+        ),
       ).toBe(organization.maxOrgDebuffStamina);
     });
 
     it("returns MAX_ORG_DEBUFF_STAMINA when staminaProportion is below STAMINA_LOW_PROPORTION", () => {
       expect(getMaxOrgProportionDebuff(gameDataManager, 1, 0)).toBe(
-        organization.maxOrgDebuffStamina
+        organization.maxOrgDebuffStamina,
       );
     });
 
     it("scales linearly for staminaProportion between STAMINA_HIGH_PROPORTION and STAMINA_LOW_PROPORTION", () => {
       expect(getMaxOrgProportionDebuff(gameDataManager, 1, 0.5)).toBeCloseTo(
-        0.15
+        0.15,
       );
     });
   });
@@ -85,7 +86,7 @@ describe("getMaxOrgProportionDebuff()", () => {
   describe("Combined Debuff", () => {
     it("combines HP and stamina debuffs correctly", () => {
       expect(getMaxOrgProportionDebuff(gameDataManager, 0.5, 0.5)).toBeCloseTo(
-        0.58
+        0.58,
       );
     });
 
@@ -95,8 +96,8 @@ describe("getMaxOrgProportionDebuff()", () => {
         getMaxOrgProportionDebuff(
           gameDataManager,
           organization.maxOrgDebuffMinHpProportion,
-          organization.maxOrgDebuffStaminaLowProportion
-        )
+          organization.maxOrgDebuffStaminaLowProportion,
+        ),
       ).toBe(organization.maxOrgDebuffHp + organization.maxOrgDebuffStamina);
     });
   });
@@ -105,13 +106,13 @@ describe("getMaxOrgProportionDebuff()", () => {
   describe("Edge Cases", () => {
     it("handles negative hpProportion (treats as 0)", () => {
       expect(getMaxOrgProportionDebuff(gameDataManager, -0.1, 1)).toBe(
-        organization.maxOrgDebuffHp
+        organization.maxOrgDebuffHp,
       );
     });
 
     it("handles negative staminaProportion (treats as STAMINA_LOW_PROPORTION)", () => {
       expect(getMaxOrgProportionDebuff(gameDataManager, 1, -0.1)).toBe(
-        organization.maxOrgDebuffStamina
+        organization.maxOrgDebuffStamina,
       );
     });
 
@@ -189,7 +190,7 @@ describe("getDirectionToPoint()", () => {
       const from = { x: 0, y: 0 };
       const to = { x: 10, y: 0 };
       expect(getDirectionToPoint(from, to, rotation, frontBackArc)).toBe(
-        Direction.Front
+        Direction.Front,
       );
     });
 
@@ -197,7 +198,7 @@ describe("getDirectionToPoint()", () => {
       const from = { x: 0, y: 0 };
       const to = { x: 10, y: 1 };
       expect(getDirectionToPoint(from, to, rotation, frontBackArc)).toBe(
-        Direction.Front
+        Direction.Front,
       );
     });
 
@@ -205,7 +206,7 @@ describe("getDirectionToPoint()", () => {
       const from = { x: 0, y: 0 };
       const to = { x: 10, y: -1 };
       expect(getDirectionToPoint(from, to, rotation, frontBackArc)).toBe(
-        Direction.Front
+        Direction.Front,
       );
     });
 
@@ -213,7 +214,7 @@ describe("getDirectionToPoint()", () => {
       const from = { x: 0, y: 0 };
       const to = { x: -10, y: 0 };
       expect(getDirectionToPoint(from, to, rotation, frontBackArc)).toBe(
-        Direction.Back
+        Direction.Back,
       );
     });
 
@@ -221,7 +222,7 @@ describe("getDirectionToPoint()", () => {
       const from = { x: 0, y: 0 };
       const to = { x: -10, y: 1 };
       expect(getDirectionToPoint(from, to, rotation, frontBackArc)).toBe(
-        Direction.Back
+        Direction.Back,
       );
     });
 
@@ -229,7 +230,7 @@ describe("getDirectionToPoint()", () => {
       const from = { x: 0, y: 0 };
       const to = { x: -10, y: -1 };
       expect(getDirectionToPoint(from, to, rotation, frontBackArc)).toBe(
-        Direction.Back
+        Direction.Back,
       );
     });
 
@@ -237,7 +238,7 @@ describe("getDirectionToPoint()", () => {
       const from = { x: 0, y: 0 };
       const to = { x: 0, y: 10 };
       expect(getDirectionToPoint(from, to, rotation, frontBackArc)).toBe(
-        Direction.Right
+        Direction.Right,
       );
     });
 
@@ -245,7 +246,7 @@ describe("getDirectionToPoint()", () => {
       const from = { x: 0, y: 0 };
       const to = { x: 0, y: -10 };
       expect(getDirectionToPoint(from, to, rotation, frontBackArc)).toBe(
-        Direction.Left
+        Direction.Left,
       );
     });
   });
@@ -257,7 +258,7 @@ describe("getDirectionToPoint()", () => {
       const from = { x: 0, y: 0 };
       const to = { x: 0, y: 10 };
       expect(
-        getDirectionToPoint(from, to, degreesToRadians(90), frontBackArc)
+        getDirectionToPoint(from, to, degreesToRadians(90), frontBackArc),
       ).toBe(Direction.Front);
     });
 
@@ -265,7 +266,7 @@ describe("getDirectionToPoint()", () => {
       const from = { x: 0, y: 0 };
       const to = { x: 0, y: -10 };
       expect(
-        getDirectionToPoint(from, to, degreesToRadians(90), frontBackArc)
+        getDirectionToPoint(from, to, degreesToRadians(90), frontBackArc),
       ).toBe(Direction.Back);
     });
 
@@ -274,7 +275,7 @@ describe("getDirectionToPoint()", () => {
       const to = { x: 10, y: 0 };
       // When facing up, east is to the left of the unit (counter-clockwise from front)
       expect(
-        getDirectionToPoint(from, to, degreesToRadians(90), frontBackArc)
+        getDirectionToPoint(from, to, degreesToRadians(90), frontBackArc),
       ).toBe(Direction.Left);
     });
 
@@ -283,7 +284,7 @@ describe("getDirectionToPoint()", () => {
       const to = { x: -10, y: 0 };
       // When facing up, west is to the right of the unit
       expect(
-        getDirectionToPoint(from, to, degreesToRadians(90), frontBackArc)
+        getDirectionToPoint(from, to, degreesToRadians(90), frontBackArc),
       ).toBe(Direction.Right);
     });
 
@@ -291,7 +292,7 @@ describe("getDirectionToPoint()", () => {
       const from = { x: 0, y: 0 };
       const to = { x: -10, y: 0 };
       expect(
-        getDirectionToPoint(from, to, degreesToRadians(180), frontBackArc)
+        getDirectionToPoint(from, to, degreesToRadians(180), frontBackArc),
       ).toBe(Direction.Front);
     });
 
@@ -299,7 +300,7 @@ describe("getDirectionToPoint()", () => {
       const from = { x: 0, y: 0 };
       const to = { x: 10, y: 0 };
       expect(
-        getDirectionToPoint(from, to, degreesToRadians(180), frontBackArc)
+        getDirectionToPoint(from, to, degreesToRadians(180), frontBackArc),
       ).toBe(Direction.Back);
     });
 
@@ -307,7 +308,7 @@ describe("getDirectionToPoint()", () => {
       const from = { x: 0, y: 0 };
       const to = { x: 0, y: -10 };
       expect(
-        getDirectionToPoint(from, to, degreesToRadians(-90), frontBackArc)
+        getDirectionToPoint(from, to, degreesToRadians(-90), frontBackArc),
       ).toBe(Direction.Front);
     });
 
@@ -315,7 +316,7 @@ describe("getDirectionToPoint()", () => {
       const from = { x: 0, y: 0 };
       const to = { x: 0, y: 10 };
       expect(
-        getDirectionToPoint(from, to, degreesToRadians(-90), frontBackArc)
+        getDirectionToPoint(from, to, degreesToRadians(-90), frontBackArc),
       ).toBe(Direction.Back);
     });
   });
@@ -327,62 +328,62 @@ describe("getDirectionToPoint()", () => {
     it("should work with small frontBackArc (45°)", () => {
       const frontBackArc = degreesToRadians(45);
       expect(
-        getDirectionToPoint(from, { x: 10, y: 0 }, rotation, frontBackArc)
+        getDirectionToPoint(from, { x: 10, y: 0 }, rotation, frontBackArc),
       ).toBe(Direction.Front);
       expect(
-        getDirectionToPoint(from, { x: -10, y: 0 }, rotation, frontBackArc)
+        getDirectionToPoint(from, { x: -10, y: 0 }, rotation, frontBackArc),
       ).toBe(Direction.Back);
       expect(
-        getDirectionToPoint(from, { x: 0, y: 10 }, rotation, frontBackArc)
+        getDirectionToPoint(from, { x: 0, y: 10 }, rotation, frontBackArc),
       ).toBe(Direction.Right);
       expect(
-        getDirectionToPoint(from, { x: 0, y: -10 }, rotation, frontBackArc)
+        getDirectionToPoint(from, { x: 0, y: -10 }, rotation, frontBackArc),
       ).toBe(Direction.Left);
     });
 
     it("should work with large frontBackArc (135°)", () => {
       const frontBackArc = degreesToRadians(135);
       expect(
-        getDirectionToPoint(from, { x: 10, y: 0 }, rotation, frontBackArc)
+        getDirectionToPoint(from, { x: 10, y: 0 }, rotation, frontBackArc),
       ).toBe(Direction.Front);
       expect(
-        getDirectionToPoint(from, { x: -10, y: 0 }, rotation, frontBackArc)
+        getDirectionToPoint(from, { x: -10, y: 0 }, rotation, frontBackArc),
       ).toBe(Direction.Back);
       // With large frontBackArc, side directions have smaller arcs
       expect(
-        getDirectionToPoint(from, { x: 0, y: 10 }, rotation, frontBackArc)
+        getDirectionToPoint(from, { x: 0, y: 10 }, rotation, frontBackArc),
       ).toBe(Direction.Right);
       expect(
-        getDirectionToPoint(from, { x: 0, y: -10 }, rotation, frontBackArc)
+        getDirectionToPoint(from, { x: 0, y: -10 }, rotation, frontBackArc),
       ).toBe(Direction.Left);
     });
 
     it("should work with very small frontBackArc (22.5°)", () => {
       const frontBackArc = degreesToRadians(22.5);
       expect(
-        getDirectionToPoint(from, { x: 10, y: 0 }, rotation, frontBackArc)
+        getDirectionToPoint(from, { x: 10, y: 0 }, rotation, frontBackArc),
       ).toBe(Direction.Front);
       expect(
-        getDirectionToPoint(from, { x: -10, y: 0 }, rotation, frontBackArc)
+        getDirectionToPoint(from, { x: -10, y: 0 }, rotation, frontBackArc),
       ).toBe(Direction.Back);
     });
 
     it("should work with π frontBackArc (180 degrees)", () => {
       const frontBackArc = degreesToRadians(180);
       expect(
-        getDirectionToPoint(from, { x: 10, y: 0 }, rotation, frontBackArc)
+        getDirectionToPoint(from, { x: 10, y: 0 }, rotation, frontBackArc),
       ).toBe(Direction.Front);
       expect(
-        getDirectionToPoint(from, { x: -10, y: 0 }, rotation, frontBackArc)
+        getDirectionToPoint(from, { x: -10, y: 0 }, rotation, frontBackArc),
       ).toBe(Direction.Back);
       // With π frontBackArc, the front and back arcs each cover 180 degrees
       // So points at 90 and 270 degrees fall into front/back arcs
       expect(
-        getDirectionToPoint(from, { x: 0, y: 10 }, rotation, frontBackArc)
+        getDirectionToPoint(from, { x: 0, y: 10 }, rotation, frontBackArc),
       ).toBe(Direction.Front);
       // At 270 degrees (-90), with frontBackArc=π, the front arc wraps from -π/2 to π/2
       expect(
-        getDirectionToPoint(from, { x: 0, y: -10 }, rotation, frontBackArc)
+        getDirectionToPoint(from, { x: 0, y: -10 }, rotation, frontBackArc),
       ).toBe(Direction.Front);
     });
   });
@@ -397,7 +398,7 @@ describe("getDirectionToPoint()", () => {
       const angle = degreesToRadians(45);
       const to = { x: Math.cos(angle) * 10, y: Math.sin(angle) * 10 };
       expect(getDirectionToPoint(from, to, rotation, frontBackArc)).toBe(
-        Direction.Front
+        Direction.Front,
       );
     });
 
@@ -406,7 +407,7 @@ describe("getDirectionToPoint()", () => {
       const angle = degreesToRadians(135);
       const to = { x: Math.cos(angle) * 10, y: Math.sin(angle) * 10 };
       expect(getDirectionToPoint(from, to, rotation, frontBackArc)).toBe(
-        Direction.Back
+        Direction.Back,
       );
     });
 
@@ -415,7 +416,7 @@ describe("getDirectionToPoint()", () => {
       const angle = degreesToRadians(90);
       const to = { x: Math.cos(angle) * 10, y: Math.sin(angle) * 10 };
       expect(getDirectionToPoint(from, to, rotation, frontBackArc)).toBe(
-        Direction.Right
+        Direction.Right,
       );
     });
 
@@ -424,7 +425,7 @@ describe("getDirectionToPoint()", () => {
       const angle = degreesToRadians(-90);
       const to = { x: Math.cos(angle) * 10, y: Math.sin(angle) * 10 };
       expect(getDirectionToPoint(from, to, rotation, frontBackArc)).toBe(
-        Direction.Left
+        Direction.Left,
       );
     });
   });
@@ -437,7 +438,7 @@ describe("getDirectionToPoint()", () => {
       const rotation = 0.1; // Slightly rotated
       const to = { x: 10, y: 0.1 }; // Slightly above, should still be front
       expect(getDirectionToPoint(from, to, rotation, frontBackArc)).toBe(
-        Direction.Front
+        Direction.Front,
       );
     });
 
@@ -446,7 +447,7 @@ describe("getDirectionToPoint()", () => {
       const rotation = TWO_PI - 0.1; // Near 2π
       const to = { x: 10, y: -0.1 }; // Slightly below, should still be front
       expect(getDirectionToPoint(from, to, rotation, frontBackArc)).toBe(
-        Direction.Front
+        Direction.Front,
       );
     });
 
@@ -455,7 +456,7 @@ describe("getDirectionToPoint()", () => {
       const rotation = TWO_PI;
       const to = { x: 10, y: 0 };
       expect(getDirectionToPoint(from, to, rotation, frontBackArc)).toBe(
-        Direction.Front
+        Direction.Front,
       );
     });
 
@@ -464,7 +465,7 @@ describe("getDirectionToPoint()", () => {
       const rotation = -TWO_PI;
       const to = { x: 10, y: 0 };
       expect(getDirectionToPoint(from, to, rotation, frontBackArc)).toBe(
-        Direction.Front
+        Direction.Front,
       );
     });
   });
@@ -477,7 +478,7 @@ describe("getDirectionToPoint()", () => {
       const from = { x: 100, y: 200 };
       const to = { x: 110, y: 200 };
       expect(getDirectionToPoint(from, to, rotation, frontBackArc)).toBe(
-        Direction.Front
+        Direction.Front,
       );
     });
 
@@ -485,7 +486,7 @@ describe("getDirectionToPoint()", () => {
       const from = { x: -50, y: -75 };
       const to = { x: -40, y: -75 };
       expect(getDirectionToPoint(from, to, rotation, frontBackArc)).toBe(
-        Direction.Front
+        Direction.Front,
       );
     });
 
@@ -493,7 +494,7 @@ describe("getDirectionToPoint()", () => {
       const from = { x: 10000, y: 20000 };
       const to = { x: 10010, y: 20000 };
       expect(getDirectionToPoint(from, to, rotation, frontBackArc)).toBe(
-        Direction.Front
+        Direction.Front,
       );
     });
 
@@ -501,7 +502,7 @@ describe("getDirectionToPoint()", () => {
       const from = { x: 0, y: 0 };
       const to = { x: 0.001, y: 0 };
       expect(getDirectionToPoint(from, to, rotation, frontBackArc)).toBe(
-        Direction.Front
+        Direction.Front,
       );
     });
   });
@@ -514,28 +515,28 @@ describe("getDirectionToPoint()", () => {
     it("should return Front for target in front-right diagonal", () => {
       const to = { x: 10, y: 5 };
       expect(getDirectionToPoint(from, to, rotation, frontBackArc)).toBe(
-        Direction.Front
+        Direction.Front,
       );
     });
 
     it("should return Front for target in front-left diagonal", () => {
       const to = { x: 10, y: -5 };
       expect(getDirectionToPoint(from, to, rotation, frontBackArc)).toBe(
-        Direction.Front
+        Direction.Front,
       );
     });
 
     it("should return Back for target in back-right diagonal", () => {
       const to = { x: -10, y: 5 };
       expect(getDirectionToPoint(from, to, rotation, frontBackArc)).toBe(
-        Direction.Back
+        Direction.Back,
       );
     });
 
     it("should return Back for target in back-left diagonal", () => {
       const to = { x: -10, y: -5 };
       expect(getDirectionToPoint(from, to, rotation, frontBackArc)).toBe(
-        Direction.Back
+        Direction.Back,
       );
     });
   });
@@ -549,7 +550,7 @@ describe("getDirectionToPoint()", () => {
       // Target at 45 degrees from origin should be front
       const to = { x: 10, y: 10 };
       expect(getDirectionToPoint(from, to, rotation, frontBackArc)).toBe(
-        Direction.Front
+        Direction.Front,
       );
     });
 
@@ -558,7 +559,7 @@ describe("getDirectionToPoint()", () => {
       // Target at 135 degrees from origin should be front
       const to = { x: -10, y: 10 };
       expect(getDirectionToPoint(from, to, rotation, frontBackArc)).toBe(
-        Direction.Front
+        Direction.Front,
       );
     });
 
@@ -567,7 +568,7 @@ describe("getDirectionToPoint()", () => {
       // Target at 225 degrees from origin should be front
       const to = { x: -10, y: -10 };
       expect(getDirectionToPoint(from, to, rotation, frontBackArc)).toBe(
-        Direction.Front
+        Direction.Front,
       );
     });
 
@@ -576,7 +577,7 @@ describe("getDirectionToPoint()", () => {
       // Target at 315 degrees from origin should be front
       const to = { x: 10, y: -10 };
       expect(getDirectionToPoint(from, to, rotation, frontBackArc)).toBe(
-        Direction.Front
+        Direction.Front,
       );
     });
   });
@@ -590,7 +591,7 @@ describe("getDirectionToPoint()", () => {
       const to = { x: 0, y: 0 };
       // When target is at same position, angle is 0, which should be in front arc
       expect(getDirectionToPoint(from, to, rotation, frontBackArc)).toBe(
-        Direction.Front
+        Direction.Front,
       );
     });
 
@@ -598,7 +599,7 @@ describe("getDirectionToPoint()", () => {
       const from = { x: 0, y: 0 };
       const to = { x: 0.0001, y: 0 };
       expect(getDirectionToPoint(from, to, rotation, frontBackArc)).toBe(
-        Direction.Front
+        Direction.Front,
       );
     });
   });
@@ -611,31 +612,31 @@ describe("getDirectionToPoint()", () => {
       const frontBackArc = 0;
       // With 0 arc, front arc is from 2π to 0 (wraps around), so (10, 0) at angle 0 is in front
       expect(
-        getDirectionToPoint(from, { x: 10, y: 0 }, rotation, frontBackArc)
+        getDirectionToPoint(from, { x: 10, y: 0 }, rotation, frontBackArc),
       ).toBe(Direction.Front);
       // With 0 arc, back arc is from π to π, but the front arc wraps, so (-10, 0) at angle π is in front
       expect(
-        getDirectionToPoint(from, { x: -10, y: 0 }, rotation, frontBackArc)
+        getDirectionToPoint(from, { x: -10, y: 0 }, rotation, frontBackArc),
       ).toBe(Direction.Front);
     });
 
     it("should handle frontBackArc of 30 degrees", () => {
       const frontBackArc = degreesToRadians(30);
       expect(
-        getDirectionToPoint(from, { x: 10, y: 0 }, rotation, frontBackArc)
+        getDirectionToPoint(from, { x: 10, y: 0 }, rotation, frontBackArc),
       ).toBe(Direction.Front);
       expect(
-        getDirectionToPoint(from, { x: -10, y: 0 }, rotation, frontBackArc)
+        getDirectionToPoint(from, { x: -10, y: 0 }, rotation, frontBackArc),
       ).toBe(Direction.Back);
     });
 
     it("should handle frontBackArc of 60 degrees", () => {
       const frontBackArc = degreesToRadians(60);
       expect(
-        getDirectionToPoint(from, { x: 10, y: 0 }, rotation, frontBackArc)
+        getDirectionToPoint(from, { x: 10, y: 0 }, rotation, frontBackArc),
       ).toBe(Direction.Front);
       expect(
-        getDirectionToPoint(from, { x: -10, y: 0 }, rotation, frontBackArc)
+        getDirectionToPoint(from, { x: -10, y: 0 }, rotation, frontBackArc),
       ).toBe(Direction.Back);
     });
   });
@@ -690,7 +691,7 @@ describe("getDirectionToPoint()", () => {
       const rotation = 0;
       const enemyPosition = { x: 100, y: 0 };
       expect(
-        getDirectionToPoint(from, enemyPosition, rotation, frontBackArc)
+        getDirectionToPoint(from, enemyPosition, rotation, frontBackArc),
       ).toBe(Direction.Front);
     });
 
@@ -699,7 +700,7 @@ describe("getDirectionToPoint()", () => {
       const rotation = 0;
       const enemyPosition = { x: -100, y: 0 };
       expect(
-        getDirectionToPoint(from, enemyPosition, rotation, frontBackArc)
+        getDirectionToPoint(from, enemyPosition, rotation, frontBackArc),
       ).toBe(Direction.Back);
     });
 
@@ -708,7 +709,7 @@ describe("getDirectionToPoint()", () => {
       const rotation = 0;
       const enemyPosition = { x: 0, y: 100 };
       expect(
-        getDirectionToPoint(from, enemyPosition, rotation, frontBackArc)
+        getDirectionToPoint(from, enemyPosition, rotation, frontBackArc),
       ).toBe(Direction.Right);
     });
 
@@ -717,7 +718,7 @@ describe("getDirectionToPoint()", () => {
       const rotation = degreesToRadians(45); // Facing northeast
       const targetPosition = { x: 60, y: 60 }; // Northeast of unit
       expect(
-        getDirectionToPoint(from, targetPosition, rotation, frontBackArc)
+        getDirectionToPoint(from, targetPosition, rotation, frontBackArc),
       ).toBe(Direction.Front);
     });
   });
@@ -730,7 +731,7 @@ describe("getDirectionToPoint()", () => {
     it("should handle very small angles", () => {
       const to = { x: 10, y: 0.0001 };
       expect(getDirectionToPoint(from, to, rotation, frontBackArc)).toBe(
-        Direction.Front
+        Direction.Front,
       );
     });
 
@@ -742,7 +743,7 @@ describe("getDirectionToPoint()", () => {
         y: Math.sin(angle) * 10,
       };
       expect(getDirectionToPoint(from, to, rotation, frontBackArc)).toBe(
-        Direction.Front
+        Direction.Front,
       );
     });
 
@@ -754,7 +755,7 @@ describe("getDirectionToPoint()", () => {
         y: Math.sin(angle) * 10,
       };
       expect(getDirectionToPoint(from, to, rotation, frontBackArc)).toBe(
-        Direction.Right
+        Direction.Right,
       );
     });
   });
@@ -766,25 +767,25 @@ describe("getDirectionToPoint()", () => {
 
     it("should return Front when rotation is 0", () => {
       expect(getDirectionToPoint(from, to, 0, frontBackArc)).toBe(
-        Direction.Front
+        Direction.Front,
       );
     });
 
     it("should return Right when rotation is -90°", () => {
       expect(
-        getDirectionToPoint(from, to, degreesToRadians(-90), frontBackArc)
+        getDirectionToPoint(from, to, degreesToRadians(-90), frontBackArc),
       ).toBe(Direction.Right);
     });
 
     it("should return Back when rotation is 180°", () => {
       expect(
-        getDirectionToPoint(from, to, degreesToRadians(180), frontBackArc)
+        getDirectionToPoint(from, to, degreesToRadians(180), frontBackArc),
       ).toBe(Direction.Back);
     });
 
     it("should return Left when rotation is 90°", () => {
       expect(
-        getDirectionToPoint(from, to, degreesToRadians(90), frontBackArc)
+        getDirectionToPoint(from, to, degreesToRadians(90), frontBackArc),
       ).toBe(Direction.Left);
     });
   });
@@ -799,13 +800,13 @@ describe("getDirectionToPoint()", () => {
         from,
         { x: 10, y: 0 },
         rotation,
-        frontBackArc
+        frontBackArc,
       );
       const back = getDirectionToPoint(
         from,
         { x: -10, y: 0 },
         rotation,
-        frontBackArc
+        frontBackArc,
       );
       expect(front).toBe(Direction.Front);
       expect(back).toBe(Direction.Back);
@@ -817,16 +818,124 @@ describe("getDirectionToPoint()", () => {
         from,
         { x: 0, y: 10 },
         rotation,
-        frontBackArc
+        frontBackArc,
       );
       const left = getDirectionToPoint(
         from,
         { x: 0, y: -10 },
         rotation,
-        frontBackArc
+        frontBackArc,
       );
       expect(right).toBe(Direction.Right);
       expect(left).toBe(Direction.Left);
     });
+  });
+});
+
+describe("getFlankingPercent", () => {
+  const defenderPos = { x: 0, y: 0 };
+  const defenderRotation = 0; // Facing East (+X)
+
+  // 45 degrees to 90 degrees
+  const minAngle = Math.PI / 4;
+  const maxAngle = Math.PI / 2;
+
+  test("should return 0 when attacker is directly in front", () => {
+    const attackerPos = { x: 10, y: 0 }; // Directly East
+    const result = getFlankingPercent(
+      attackerPos,
+      defenderPos,
+      defenderRotation,
+      minAngle,
+      maxAngle,
+    );
+    expect(result).toBe(0);
+  });
+
+  test("should return 1 when attacker is directly behind", () => {
+    const attackerPos = { x: -10, y: 0 }; // Directly West
+    const result = getFlankingPercent(
+      attackerPos,
+      defenderPos,
+      defenderRotation,
+      minAngle,
+      maxAngle,
+    );
+    expect(result).toBe(1);
+  });
+
+  test("should return 0.5 when attacker is at a 67.5 degree angle (midway)", () => {
+    // 67.5 degrees is halfway between 45 and 90
+    const angle = (Math.PI / 4 + Math.PI / 2) / 2;
+    const attackerPos = {
+      x: Math.cos(angle) * 10,
+      y: Math.sin(angle) * 10,
+    };
+
+    const result = getFlankingPercent(
+      attackerPos,
+      defenderPos,
+      defenderRotation,
+      minAngle,
+      maxAngle,
+    );
+    expect(result).toBeCloseTo(0.5, 5);
+  });
+
+  test("should be symmetrical for left and right sides", () => {
+    const rightSide = { x: 5, y: 10 }; // Somewhere to the North-Eastish
+    const leftSide = { x: 5, y: -10 }; // Somewhere to the South-Eastish
+
+    const resRight = getFlankingPercent(
+      rightSide,
+      defenderPos,
+      defenderRotation,
+      minAngle,
+      maxAngle,
+    );
+    const resLeft = getFlankingPercent(
+      leftSide,
+      defenderPos,
+      defenderRotation,
+      minAngle,
+      maxAngle,
+    );
+
+    expect(resRight).toBe(resLeft);
+    expect(resRight).toBeGreaterThan(0);
+  });
+
+  test("should handle defender facing different directions (e.g., North)", () => {
+    const northRotation = Math.PI / 2; // Facing North (+Y)
+    const attackerPos = { x: 0, y: -10 }; // Attacker is South (Behind)
+
+    const result = getFlankingPercent(
+      attackerPos,
+      defenderPos,
+      northRotation,
+      minAngle,
+      maxAngle,
+    );
+    expect(result).toBe(1);
+  });
+
+  test("should handle negative wrap-around cases", () => {
+    // Defender facing almost full circle (350 degrees)
+    const rotation = (350 * Math.PI) / 180;
+    // Attacker at 10 degrees
+    const attackerPos = {
+      x: Math.cos((10 * Math.PI) / 180),
+      y: Math.sin((10 * Math.PI) / 180),
+    };
+
+    // Total diff is 20 degrees, which is less than minAngle (45), so 0
+    const result = getFlankingPercent(
+      attackerPos,
+      defenderPos,
+      rotation,
+      minAngle,
+      maxAngle,
+    );
+    expect(result).toBe(0);
   });
 });

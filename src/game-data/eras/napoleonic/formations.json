@@ -2,6 +2,8 @@
   {
     "id": "mass",
     "frontBackArc": 126.87,
+    "flankMin": 45,
+    "flankMax": 135,
     "collisionCircles": 2,
     "collisionCircleSize": 12,
     "checkPoints": [
@@ -13,8 +15,7 @@
     "shootingMaxTargets": 1,
     "disablesEnfiladeFire": true,
     "rangedOrgResistance": 0.15,
-    "flankChargeResistance": -0.25,
-    "rearChargeResistance": -0.75,
+    "flankChargeResistance": -0.75,
     "timeToForm": 1,
     "timeToUnform": 3,
     "minMovementModifier": -0.4
@@ -22,6 +23,8 @@
   {
     "id": "column",
     "frontBackArc": 53,
+    "flankMin": 20,
+    "flankMax": 160,
     "collisionCircles": 2,
     "collisionCircleSize": 12,
     "collisionCirclesVertical": true,
@@ -40,8 +43,7 @@
     "rangedDamageResistance": -0.2,
     "rangedOrgResistance": 0.35,
     "chargeResistanceModifier": 0.1,
-    "flankChargeResistance": -0.35,
-    "rearChargeResistance": -0.75,
+    "flankChargeResistance": -0.75,
     "timeToForm": 1,
     "timeToUnform": 2,
     "minMovementModifier": -0.5
@@ -49,6 +51,8 @@
   {
     "id": "line",
     "frontBackArc": 160,
+    "flankMin": 60,
+    "flankMax": 120,
     "collisionCircles": 4,
     "collisionCircleSize": 10,
     "checkPoints": [
@@ -64,8 +68,7 @@
     "rangedDamageResistance": 0.3,
     "disablesEnfiladeFire": true,
     "rangedOrgResistance": -0.15,
-    "flankChargeResistance": -0.5,
-    "rearChargeResistance": -1,
+    "flankChargeResistance": -1,
     "shootingAngle": 100,
     "shootingMaxTargets": 1,
     "shootingAngleMargin": 0,
@@ -76,6 +79,8 @@
   {
     "id": "square",
     "frontBackArc": 90,
+    "flankMin": 180,
+    "flankMax": 180,
     "collisionCircles": 1,
     "collisionCircleSize": 20,
     "movementModifier": -0.6,
@@ -84,7 +89,6 @@
     "chargeBonusModifier": -0.75,
     "rangedAttackModifier": 1.5,
     "disablesFlankMelee": true,
-    "disablesRearMelee": true,
     "disablesEnfiladeFire": true,
     "disablesRearFire": true,
     "shootingAngle": 360,
@@ -104,6 +108,8 @@
   {
     "id": "artillery",
     "frontBackArc": 126.87,
+    "flankMin": 180,
+    "flankMax": 180,
     "collisionCircles": 2,
     "collisionCircleSize": 12,
     "checkPoints": [
@@ -112,7 +118,6 @@
       { "x": 0, "y": 10, "weight": 1 }
     ],
     "disablesFlankMelee": true,
-    "disablesRearMelee": true,
     "disablesEnfiladeFire": true,
     "disablesRearFire": true,
     "shootingAngle": 90,
@@ -125,11 +130,12 @@
   {
     "id": "skirmish",
     "frontBackArc": 126.87,
+    "flankMin": 180,
+    "flankMax": 180,
     "collisionCircles": 2,
     "collisionCircleSize": 12,
     "shootingSides": 2,
     "disablesFlankMelee": true,
-    "disablesRearMelee": true,
     "disablesEnfiladeFire": true,
     "disablesRearFire": true,
     "shootingAngle": 360,
@@ -161,6 +167,8 @@
   {
     "id": "cavalry",
     "frontBackArc": 126.87,
+    "flankMin": 90,
+    "flankMax": 135,
     "collisionCircles": 2,
     "collisionCircleSize": 12,
     "checkPoints": [
@@ -169,7 +177,7 @@
       { "x": 0, "y": 10, "weight": 1 }
     ],
     "disablesEnfiladeFire": true,
-    "disablesFlankMelee": true,
+    "disablesFlankMelee": false,
     "disablesRearFire": true,
     "flankChargeResistance": -0.2,
     "shootingAngle": 360,
@@ -185,6 +193,8 @@
   {
     "id": "dispersed",
     "frontBackArc": 90,
+    "flankMin": 180,
+    "flankMax": 180,
     "collisionCircles": 1,
     "collisionCircleSize": 20,
     "shootingAngle": 360,
@@ -196,7 +206,6 @@
     "runMovementModifier": -0.5,
     "rotationSpeedModifier": 1,
     "disablesFlankMelee": true,
-    "disablesRearMelee": true,
     "disablesEnfiladeFire": true,
     "disablesRearFire": true,
     "timeToForm": 1,

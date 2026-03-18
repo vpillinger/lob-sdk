@@ -20,6 +20,7 @@ import {
   checkCollision,
   degreesToRadians,
   getDirectionToPoint,
+  getFlankingPercent,
   getMaxOrgProportionDebuff,
 } from "@lob-sdk/utils";
 import { TerrainType } from "@lob-sdk/types";
@@ -496,6 +497,27 @@ export abstract class BaseUnit extends Entity {
       point,
       this.rotation,
       frontBackArc,
+    );
+  }
+
+  getFlankMod(attackerPoint: Vector2) {
+    const gameDataManager = GameDataManager.get(this.era);
+    const formation = gameDataManager
+      .getFormationManager()
+      .getTemplate(this.currentFormation);
+    const minFlank = formation?.minFlankAngle
+      ? degreesToRadians(formation.minFlankAngle)
+      : degreesToRadians(45);
+    const maxFlank = formation?.maxFlankAngle
+      ? degreesToRadians(formation.maxFlankAngle)
+      : degreesToRadians(135);
+
+    return getFlankingPercent(
+      attackerPoint,
+      this.position,
+      this.rotation,
+      minFlank,
+      maxFlank,
     );
   }
 

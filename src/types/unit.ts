@@ -138,6 +138,8 @@ interface BaseUnitTemplate {
   meleeDamageType: string;
   chargeBonus: number;
   chargePenetration?: number;
+  flankMeleeOrgModifier?: number;
+  flankChargePenBonus?: number;
   walkMovement: number;
   runStartUpMovement?: number;
   runMovement: number;
@@ -304,6 +306,10 @@ export interface FormationCheckPointWithProportion extends FormationCheckPoint {
 export interface FormationTemplate {
   id: string;
   frontBackArc: number;
+  /* in degrees */
+  minFlankAngle: number;
+  /* in degrees */
+  maxFlankAngle: number;
 
   /**
    * Number of collision circles for this formation.
@@ -342,7 +348,6 @@ export interface FormationTemplate {
   pushStrengthModifier?: number;
 
   disablesFlankMelee?: boolean;
-  disablesRearMelee?: boolean;
   disablesEnfiladeFire?: boolean;
   disablesRearFire?: boolean;
 

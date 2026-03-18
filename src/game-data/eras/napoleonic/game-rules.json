@@ -1,10 +1,4 @@
 {
-  "flanking": {
-    "meleeOrgDamageModifier": 0.75,
-    "rearMeleeOrgDamageModifier": 0.75,
-    "chargePenetrationModifier": 0.75,
-    "rearChargePenetrationModifier": 1.0
-  },
   "stamina": {
     "meleeTurnCost": 200,
     "rangedTurnCost": 50,
@@ -56,8 +50,8 @@
     "maxOrgDebuffStaminaHighProportion": 0.8,
     "maxOrgDebuffStaminaLowProportion": 0.2,
     "maxOrgRangedAttackPenalty": -0.5,
-    "maxOrgMeleeAttackBonus": 0.35,
-    "maxOrgMeleeAttackPenalty": 0.2,
+    "maxOrgMeleeAttackBonus": 0.25,
+    "maxOrgMeleeAttackPenalty": -0.25,
     "regainRate": 0.1,
     "upperModifierLimit": 0.95,
     "lowerModifierLimit": 0.35,
