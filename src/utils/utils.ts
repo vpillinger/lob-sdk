@@ -265,13 +265,6 @@ export const unpack2D = (key: number) => ({
   y: key & 0xff,
 });
 
-/**
- * Packs four 8-bit coordinates (sourceX, sourceY, targetX, targetY) into a single 32-bit number.
- * Useful for caching line-of-sight or other relationships between two points on a map up to 256x256.
- */
-export const pack4D = (sx: number, sy: number, tx: number, ty: number) =>
-  (pack2D(sx, sy) << 16) | pack2D(tx, ty);
-
 export const nowInSeconds = () => Math.floor(Date.now() / 1000);
 
 /**
