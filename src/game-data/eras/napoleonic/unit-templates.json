@@ -1112,7 +1112,7 @@
     "pushDistance": 0
   },
   {
-    "name": "6lb_artillery 2",
+    "name": "6lb_artillery_horse",
     "type": 18,
     "category": "artillery",
     "rangedAttack": 46,
