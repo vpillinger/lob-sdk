@@ -110,26 +110,26 @@ export class GameTimePresetManager {
     // Turn cap is generally limited to 2x the expected avg turn length to prevent stalling
     const presets: GameTimePreset[] = [
       {
-        // Est game time ~25 min + 2 deployment
+        // Est game time ~28 min + 2 deployment
         id: "bullet",
-        bankTimeSeconds: 60 * 20 * 1, // 1 min turns
-        incrementSeconds: 20, // results in extra ~6 mins
-        turnCapSeconds: 60 * 2, // 2 min
+        bankTimeSeconds: 60 * 3, // 1.5 turns bank
+        incrementSeconds: 80, // 1m 20s turns
+        turnCapSeconds: 60 * 2.5, // 2.5 min
         deploymentTimeSeconds: 120,
       },
       {
-        // Est game time ~45 min + 3 deployment
+        // Est game time ~54.5 min + 3 deployment
         id: "blitz",
-        bankTimeSeconds: 60 * 20 * 1.5, // 1.5 min turns
-        incrementSeconds: 40, // results in extra ~13 mins
+        bankTimeSeconds: 60 * 4.5, // 1.5 turns bank
+        incrementSeconds: 150, // 2m 30s turns
         turnCapSeconds: 60 * 4, // 4 min
         deploymentTimeSeconds: 60 * 3,
       },
       {
-        // Est game time ~1 hour 15 min + 5 deployment
+        // Est game time ~1 hour 30 min + 5 deployment
         id: "rapid",
-        bankTimeSeconds: 60 * 20 * 2.5, // 2.5 min turns
-        incrementSeconds: 60, // results in extra ~20 mins
+        bankTimeSeconds: 60 * 7.5, // 7.5 min bank
+        incrementSeconds: 220, // 3m turns
         turnCapSeconds: 60 * 5, // 5 min
         deploymentTimeSeconds: 60 * 5,
       },
