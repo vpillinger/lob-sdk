@@ -6,35 +6,35 @@
   "baseTerrain": 8,
   "defaultDeploymentZones": {
     "topForwardDeploymentZone": {
-      "minX": 15,
-      "maxX": 15,
+      "minX": 30,
+      "maxX": 30,
       "minY": 3,
       "maxY": 3,
-      "width": 80,
-      "height": 10
+      "width": 45,
+      "height": 5
     },
     "topMainDeploymentZone": {
-      "minX": 15,
-      "maxX": 15,
+      "minX": 30,
+      "maxX": 30,
       "minY": 24,
       "maxY": 24,
-      "width": 80,
+      "width": 45,
       "height": 5
     },
     "bottomForwardDeploymentZone": {
-      "minX": 15,
-      "maxX": 15,
-      "minY": 90,
-      "maxY": 90,
-      "width": 80,
-      "height": 10
+      "minX": 30,
+      "maxX": 30,
+      "minY": 95,
+      "maxY": 95,
+      "width": 45,
+      "height": 5
     },
     "bottomMainDeploymentZone": {
-      "minX": 15,
-      "maxX": 15,
+      "minX": 30,
+      "maxX": 30,
       "minY": 76,
       "maxY": 76,
-      "width": 80,
+      "width": 45,
       "height": 5
     }
   },
@@ -110,7 +110,7 @@
     },
     {
       "type": "OBJECTIVE_LAYER",
-      "xBounds": { "min": 15, "max": 25 },
+      "xBounds": { "min": 10, "max": 20 },
       "yBounds": { "min": 35, "max": 45 },
       "minDistance": 5,
       "objectiveType": 1,
@@ -118,7 +118,7 @@
     },
     {
       "type": "OBJECTIVE_LAYER",
-      "xBounds": { "min": 15, "max": 25 },
+      "xBounds": { "min": 10, "max": 20 },
       "yBounds": { "min": 45, "max": 55 },
       "minDistance": 5,
       "objectiveType": 1,
@@ -126,7 +126,7 @@
     },
     {
       "type": "OBJECTIVE_LAYER",
-      "xBounds": { "min": 75, "max": 85 },
+      "xBounds": { "min": 80, "max": 90 },
       "yBounds": { "min": 35, "max": 45 },
       "minDistance": 5,
       "objectiveType": 1,
@@ -135,7 +135,7 @@
 
     {
       "type": "OBJECTIVE_LAYER",
-      "xBounds": { "min": 75, "max": 85 },
+      "xBounds": { "min": 80, "max": 90 },
       "yBounds": { "min": 45, "max": 55 },
       "minDistance": 5,
       "objectiveType": 1,
