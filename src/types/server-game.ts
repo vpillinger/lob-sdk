@@ -189,11 +189,8 @@ export interface GameData {
    */
   timePreset: GameTimePreset;
 
-  /**
-   * ELO K-factor at game creation (matches {@link GameTimePreset.eloKFactor} for the time control).
-   * Omitted in older persisted payloads; treat as time preset K when missing.
-   */
-  kFactor?: number;
+  /** ELO K-factor for this game (from time control at creation; use 0 when not applicable). */
+  kFactor: number;
 
   /** Dynamic battle type configuration, if applicable. */
   dynamicBattleType: DynamicBattleType | null;
@@ -1055,10 +1052,8 @@ export interface ServerGameProps {
   turnStartedTime: number;
   /** Fischer timing settings */
   timePreset: GameTimePreset;
-  /**
-   * ELO K-factor persisted for this game. Defaults to {@link GameTimePreset.eloKFactor} when omitted.
-   */
-  kFactor?: number;
+  /** ELO K-factor persisted for this game (matches {@link GameTimePreset.eloKFactor} at creation). */
+  kFactor: number;
   /** Whether the game has started. */
   started: boolean;
   /** Whether the game has finished. */
