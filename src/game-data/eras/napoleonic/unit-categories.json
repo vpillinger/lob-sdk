@@ -2,7 +2,7 @@
   {
     "id": "infantry",
     "deploymentSection": "center",
-    "firingAltitude": 0.3,
+    "firingAltitude": 0.98,
     "captureSpeed": 2.0,
     "allyCollisionLevel": 2,
     "enemyCollisionLevel": 2,
@@ -35,7 +35,7 @@
   {
     "id": "midCavalry",
     "deploymentSection": "flank",
-    "firingAltitude": 0.3,
+    "firingAltitude": 0.98,
     "allyCollisionLevel": 2,
     "enemyCollisionLevel": 2,
     "routingBehavior": {
@@ -85,7 +85,7 @@
   {
     "id": "artillery",
     "deploymentSection": "front",
-    "firingAltitude": 0.3,
+    "firingAltitude": 0.98,
     "allyCollisionLevel": -1,
     "enemyCollisionLevel": 1,
     "routingBehavior": {
@@ -140,7 +140,7 @@
   {
     "id": "scoutCavalry",
     "deploymentSection": "flank",
-    "firingAltitude": 0.3,
+    "firingAltitude": 0.98,
     "allyCollisionLevel": 2,
     "enemyCollisionLevel": 2,
     "routingBehavior": {
@@ -191,7 +191,7 @@
   {
     "id": "lightCavalry",
     "deploymentSection": "flank",
-    "firingAltitude": 0.3,
+    "firingAltitude": 0.98,
     "allyCollisionLevel": 2,
     "enemyCollisionLevel": 2,
     "routingBehavior": {
@@ -243,7 +243,7 @@
   {
     "id": "heavyCavalry",
     "deploymentSection": "flank",
-    "firingAltitude": 0.3,
+    "firingAltitude": 0.98,
     "allyCollisionLevel": 2,
     "enemyCollisionLevel": 2,
     "routingBehavior": {
@@ -300,7 +300,7 @@
       "dragoon-sword": -0.1,
       "cavalry-sword": -0.1
     },
-    "firingAltitude": 0.3,
+    "firingAltitude": 0.98,
     "captureSpeed": 1.0,
     "allyCollisionLevel": 2,
     "enemyCollisionLevel": 2,
@@ -332,7 +332,7 @@
   {
     "id": "skirmishInfantry",
     "deploymentSection": "front",
-    "firingAltitude": 0.3,
+    "firingAltitude": 0.98,
     "allyCollisionLevel": -1,
     "enemyCollisionLevel": 1,
     "routingBehavior": {

@@ -15,9 +15,9 @@
     "shootingMaxTargets": 1,
     "disablesEnfiladeFire": true,
     "rangedOrgResistance": 0.15,
-    "flankChargeResistance": -0.75,
-    "timeToForm": 1,
-    "timeToUnform": 3,
+    "flankChargeResistance": -0.25,
+    "timeToForm": 6,
+    "timeToUnform": 2,
     "minMovementModifier": -0.4
   },
   {
@@ -43,8 +43,8 @@
     "rangedDamageResistance": -0.2,
     "rangedOrgResistance": 0.35,
     "chargeResistanceModifier": 0.1,
-    "flankChargeResistance": -0.75,
-    "timeToForm": 1,
+    "flankChargeResistance": -0.35,
+    "timeToForm": 4,
     "timeToUnform": 2,
     "minMovementModifier": -0.5
   },
@@ -68,12 +68,12 @@
     "rangedDamageResistance": 0.3,
     "disablesEnfiladeFire": true,
     "rangedOrgResistance": -0.15,
-    "flankChargeResistance": -1,
+    "flankChargeResistance": -0.5,
     "shootingAngle": 100,
     "shootingMaxTargets": 1,
     "shootingAngleMargin": 0,
-    "timeToForm": 4,
-    "timeToUnform": 8,
+    "timeToForm": 8,
+    "timeToUnform": 6,
     "minMovementModifier": -0.8
   },
   {
@@ -99,8 +99,8 @@
     "rangedOrgResistance": 0.25,
     "chargeResistanceModifier": 0.2,
     "receivedMeleeDamageModifier": 0.15,
-    "timeToForm": 3,
-    "timeToUnform": 4,
+    "timeToForm": 2,
+    "timeToUnform": 6,
     "formingSpeedModifier": -1,
     "minMovementModifier": -0.9,
     "pushStrengthModifier": 1
@@ -129,6 +129,11 @@
   },
   {
     "id": "skirmish",
+    "checkPoints": [
+      { "x": 0, "y": 0, "weight": 2 },
+      { "x": 0, "y": -10, "weight": 1 },
+      { "x": 0, "y": 10, "weight": 1 }
+    ],
     "frontBackArc": 126.87,
     "flankMin": 180,
     "flankMax": 180,
