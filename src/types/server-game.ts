@@ -84,8 +84,6 @@ export interface BattleTypeTemplate {
   skirmisherRatio?: number[];
   /** Maximum number of each unit type allowed. */
   unitCaps: Record<UnitType, number>;
-  /** ELO K-factor for rating calculations. */
-  eloKFactor: number;
   /** Number of ticks required to capture small objectives. */
   ticksToCaptureSmall: number;
   /** Number of ticks required to capture big objectives. */
@@ -190,6 +188,12 @@ export interface GameData {
    * The Fischer timing settings.
    */
   timePreset: GameTimePreset;
+
+  /**
+   * ELO K-factor at game creation (matches {@link GameTimePreset.eloKFactor} for the time control).
+   * Omitted in older persisted payloads; treat as time preset K when missing.
+   */
+  kFactor?: number;
 
   /** Dynamic battle type configuration, if applicable. */
   dynamicBattleType: DynamicBattleType | null;
@@ -396,6 +400,8 @@ export interface IServerGame {
   readonly ranked: boolean;
   /** Whether this game gives rewards to players */
   readonly givesRewards: boolean;
+  /** ELO K-factor for this game (from time control at creation). */
+  readonly kFactor: number;
 
   /** Map of all units in the game, keyed by entity ID */
   units: Map<EntityId, BaseUnit>;
@@ -1049,6 +1055,10 @@ export interface ServerGameProps {
   turnStartedTime: number;
   /** Fischer timing settings */
   timePreset: GameTimePreset;
+  /**
+   * ELO K-factor persisted for this game. Defaults to {@link GameTimePreset.eloKFactor} when omitted.
+   */
+  kFactor?: number;
   /** Whether the game has started. */
   started: boolean;
   /** Whether the game has finished. */

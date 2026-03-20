@@ -73,6 +73,8 @@ export interface GameTimePreset {
   deploymentTimeSeconds: number;
   /** Whether the preset is intended for offline use only (e.g. replays) and should be hidden from selection menus. */
   isOffline?: boolean;
+  /** ELO K-factor for rated games; 0 for custom/offline-style controls. */
+  eloKFactor: number;
 }
 
 export const OFFLINE_TIME_SETTINGS: GameTimePreset = {
@@ -81,6 +83,7 @@ export const OFFLINE_TIME_SETTINGS: GameTimePreset = {
   incrementSeconds: 0,
   turnCapSeconds: 0,
   deploymentTimeSeconds: 0,
+  eloKFactor: 0,
 };
 
 export class GameTimePresetManager {
@@ -116,6 +119,7 @@ export class GameTimePresetManager {
         incrementSeconds: 20, // results in extra ~6 mins
         turnCapSeconds: 60 * 2, // 2 min
         deploymentTimeSeconds: 120,
+        eloKFactor: 20,
       },
       {
         // Est game time ~45 min + 3 deployment
@@ -124,6 +128,7 @@ export class GameTimePresetManager {
         incrementSeconds: 40, // results in extra ~13 mins
         turnCapSeconds: 60 * 4, // 4 min
         deploymentTimeSeconds: 60 * 3,
+        eloKFactor: 26,
       },
       {
         // Est game time ~1 hour 15 min + 5 deployment
@@ -132,6 +137,7 @@ export class GameTimePresetManager {
         incrementSeconds: 60, // results in extra ~20 mins
         turnCapSeconds: 60 * 5, // 5 min
         deploymentTimeSeconds: 60 * 5,
+        eloKFactor: 32,
       },
 
       {
@@ -141,6 +147,7 @@ export class GameTimePresetManager {
         incrementSeconds: 60 * 5, // 5 min
         turnCapSeconds: 0,
         deploymentTimeSeconds: 0,
+        eloKFactor: 36,
       },
       {
         id: "correspondence", // TODO rename to something else
@@ -148,6 +155,7 @@ export class GameTimePresetManager {
         incrementSeconds: 60 * 60 * 24 * 0.5, // 12 hours
         turnCapSeconds: 0,
         deploymentTimeSeconds: 0,
+        eloKFactor: 36,
       },
       {
         id: "marathon", // TODO rename to daily
@@ -155,6 +163,7 @@ export class GameTimePresetManager {
         incrementSeconds: 60 * 60 * 24 * 1, // 1 days
         turnCapSeconds: 0,
         deploymentTimeSeconds: 0,
+        eloKFactor: 36,
       },
       {
         id: GameTimePresetManager.OFFLINE_PRESET_ID,
@@ -163,6 +172,7 @@ export class GameTimePresetManager {
         turnCapSeconds: 0,
         deploymentTimeSeconds: 0,
         isOffline: true,
+        eloKFactor: 0,
       },
     ];
 
