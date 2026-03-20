@@ -30,7 +30,7 @@ import { Point2, Vector2 } from "@lob-sdk/vector";
 import { BaseUnit } from "@lob-sdk/unit";
 import { BaseVpService } from "@lob-sdk/vp-service";
 import { BaseObjective } from "@lob-sdk/objective";
-import { GameTimePresetId, GameTimePreset } from "@lob-sdk/game-time-preset";
+import { GameTimePreset } from "@lob-sdk/game-time-preset";
 
 /**
  * A unique identifier for game entities (units, objectives, etc.).
@@ -1053,7 +1053,7 @@ export interface ServerGameProps {
   /** Fischer timing settings */
   timePreset: GameTimePreset;
   /** ELO K-factor persisted for this game (matches {@link GameTimePreset.eloKFactor} at creation). */
-  kFactor: number;
+  kFactor?: number;
   /** Whether the game has started. */
   started: boolean;
   /** Whether the game has finished. */
