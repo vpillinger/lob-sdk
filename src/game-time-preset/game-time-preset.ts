@@ -83,7 +83,6 @@ export const OFFLINE_TIME_SETTINGS: GameTimePreset = {
   incrementSeconds: 0,
   turnCapSeconds: 0,
   deploymentTimeSeconds: 0,
-  eloKFactor: 0,
 };
 
 export class GameTimePresetManager {
@@ -172,7 +171,6 @@ export class GameTimePresetManager {
         turnCapSeconds: 0,
         deploymentTimeSeconds: 0,
         isOffline: true,
-        eloKFactor: 0,
       },
     ];
 
