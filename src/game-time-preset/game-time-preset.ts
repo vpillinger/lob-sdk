@@ -73,6 +73,8 @@ export interface GameTimePreset {
   deploymentTimeSeconds: number;
   /** Whether the preset is intended for offline use only (e.g. replays) and should be hidden from selection menus. */
   isOffline?: boolean;
+  /** ELO K-factor for rated games; defaults to 0 when omitted. */
+  eloKFactor?: number;
 }
 
 export const OFFLINE_TIME_SETTINGS: GameTimePreset = {
@@ -116,6 +118,7 @@ export class GameTimePresetManager {
         incrementSeconds: 80, // 1m 20s turns
         turnCapSeconds: 60 * 2.5, // 2.5 min
         deploymentTimeSeconds: 120,
+        eloKFactor: 20,
       },
       {
         // Est game time ~54.5 min + 3 deployment
@@ -124,6 +127,7 @@ export class GameTimePresetManager {
         incrementSeconds: 150, // 2m 30s turns
         turnCapSeconds: 60 * 4, // 4 min
         deploymentTimeSeconds: 60 * 3,
+        eloKFactor: 26,
       },
       {
         // Est game time ~1 hour 30 min + 5 deployment
@@ -132,6 +136,7 @@ export class GameTimePresetManager {
         incrementSeconds: 220, // 3m turns
         turnCapSeconds: 60 * 5, // 5 min
         deploymentTimeSeconds: 60 * 5,
+        eloKFactor: 32,
       },
 
       {
@@ -141,6 +146,7 @@ export class GameTimePresetManager {
         incrementSeconds: 60 * 5, // 5 min
         turnCapSeconds: 0,
         deploymentTimeSeconds: 0,
+        eloKFactor: 36,
       },
       {
         id: "correspondence", // TODO rename to something else
@@ -148,6 +154,7 @@ export class GameTimePresetManager {
         incrementSeconds: 60 * 60 * 24 * 0.5, // 12 hours
         turnCapSeconds: 0,
         deploymentTimeSeconds: 0,
+        eloKFactor: 36,
       },
       {
         id: "marathon", // TODO rename to daily
@@ -155,6 +162,7 @@ export class GameTimePresetManager {
         incrementSeconds: 60 * 60 * 24 * 1, // 1 days
         turnCapSeconds: 0,
         deploymentTimeSeconds: 0,
+        eloKFactor: 36,
       },
       {
         id: GameTimePresetManager.OFFLINE_PRESET_ID,

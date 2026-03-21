@@ -30,7 +30,7 @@ import { Point2, Vector2 } from "@lob-sdk/vector";
 import { BaseUnit } from "@lob-sdk/unit";
 import { BaseVpService } from "@lob-sdk/vp-service";
 import { BaseObjective } from "@lob-sdk/objective";
-import { GameTimePresetId, GameTimePreset } from "@lob-sdk/game-time-preset";
+import { GameTimePreset } from "@lob-sdk/game-time-preset";
 
 /**
  * A unique identifier for game entities (units, objectives, etc.).
@@ -84,8 +84,6 @@ export interface BattleTypeTemplate {
   skirmisherRatio?: number[];
   /** Maximum number of each unit type allowed. */
   unitCaps: Record<UnitType, number>;
-  /** ELO K-factor for rating calculations. */
-  eloKFactor: number;
   /** Number of ticks required to capture small objectives. */
   ticksToCaptureSmall: number;
   /** Number of ticks required to capture big objectives. */
@@ -190,6 +188,9 @@ export interface GameData {
    * The Fischer timing settings.
    */
   timePreset: GameTimePreset;
+
+  /** ELO K-factor for this game (from time control at creation; use 0 when not applicable). */
+  kFactor: number;
 
   /** Dynamic battle type configuration, if applicable. */
   dynamicBattleType: DynamicBattleType | null;
@@ -396,6 +397,8 @@ export interface IServerGame {
   readonly ranked: boolean;
   /** Whether this game gives rewards to players */
   readonly givesRewards: boolean;
+  /** ELO K-factor for this game (from time control at creation). */
+  readonly kFactor: number;
 
   /** Map of all units in the game, keyed by entity ID */
   units: Map<EntityId, BaseUnit>;
@@ -1049,6 +1052,8 @@ export interface ServerGameProps {
   turnStartedTime: number;
   /** Fischer timing settings */
   timePreset: GameTimePreset;
+  /** ELO K-factor persisted for this game (matches {@link GameTimePreset.eloKFactor} at creation). */
+  kFactor?: number;
   /** Whether the game has started. */
   started: boolean;
   /** Whether the game has finished. */
