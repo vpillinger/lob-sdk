@@ -1,0 +1,1078 @@
+{
+  "name": "Iberia",
+  "description": "Fight across the ridges of the Iberian Peninsular",
+  "type": "random",
+  "baseTerrain": 0,
+  "ranked": true,
+  "defaultDeploymentZones": {
+    "topMainDeploymentZone": {
+      "minX": 75,
+      "maxX": 75,
+      "minY": 3,
+      "maxY": 3,
+      "width": 20,
+      "height": 20
+    },
+    "topForwardDeploymentZone": {
+      "minX": 5,
+      "maxX": 5,
+      "minY": 77,
+      "maxY": 77,
+      "width": 20,
+      "height": 20
+    },
+    "bottomMainDeploymentZone": {
+      "minX": 75,
+      "maxX": 75,
+      "minY": 77,
+      "maxY": 77,
+      "width": 20,
+      "height": 20
+    },
+    "bottomForwardDeploymentZone": {
+      "minX": 5,
+      "maxX": 5,
+      "minY": 3,
+      "maxY": 3,
+      "width": 20,
+      "height": 20
+    }
+  },
+  "instructions": [
+    {
+      "type": "HEIGHT_NOISE",
+      "noises": [
+        {
+          "scale": { "y": 25, "x": 35 },
+          "multiplier": 2.5,
+          "offset": 0,
+          "reverse": true
+        },
+        {
+          "scale": { "y": 45, "x": 25 },
+          "multiplier": 2.2,
+          "offset": 0,
+          "reverse": true
+        },
+        {
+          "scale": { "y": 15, "x": 15 },
+          "multiplier": 2,
+          "offset": 0,
+          "reverse": true
+        },
+        {
+          "scale": { "y": 3, "x": 3 },
+          "multiplier": 0.25,
+          "offset": 0,
+          "reverse": true
+        }
+      ],
+      "mergeStrategy": "max",
+      "min": 4,
+      "max": 6
+    },
+
+    {
+      "type": "TERRAIN_NOISE",
+      "terrain": 1,
+      "scale": 15,
+      "ranges": [
+        { "min": 0, "max": 0.45 },
+        { "min": 0.6, "max": 1 }
+      ],
+      "multiplier": 1,
+      "height": {
+        "min": 5,
+        "max": 5
+      }
+    },
+    {
+      "type": "TERRAIN_NOISE",
+      "terrain": 2,
+      "scale": 15,
+      "ranges": [{ "min": 0, "max": 1 }],
+      "multiplier": 1,
+      "height": {
+        "min": 6,
+        "max": 6
+      }
+    },
+
+    {
+      "type": "NATURAL_PATH",
+      "terrain": 4,
+      "between": "edges",
+      "range": { "min": 5, "max": 95 },
+      "amount": { "min": 20, "max": 30 },
+      "width": 1,
+      "height": 4,
+      "startHeightRanges": [{ "min": 4, "max": 4 }],
+      "endHeightRanges": [{ "min": 4, "max": 4 }],
+      "terrainCosts": [
+        { "terrain": 4, "cost": 0.25 },
+        { "terrain": 0, "cost": 0.75 },
+        { "terrain": 1, "cost": 1.15 },
+        { "terrain": 2, "cost": 2.15 }
+      ]
+    },
+
+    {
+      "type": "TERRAIN_NOISE",
+      "terrain": 0,
+      "scale": 1,
+      "ranges": [{ "min": 0, "max": 1 }],
+      "multiplier": 1,
+      "height": {
+        "min": 0,
+        "max": 7
+      }
+    },
+
+    {
+      "type": "TERRAIN_NOISE",
+      "terrain": 1,
+      "scale": 15,
+      "ranges": [
+        { "min": 0, "max": 0.45 },
+        { "min": 0.6, "max": 1 }
+      ],
+      "multiplier": 1,
+      "height": {
+        "min": 5,
+        "max": 5
+      }
+    },
+    {
+      "type": "TERRAIN_NOISE",
+      "terrain": 2,
+      "scale": 15,
+      "ranges": [{ "min": 0, "max": 1 }],
+      "multiplier": 1,
+      "height": {
+        "min": 4,
+        "max": 4
+      }
+    },
+
+    {
+      "type": "NATURAL_PATH",
+      "terrain": 3,
+      "between": "top-bottom",
+      "range": { "min": 35, "max": 65 },
+      "amount": { "min": 1, "max": 1 },
+      "width": 1,
+      "height": 5.1,
+      "startHeightRanges": [{ "min": 5.9, "max": 6.1 }],
+      "endHeightRanges": [{ "min": 5.9, "max": 6.1 }],
+      "terrainCosts": [
+        { "terrain": 3, "cost": 1.75 },
+        { "terrain": 0, "cost": 2.95 },
+        { "terrain": 1, "cost": 3.15 },
+        { "terrain": 2, "cost": 4.15 }
+      ]
+    },
+
+    {
+      "type": "NATURAL_PATH",
+      "terrain": 3,
+      "between": "top-bottom",
+      "range": { "min": 15, "max": 55 },
+      "amount": { "min": 1, "max": 2 },
+      "width": 1,
+      "height": 5.1,
+      "startHeightRanges": [{ "min": 5.9, "max": 6.1 }],
+      "endHeightRanges": [{ "min": 5.9, "max": 6.1 }],
+      "terrainCosts": [
+        { "terrain": 3, "cost": 1.75 },
+        { "terrain": 0, "cost": 2.95 },
+        { "terrain": 1, "cost": 3.15 },
+        { "terrain": 2, "cost": 4.15 }
+      ]
+    },
+    {
+      "type": "NATURAL_PATH",
+      "terrain": 3,
+      "between": "top-bottom",
+      "range": { "min": 55, "max": 85 },
+      "amount": { "min": 1, "max": 2 },
+      "width": 1,
+      "height": 5.1,
+      "startHeightRanges": [{ "min": 5.9, "max": 6.1 }],
+      "endHeightRanges": [{ "min": 5.9, "max": 6.1 }],
+      "terrainCosts": [
+        { "terrain": 3, "cost": 1.75 },
+        { "terrain": 0, "cost": 2.95 },
+        { "terrain": 1, "cost": 3.15 },
+        { "terrain": 2, "cost": 4.15 }
+      ]
+    },
+
+    {
+      "type": "NATURAL_PATH",
+      "terrain": 3,
+      "between": "left-right",
+      "range": { "min": 15, "max": 65 },
+      "amount": { "min": 1, "max": 2 },
+      "width": 1,
+      "height": 5.1,
+      "startHeightRanges": [{ "min": 6, "max": 6 }],
+      "endHeightRanges": [{ "min": 6, "max": 6 }],
+      "terrainCosts": [
+        { "terrain": 3, "cost": 1.75 },
+        { "terrain": 0, "cost": 2.95 },
+        { "terrain": 1, "cost": 4.15 },
+        { "terrain": 2, "cost": 5.15 }
+      ]
+    },
+    {
+      "type": "NATURAL_PATH",
+      "terrain": 3,
+      "between": "left-right",
+      "range": { "min": 45, "max": 85 },
+      "amount": { "min": 1, "max": 2 },
+      "width": 1,
+      "height": 5.1,
+      "startHeightRanges": [{ "min": 6, "max": 6 }],
+      "endHeightRanges": [{ "min": 6, "max": 6 }],
+      "terrainCosts": [
+        { "terrain": 3, "cost": 1.75 },
+        { "terrain": 0, "cost": 2.95 },
+        { "terrain": 1, "cost": 4.15 },
+        { "terrain": 2, "cost": 5.15 }
+      ]
+    },
+
+    {
+      "type": "NATURAL_PATH",
+      "terrain": 3,
+      "between": "edges",
+      "range": { "min": 5, "max": 95 },
+      "amount": { "min": 5, "max": 7 },
+      "width": 1,
+      "height": 5.1,
+      "startHeightRanges": [{ "min": 6, "max": 6 }],
+      "endHeightRanges": [{ "min": 6, "max": 6 }],
+      "terrainCosts": [
+        { "terrain": 3, "cost": 1.75 },
+        { "terrain": 0, "cost": 2.95 },
+        { "terrain": 1, "cost": 4.15 },
+        { "terrain": 2, "cost": 5.15 }
+      ]
+    },
+    {
+      "type": "NATURAL_PATH",
+      "terrain": 3,
+      "between": "edges",
+      "range": { "min": 5, "max": 95 },
+      "amount": { "min": 5, "max": 7 },
+      "width": 1,
+      "height": 5.1,
+      "startHeightRanges": [{ "min": 6, "max": 6 }],
+      "endHeightRanges": [{ "min": 6, "max": 6 }],
+      "terrainCosts": [
+        { "terrain": 3, "cost": 0.75 },
+        { "terrain": 0, "cost": 2.95 },
+        { "terrain": 1, "cost": 4.15 },
+        { "terrain": 2, "cost": 5.15 }
+      ]
+    },
+
+    {
+      "type": "TERRAIN_NOISE",
+      "terrain": 0,
+      "scale": 1,
+      "ranges": [{ "min": 0, "max": 1 }],
+      "multiplier": 1,
+      "height": {
+        "min": 0,
+        "max": 5.01
+      }
+    },
+
+    {
+      "type": "HEIGHT_NOISE",
+      "ranges": [{ "min": 4.09, "max": 4.11 }],
+      "noises": [
+        { "scale": 3, "multiplier": 100 },
+        { "scale": 15, "multiplier": 100 }
+      ],
+      "mergeStrategy": "min",
+      "min": 4.1,
+      "max": 4.3
+    },
+    {
+      "type": "TERRAIN_NOISE",
+      "terrain": 2,
+      "scale": 1,
+      "ranges": [{ "min": 0, "max": 1 }],
+      "multiplier": 1,
+      "height": {
+        "min": 4.29,
+        "max": 4.31
+      }
+    },
+    {
+      "type": "TERRAIN_NOISE",
+      "terrain": 1,
+      "scale": 1,
+      "ranges": [{ "min": 0, "max": 0.3 }],
+      "multiplier": 1,
+      "height": {
+        "min": 4.09,
+        "max": 4.11
+      }
+    },
+
+    {
+      "type": "HEIGHT_NOISE",
+      "ranges": [{ "min": 4.09, "max": 4.31 }],
+      "noises": [
+        { "scale": 3, "multiplier": 100 },
+        { "scale": 3, "multiplier": 100 }
+      ],
+      "mergeStrategy": "avg",
+      "min": 3.32,
+      "max": 3.32
+    },
+    {
+      "type": "HEIGHT_NOISE",
+      "ranges": [{ "min": 5, "max": 5 }],
+      "noises": [
+        { "scale": 3, "multiplier": 100 },
+        { "scale": 3, "multiplier": 100 }
+      ],
+      "mergeStrategy": "avg",
+      "min": 4.08,
+      "max": 4.08
+    },
+
+    {
+      "type": "HEIGHT_NOISE",
+      "ranges": [{ "min": 5.09, "max": 5.11 }],
+      "noises": [
+        { "scale": 1, "multiplier": 100, "reverse": true },
+        { "scale": 1, "multiplier": 100, "reverse": true },
+        { "scale": 3, "multiplier": 100, "reverse": true },
+        { "scale": 5, "multiplier": 100, "reverse": true },
+        { "scale": 5, "multiplier": 100, "reverse": true },
+        { "scale": 1, "multiplier": 100, "reverse": true }
+      ],
+      "mergeStrategy": "max",
+      "min": 4.5,
+      "max": 5.1
+    },
+    {
+      "type": "HEIGHT_NOISE",
+      "ranges": [{ "min": 5.49, "max": 5.501 }],
+      "noises": [{ "scale": 1, "multiplier": 1 }],
+      "mergeStrategy": "avg",
+      "min": 4.51,
+      "max": 4.51
+    },
+    {
+      "type": "HEIGHT_NOISE",
+      "ranges": [{ "min": 5.49, "max": 5.511 }],
+      "noises": [{ "scale": 1, "multiplier": 1 }],
+      "mergeStrategy": "avg",
+      "min": 4.52,
+      "max": 4.52
+    },
+    {
+      "type": "HEIGHT_NOISE",
+      "ranges": [{ "min": 5.49, "max": 5.521 }],
+      "noises": [{ "scale": 1, "multiplier": 1 }],
+      "mergeStrategy": "avg",
+      "min": 4.53,
+      "max": 4.53
+    },
+    {
+      "type": "TERRAIN_NOISE",
+      "terrain": 11,
+      "scale": 1,
+      "ranges": [{ "min": 0, "max": 1 }],
+      "multiplier": 1,
+      "height": {
+        "min": 4.501,
+        "max": 4.53
+      }
+    },
+
+    {
+      "type": "HEIGHT_NOISE",
+      "ranges": [{ "min": 4.501, "max": 4.529 }],
+      "noises": [{ "scale": 1, "multiplier": 1 }],
+      "mergeStrategy": "avg",
+      "min": 4.47,
+      "max": 4.47
+    },
+    {
+      "type": "HEIGHT_NOISE",
+      "ranges": [{ "min": 4.529, "max": 4.531 }],
+      "noises": [{ "scale": 1, "multiplier": 1 }],
+      "mergeStrategy": "avg",
+      "min": 5.12,
+      "max": 5.12
+    },
+
+    {
+      "type": "HEIGHT_NOISE",
+      "ranges": [{ "min": 5.09, "max": 5.13 }],
+      "noises": [
+        { "scale": 1, "multiplier": 100, "reverse": true },
+        { "scale": 1, "multiplier": 100, "reverse": true },
+        { "scale": 3, "multiplier": 100, "reverse": true },
+        { "scale": 5, "multiplier": 100, "reverse": true },
+        { "scale": 5, "multiplier": 100, "reverse": true },
+        { "scale": 1, "multiplier": 100, "reverse": true }
+      ],
+      "mergeStrategy": "max",
+      "min": 4.5,
+      "max": 5.12
+    },
+    {
+      "type": "HEIGHT_NOISE",
+      "ranges": [{ "min": 5.49, "max": 5.501 }],
+      "noises": [{ "scale": 1, "multiplier": 1 }],
+      "mergeStrategy": "avg",
+      "min": 4.51,
+      "max": 4.51
+    },
+    {
+      "type": "HEIGHT_NOISE",
+      "ranges": [{ "min": 5.49, "max": 5.511 }],
+      "noises": [{ "scale": 1, "multiplier": 1 }],
+      "mergeStrategy": "avg",
+      "min": 4.52,
+      "max": 4.52
+    },
+    {
+      "type": "HEIGHT_NOISE",
+      "ranges": [{ "min": 5.49, "max": 5.521 }],
+      "noises": [{ "scale": 1, "multiplier": 1 }],
+      "mergeStrategy": "avg",
+      "min": 4.53,
+      "max": 4.53
+    },
+    {
+      "type": "TERRAIN_NOISE",
+      "terrain": 17,
+      "scale": 1,
+      "ranges": [{ "min": 0, "max": 1 }],
+      "multiplier": 1,
+      "height": {
+        "min": 4.501,
+        "max": 4.53
+      }
+    },
+
+    {
+      "type": "HEIGHT_NOISE",
+      "ranges": [{ "min": 4.501, "max": 4.529 }],
+      "noises": [{ "scale": 1, "multiplier": 1 }],
+      "mergeStrategy": "avg",
+      "min": 4.47,
+      "max": 4.47
+    },
+    {
+      "type": "HEIGHT_NOISE",
+      "ranges": [{ "min": 4.529, "max": 4.531 }],
+      "noises": [{ "scale": 1, "multiplier": 1 }],
+      "mergeStrategy": "avg",
+      "min": 5.12,
+      "max": 5.12
+    },
+
+    {
+      "type": "HEIGHT_NOISE",
+      "ranges": [{ "min": 5.09, "max": 5.13 }],
+      "noises": [
+        { "scale": 1, "multiplier": 100, "reverse": true },
+        { "scale": 3, "multiplier": 100, "reverse": true },
+        { "scale": 5, "multiplier": 100, "reverse": true },
+        { "scale": 5, "multiplier": 100, "reverse": true }
+      ],
+      "mergeStrategy": "max",
+      "min": 4.5,
+      "max": 5.12
+    },
+    {
+      "type": "HEIGHT_NOISE",
+      "ranges": [{ "min": 5.49, "max": 5.501 }],
+      "noises": [{ "scale": 1, "multiplier": 1 }],
+      "mergeStrategy": "avg",
+      "min": 4.51,
+      "max": 4.51
+    },
+    {
+      "type": "HEIGHT_NOISE",
+      "ranges": [{ "min": 5.49, "max": 5.511 }],
+      "noises": [{ "scale": 1, "multiplier": 1 }],
+      "mergeStrategy": "avg",
+      "min": 4.52,
+      "max": 4.52
+    },
+    {
+      "type": "HEIGHT_NOISE",
+      "ranges": [{ "min": 5.49, "max": 5.521 }],
+      "noises": [{ "scale": 1, "multiplier": 1 }],
+      "mergeStrategy": "avg",
+      "min": 4.53,
+      "max": 4.53
+    },
+    {
+      "type": "TERRAIN_NOISE",
+      "terrain": 18,
+      "scale": 1,
+      "ranges": [{ "min": 0, "max": 1 }],
+      "multiplier": 1,
+      "height": {
+        "min": 4.501,
+        "max": 4.53
+      }
+    },
+
+    {
+      "type": "HEIGHT_NOISE",
+      "ranges": [{ "min": 4.501, "max": 4.529 }],
+      "noises": [{ "scale": 1, "multiplier": 1 }],
+      "mergeStrategy": "avg",
+      "min": 4.47,
+      "max": 4.47
+    },
+    {
+      "type": "HEIGHT_NOISE",
+      "ranges": [{ "min": 4.529, "max": 4.531 }],
+      "noises": [{ "scale": 1, "multiplier": 1 }],
+      "mergeStrategy": "avg",
+      "min": 5.12,
+      "max": 5.12
+    },
+
+    {
+      "type": "HEIGHT_NOISE",
+      "ranges": [{ "min": 5.46, "max": 5.47 }],
+      "noises": [
+        { "scale": 1, "multiplier": 100, "reverse": true },
+        { "scale": 1, "multiplier": 100, "reverse": true },
+        { "scale": 3, "multiplier": 100, "reverse": true },
+        { "scale": 5, "multiplier": 100, "reverse": true },
+        { "scale": 5, "multiplier": 100, "reverse": true },
+        { "scale": 1, "multiplier": 100, "reverse": true }
+      ],
+      "mergeStrategy": "max",
+      "min": 4.5,
+      "max": 5.47
+    },
+    {
+      "type": "HEIGHT_NOISE",
+      "ranges": [{ "min": 5.49, "max": 5.501 }],
+      "noises": [{ "scale": 1, "multiplier": 1 }],
+      "mergeStrategy": "avg",
+      "min": 4.51,
+      "max": 4.51
+    },
+    {
+      "type": "HEIGHT_NOISE",
+      "ranges": [{ "min": 5.49, "max": 5.511 }],
+      "noises": [{ "scale": 1, "multiplier": 1 }],
+      "mergeStrategy": "avg",
+      "min": 4.52,
+      "max": 4.52
+    },
+    {
+      "type": "HEIGHT_NOISE",
+      "ranges": [{ "min": 5.49, "max": 5.521 }],
+      "noises": [{ "scale": 1, "multiplier": 1 }],
+      "mergeStrategy": "avg",
+      "min": 4.53,
+      "max": 4.53
+    },
+    {
+      "type": "TERRAIN_NOISE",
+      "terrain": 11,
+      "scale": 1,
+      "ranges": [{ "min": 0, "max": 1 }],
+      "multiplier": 1,
+      "height": {
+        "min": 4.501,
+        "max": 4.53
+      }
+    },
+
+    {
+      "type": "HEIGHT_NOISE",
+      "ranges": [{ "min": 4.501, "max": 4.529 }],
+      "noises": [{ "scale": 1, "multiplier": 1 }],
+      "mergeStrategy": "avg",
+      "min": 4.47,
+      "max": 4.47
+    },
+    {
+      "type": "HEIGHT_NOISE",
+      "ranges": [{ "min": 4.529, "max": 4.531 }],
+      "noises": [{ "scale": 1, "multiplier": 1 }],
+      "mergeStrategy": "avg",
+      "min": 5.12,
+      "max": 5.12
+    },
+
+    {
+      "type": "HEIGHT_NOISE",
+      "ranges": [{ "min": 5.09, "max": 5.13 }],
+      "noises": [
+        { "scale": 1, "multiplier": 100, "reverse": true },
+        { "scale": 3, "multiplier": 100, "reverse": true },
+        { "scale": 5, "multiplier": 100, "reverse": true },
+        { "scale": 5, "multiplier": 100, "reverse": true }
+      ],
+      "mergeStrategy": "max",
+      "min": 4.5,
+      "max": 5.12
+    },
+    {
+      "type": "HEIGHT_NOISE",
+      "ranges": [{ "min": 5.49, "max": 5.501 }],
+      "noises": [{ "scale": 1, "multiplier": 1 }],
+      "mergeStrategy": "avg",
+      "min": 4.51,
+      "max": 4.51
+    },
+    {
+      "type": "HEIGHT_NOISE",
+      "ranges": [{ "min": 5.49, "max": 5.511 }],
+      "noises": [{ "scale": 1, "multiplier": 1 }],
+      "mergeStrategy": "avg",
+      "min": 4.52,
+      "max": 4.52
+    },
+    {
+      "type": "HEIGHT_NOISE",
+      "ranges": [{ "min": 5.49, "max": 5.521 }],
+      "noises": [{ "scale": 1, "multiplier": 1 }],
+      "mergeStrategy": "avg",
+      "min": 4.53,
+      "max": 4.53
+    },
+    {
+      "type": "TERRAIN_NOISE",
+      "terrain": 17,
+      "scale": 1,
+      "ranges": [{ "min": 0, "max": 1 }],
+      "multiplier": 1,
+      "height": {
+        "min": 4.501,
+        "max": 4.53
+      }
+    },
+
+    {
+      "type": "HEIGHT_NOISE",
+      "ranges": [{ "min": 4.501, "max": 4.529 }],
+      "noises": [{ "scale": 1, "multiplier": 1 }],
+      "mergeStrategy": "avg",
+      "min": 4.47,
+      "max": 4.47
+    },
+    {
+      "type": "HEIGHT_NOISE",
+      "ranges": [{ "min": 4.529, "max": 4.531 }],
+      "noises": [{ "scale": 1, "multiplier": 1 }],
+      "mergeStrategy": "avg",
+      "min": 5.12,
+      "max": 5.12
+    },
+
+    {
+      "type": "HEIGHT_NOISE",
+      "ranges": [{ "min": 5.46, "max": 5.47 }],
+      "noises": [
+        { "scale": 1, "multiplier": 100, "reverse": true },
+        { "scale": 1, "multiplier": 100, "reverse": true },
+        { "scale": 3, "multiplier": 100, "reverse": true },
+        { "scale": 5, "multiplier": 100, "reverse": true },
+        { "scale": 5, "multiplier": 100, "reverse": true },
+        { "scale": 1, "multiplier": 100, "reverse": true }
+      ],
+      "mergeStrategy": "max",
+      "min": 4.5,
+      "max": 5.47
+    },
+    {
+      "type": "HEIGHT_NOISE",
+      "ranges": [{ "min": 5.49, "max": 5.501 }],
+      "noises": [{ "scale": 1, "multiplier": 1 }],
+      "mergeStrategy": "avg",
+      "min": 4.51,
+      "max": 4.51
+    },
+    {
+      "type": "HEIGHT_NOISE",
+      "ranges": [{ "min": 5.49, "max": 5.511 }],
+      "noises": [{ "scale": 1, "multiplier": 1 }],
+      "mergeStrategy": "avg",
+      "min": 4.52,
+      "max": 4.52
+    },
+    {
+      "type": "HEIGHT_NOISE",
+      "ranges": [{ "min": 5.49, "max": 5.521 }],
+      "noises": [{ "scale": 1, "multiplier": 1 }],
+      "mergeStrategy": "avg",
+      "min": 4.53,
+      "max": 4.53
+    },
+    {
+      "type": "TERRAIN_NOISE",
+      "terrain": 18,
+      "scale": 1,
+      "ranges": [{ "min": 0, "max": 1 }],
+      "multiplier": 1,
+      "height": {
+        "min": 4.501,
+        "max": 4.53
+      },
+      "smoothing": {
+        "minSurrounding": 1
+      }
+    },
+
+    {
+      "type": "HEIGHT_NOISE",
+      "ranges": [{ "min": 4.501, "max": 4.529 }],
+      "noises": [{ "scale": 1, "multiplier": 1 }],
+      "mergeStrategy": "avg",
+      "min": 4.47,
+      "max": 4.47
+    },
+    {
+      "type": "HEIGHT_NOISE",
+      "ranges": [{ "min": 4.529, "max": 4.531 }],
+      "noises": [{ "scale": 1, "multiplier": 1 }],
+      "mergeStrategy": "avg",
+      "min": 5.12,
+      "max": 5.12
+    },
+
+    {
+      "type": "HEIGHT_NOISE",
+      "ranges": [{ "min": 5.09, "max": 5.13 }],
+      "noises": [
+        { "scale": 1, "multiplier": 100, "reverse": true },
+        { "scale": 3, "multiplier": 100, "reverse": true },
+        { "scale": 5, "multiplier": 100, "reverse": true },
+        { "scale": 5, "multiplier": 100, "reverse": true }
+      ],
+      "mergeStrategy": "max",
+      "min": 4.5,
+      "max": 5.12
+    },
+    {
+      "type": "HEIGHT_NOISE",
+      "ranges": [{ "min": 5.49, "max": 5.501 }],
+      "noises": [{ "scale": 1, "multiplier": 1 }],
+      "mergeStrategy": "avg",
+      "min": 4.51,
+      "max": 4.51
+    },
+    {
+      "type": "HEIGHT_NOISE",
+      "ranges": [{ "min": 5.49, "max": 5.511 }],
+      "noises": [{ "scale": 1, "multiplier": 1 }],
+      "mergeStrategy": "avg",
+      "min": 4.52,
+      "max": 4.52
+    },
+    {
+      "type": "HEIGHT_NOISE",
+      "ranges": [{ "min": 5.49, "max": 5.521 }],
+      "noises": [{ "scale": 1, "multiplier": 1 }],
+      "mergeStrategy": "avg",
+      "min": 4.53,
+      "max": 4.53
+    },
+    {
+      "type": "TERRAIN_NOISE",
+      "terrain": 11,
+      "scale": 1,
+      "ranges": [{ "min": 0, "max": 1 }],
+      "multiplier": 1,
+      "height": {
+        "min": 4.501,
+        "max": 4.53
+      },
+      "smoothing": {
+        "minSurrounding": 1
+      }
+    },
+
+    {
+      "type": "HEIGHT_NOISE",
+      "ranges": [{ "min": 4.501, "max": 4.529 }],
+      "noises": [{ "scale": 1, "multiplier": 1 }],
+      "mergeStrategy": "avg",
+      "min": 4.47,
+      "max": 4.47
+    },
+    {
+      "type": "HEIGHT_NOISE",
+      "ranges": [{ "min": 4.529, "max": 4.531 }],
+      "noises": [{ "scale": 1, "multiplier": 1 }],
+      "mergeStrategy": "avg",
+      "min": 5.12,
+      "max": 5.12
+    },
+
+    {
+      "type": "HEIGHT_NOISE",
+      "ranges": [{ "min": 5.46, "max": 5.47 }],
+      "noises": [
+        { "scale": 1, "multiplier": 100, "reverse": true },
+        { "scale": 1, "multiplier": 100, "reverse": true },
+        { "scale": 3, "multiplier": 100, "reverse": true },
+        { "scale": 5, "multiplier": 100, "reverse": true },
+        { "scale": 5, "multiplier": 100, "reverse": true },
+        { "scale": 1, "multiplier": 100, "reverse": true }
+      ],
+      "mergeStrategy": "max",
+      "min": 4.5,
+      "max": 5.47
+    },
+    {
+      "type": "HEIGHT_NOISE",
+      "ranges": [{ "min": 5.49, "max": 5.501 }],
+      "noises": [{ "scale": 1, "multiplier": 1 }],
+      "mergeStrategy": "avg",
+      "min": 4.51,
+      "max": 4.51
+    },
+    {
+      "type": "HEIGHT_NOISE",
+      "ranges": [{ "min": 5.49, "max": 5.511 }],
+      "noises": [{ "scale": 1, "multiplier": 1 }],
+      "mergeStrategy": "avg",
+      "min": 4.52,
+      "max": 4.52
+    },
+    {
+      "type": "HEIGHT_NOISE",
+      "ranges": [{ "min": 5.49, "max": 5.521 }],
+      "noises": [{ "scale": 1, "multiplier": 1 }],
+      "mergeStrategy": "avg",
+      "min": 4.53,
+      "max": 4.53
+    },
+    {
+      "type": "TERRAIN_NOISE",
+      "terrain": 18,
+      "scale": 1,
+      "ranges": [{ "min": 0, "max": 1 }],
+      "multiplier": 1,
+      "height": {
+        "min": 4.501,
+        "max": 4.53
+      },
+      "smoothing": {
+        "minSurrounding": 1
+      }
+    },
+
+    {
+      "type": "HEIGHT_NOISE",
+      "ranges": [{ "min": 4.501, "max": 4.529 }],
+      "noises": [{ "scale": 1, "multiplier": 1 }],
+      "mergeStrategy": "avg",
+      "min": 4.47,
+      "max": 4.47
+    },
+    {
+      "type": "HEIGHT_NOISE",
+      "ranges": [{ "min": 4.529, "max": 4.531 }],
+      "noises": [{ "scale": 1, "multiplier": 1 }],
+      "mergeStrategy": "avg",
+      "min": 5.12,
+      "max": 5.12
+    },
+
+    {
+      "type": "HEIGHT_NOISE",
+      "ranges": [{ "min": 4.4, "max": 6 }],
+      "noises": [{ "scale": 1, "multiplier": 1 }],
+      "mergeStrategy": "avg",
+      "min": 5,
+      "max": 5
+    },
+
+    {
+      "type": "HEIGHT_NOISE",
+      "ranges": [{ "min": 3.31, "max": 4 }],
+      "noises": [{ "scale": 1, "multiplier": 1 }],
+      "mergeStrategy": "avg",
+      "min": 3.09,
+      "max": 3.09
+    },
+
+    {
+      "type": "HEIGHT_NOISE",
+      "ranges": [{ "min": 4.089, "max": 4.091 }],
+      "noises": [{ "scale": 1, "multiplier": 1 }],
+      "mergeStrategy": "avg",
+      "min": 3.89,
+      "max": 3.89
+    },
+
+    {
+      "type": "HEIGHT_NOISE",
+      "ranges": [{ "min": 3, "max": 3.88 }],
+      "noises": [{ "scale": 1, "multiplier": 1 }],
+      "mergeStrategy": "avg",
+      "min": 4,
+      "max": 4
+    },
+
+    {
+      "type": "TERRAIN_NOISE",
+      "terrain": 1,
+      "scale": 13,
+      "ranges": [
+        { "min": 0, "max": 0.25 },
+        { "min": 0.26, "max": 0.27 },
+        { "min": 0.83, "max": 0.84 },
+        { "min": 0.85, "max": 1 }
+      ],
+      "multiplier": 1,
+      "height": {
+        "min": 4,
+        "max": 4.09
+      }
+    },
+
+    {
+      "type": "TERRAIN_NOISE",
+      "terrain": 0,
+      "scale": 1,
+      "ranges": [{ "min": 0, "max": 0.3 }],
+      "multiplier": 1,
+      "height": {
+        "min": 4.08,
+        "max": 4.1
+      }
+    },
+
+    {
+      "type": "HEIGHT_NOISE",
+      "ranges": [{ "min": 5, "max": 5 }],
+      "noises": [{ "scale": 1, "multiplier": 1 }],
+      "mergeStrategy": "avg",
+      "min": 5.02,
+      "max": 5.02
+    },
+
+    {
+      "type": "HEIGHT_NOISE",
+      "ranges": [{ "min": 4.01, "max": 5 }],
+      "noises": [{ "scale": 1, "multiplier": 1 }],
+      "mergeStrategy": "avg",
+      "min": 5,
+      "max": 5
+    },
+    {
+      "type": "HEIGHT_NOISE",
+      "ranges": [{ "min": 5.01, "max": 5.03 }],
+      "noises": [{ "scale": 1, "multiplier": 1 }],
+      "mergeStrategy": "avg",
+      "min": 6,
+      "max": 6
+    },
+
+    {
+      "type": "NATURAL_PATH",
+      "terrain": 4,
+      "between": "edges",
+      "range": { "min": 5, "max": 95 },
+      "amount": { "min": 3, "max": 7 },
+      "width": 1,
+      "height": 4,
+      "startHeightRanges": [{ "min": 4, "max": 4 }],
+      "endHeightRanges": [{ "min": 4, "max": 4 }],
+      "heightDiffCost": 1000,
+      "terrainReplacements": [
+        { "fromTerrain": 3, "toTerrain": 7 },
+        { "fromTerrain": 7, "toTerrain": 7 }
+      ],
+      "terrainCosts": [
+        { "terrain": 4, "cost": 0.75 },
+        { "terrain": 0, "cost": 1.25 },
+        { "terrain": 2, "cost": 1.45 },
+        { "terrain": 3, "cost": 5.15 },
+        { "terrain": 11, "cost": 4.15 },
+        { "terrain": 17, "cost": 4.15 },
+        { "terrain": 18, "cost": 4.15 }
+      ]
+    },
+
+    {
+      "type": "HEIGHT_NOISE",
+      "ranges": [{ "min": 3, "max": 4 }],
+      "noises": [{ "scale": 1, "multiplier": 1 }],
+      "mergeStrategy": "avg",
+      "min": 4,
+      "max": 4
+    },
+
+    {
+      "type": "OBJECTIVE_LAYER",
+      "player": 1,
+      "xBounds": { "min": 40, "max": 50 },
+      "yBounds": { "min": 10, "max": 15 },
+      "minDistance": 10,
+      "objectiveType": 2,
+      "maxObj": 1
+    },
+    {
+      "type": "OBJECTIVE_LAYER",
+      "player": 2,
+      "xBounds": { "min": 50, "max": 60 },
+      "yBounds": { "min": 75, "max": 90 },
+      "minDistance": 10,
+      "objectiveType": 2,
+      "maxObj": 1
+    },
+
+    {
+      "type": "OBJECTIVE",
+      "player": 0,
+      "position": {
+        "type": "range",
+        "min": [15, 30],
+        "max": [38, 45]
+      }
+    },
+    {
+      "type": "OBJECTIVE",
+      "player": 0,
+      "position": {
+        "type": "range",
+        "min": [15, 55],
+        "max": [38, 70]
+      }
+    },
+    {
+      "type": "OBJECTIVE",
+      "player": 0,
+      "position": {
+        "type": "range",
+        "min": [62, 30],
+        "max": [85, 45]
+      }
+    },
+    {
+      "type": "OBJECTIVE",
+      "player": 0,
+      "position": {
+        "type": "range",
+        "min": [62, 55],
+        "max": [85, 70]
+      }
+    }
+  ]
+}
