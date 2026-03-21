@@ -20,7 +20,7 @@
       "12": 1
     },
     "mapSize": ["s"],
-    "premiumCurrencyChance": 4,
+    "premiumCurrencyChance": 2,
     "ranked": false
   },
   "clash": {
@@ -122,7 +122,7 @@
       "18": 10
     },
     "mapSize": ["xl"],
-    "premiumCurrencyChance": 12,
+    "premiumCurrencyChance": 16,
     "ranked": true
   }
 }
