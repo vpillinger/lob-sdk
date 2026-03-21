@@ -295,7 +295,7 @@
     "meleeAttack": 36,
     "meleeDefense": 18,
     "meleeDamageType": "cavalry-lance",
-    "chargeBonus": 140,
+    "chargeBonus": 120,
     "chargeResistance": 0.05,
     "runChargeResistanceModifier": 0.4,
     "chargePenetration": 0.8,
@@ -317,7 +317,7 @@
     "movementSound": "cavalry-movement",
     "manpower": 150,
     "gold": 75,
-    "canDeployForward": false,
+    "canDeployForward": true,
     "basicPrice": 400,
     "premiumPrice": 40,
     "unknownType": 22,
@@ -658,16 +658,6 @@
         }
       },
       {
-        "id": "line",
-        "baseSprite": "militia-line",
-        "overlaySprite": "militia-line",
-        "changeAnimations": {
-          "mass": "line-mass",
-          "column": "line-column",
-          "square": "line-square"
-        }
-      },
-      {
         "id": "column",
         "baseSprite": "militia-column",
         "overlaySprite": "militia-column",
@@ -675,6 +665,16 @@
           "mass": "column-mass",
           "line": "column-line",
           "square": "column-square"
+        }
+      },
+      {
+        "id": "line",
+        "baseSprite": "militia-line",
+        "overlaySprite": "militia-line",
+        "changeAnimations": {
+          "mass": "line-mass",
+          "column": "line-column",
+          "square": "line-square"
         }
       },
       {
