@@ -73,8 +73,8 @@ export interface GameTimePreset {
   deploymentTimeSeconds: number;
   /** Whether the preset is intended for offline use only (e.g. replays) and should be hidden from selection menus. */
   isOffline?: boolean;
-  /** ELO K-factor for rated games; 0 for custom/offline-style controls. */
-  eloKFactor: number;
+  /** ELO K-factor for rated games; defaults to 0 when omitted. */
+  eloKFactor?: number;
 }
 
 export const OFFLINE_TIME_SETTINGS: GameTimePreset = {
