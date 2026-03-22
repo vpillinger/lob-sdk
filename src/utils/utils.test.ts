@@ -40,9 +40,13 @@ describe("getMaxOrgProportionDebuff()", () => {
     });
 
     it("scales linearly for hpProportion between 1 and MIN_HP_PROPORTION", () => {
-      expect(getMaxOrgProportionDebuff(gameDataManager, 0.5, 1)).toBeCloseTo(
-        0.43,
-      );
+      expect(
+        getMaxOrgProportionDebuff(
+          gameDataManager,
+          0.5 * (1 + organization.maxOrgDebuffMinHpProportion),
+          1,
+        ),
+      ).toBeCloseTo(organization.maxOrgDebuffHp / 2);
     });
   });
 
@@ -85,8 +89,16 @@ describe("getMaxOrgProportionDebuff()", () => {
   // Combined Debuff Tests
   describe("Combined Debuff", () => {
     it("combines HP and stamina debuffs correctly", () => {
-      expect(getMaxOrgProportionDebuff(gameDataManager, 0.5, 0.5)).toBeCloseTo(
-        0.58,
+      expect(
+        getMaxOrgProportionDebuff(
+          gameDataManager,
+          0.5 * (1 + organization.maxOrgDebuffMinHpProportion),
+          (organization.maxOrgDebuffStaminaHighProportion +
+            organization.maxOrgDebuffMinHpProportion) /
+            2,
+        ),
+      ).toBeCloseTo(
+        (organization.maxOrgDebuffHp + organization.maxOrgDebuffStamina) / 2,
       );
     });
 

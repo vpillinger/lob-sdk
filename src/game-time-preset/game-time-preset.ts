@@ -140,7 +140,6 @@ export class GameTimePresetManager {
       },
 
       {
-        // TODO: rename to slow
         id: "marathon",
         bankTimeSeconds: 60 * 60 * 4, // 4 hours
         incrementSeconds: 60 * 5, // 5 min
@@ -149,7 +148,7 @@ export class GameTimePresetManager {
         kFactor: 36,
       },
       {
-        id: "daily", // TODO rename to something else
+        id: "daily",
         bankTimeSeconds: 60 * 60 * 24 * 1.5, // 36 hours
         incrementSeconds: 60 * 60 * 24 * 1, // 24 hours
         turnCapSeconds: 0,
@@ -157,7 +156,7 @@ export class GameTimePresetManager {
         kFactor: 36,
       },
       {
-        id: "correspondence", // TODO rename to daily
+        id: "correspondence",
         bankTimeSeconds: 60 * 60 * 24 * 3, // 3 days
         incrementSeconds: 60 * 60 * 24 * 3, // 3 days
         turnCapSeconds: 0,

@@ -334,13 +334,41 @@
     "canPlaceObjectives": true,
     "staminaCostModifier": 0.1,
     "movementModifier": {
-      "*": 0.05
+      "*": -0.1
     },
     "visionAbsorption": 16,
     "projectileAbsorption": {
-      "musket": 0.2,
+      "musket": 0.15,
       "marksman-musket": 0.1,
-      "rifle": 0.1,
+      "rifle": 0.8,
+      "explosive-shell": 0.04,
+      "12lb-cannon-ball": 0.1,
+      "12lb-cannon-ball-long": 0.1,
+      "8lb-cannon-ball": 0.1,
+      "8lb-cannon-ball-long": 0.1,
+      "6lb-cannon-ball": 0.1,
+      "6lb-cannon-ball-long": 0.1,
+      "4lb-cannon-ball": 0.1,
+      "4lb-cannon-ball-long": 0.1,
+      "8lb-canister-fire": 0.1,
+      "12lb-canister-fire": 0.1,
+      "6lb-canister-fire": 0.1,
+      "4lb-canister-fire": 0.1,
+      "howitzer-canister": 0.1
+    }
+  },
+  "farm_growing": {
+    "hitboxHeight": 0.99,
+    "canPlaceObjectives": true,
+    "staminaCostModifier": 0.5,
+    "movementModifier": {
+      "*": -0.05
+    },
+    "visionAbsorption": 8,
+    "projectileAbsorption": {
+      "musket": 0.075,
+      "marksman-musket": 0.05,
+      "rifle": 0.03,
       "explosive-shell": 0.04,
       "12lb-cannon-ball": 0.05,
       "12lb-cannon-ball-long": 0.05,

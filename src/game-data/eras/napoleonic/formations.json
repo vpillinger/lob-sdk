@@ -132,7 +132,12 @@
     "frontBackArc": 126.87,
     "flankMin": 180,
     "flankMax": 180,
-    "collisionCircles": 1,
+    "checkPoints": [
+      { "x": 0, "y": 0, "weight": 2 },
+      { "x": 0, "y": -10, "weight": 1 },
+      { "x": 0, "y": 10, "weight": 1 }
+    ],
+    "collisionCircles": 2,
     "collisionCircleSize": 12,
     "shootingSides": 2,
     "disablesFlankMelee": true,
