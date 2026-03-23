@@ -94,7 +94,7 @@ describe("getMaxOrgProportionDebuff()", () => {
           gameDataManager,
           0.5 * (1 + organization.maxOrgDebuffMinHpProportion),
           (organization.maxOrgDebuffStaminaHighProportion +
-            organization.maxOrgDebuffMinHpProportion) /
+            organization.maxOrgDebuffStaminaLowProportion) /
             2,
         ),
       ).toBeCloseTo(

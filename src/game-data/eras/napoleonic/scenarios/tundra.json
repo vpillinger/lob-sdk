@@ -63,6 +63,33 @@
       "type": "TERRAIN_NOISE",
       "terrain": 4,
       "scale": 30,
+      "xBounds": {
+        "min": 0,
+        "max": 40
+      },
+      "yBounds": {
+        "min": 0,
+        "max": 100
+      },
+      "ranges": [{ "min": 0.93, "max": 1.0 }],
+      "offset": 0.1,
+      "height": {
+        "min": 0,
+        "max": 0
+      }
+    },
+    {
+      "type": "TERRAIN_NOISE",
+      "terrain": 4,
+      "scale": 30,
+      "xBounds": {
+        "min": 60,
+        "max": 100
+      },
+      "yBounds": {
+        "min": 0,
+        "max": 100
+      },
       "ranges": [{ "min": 0.93, "max": 1.0 }],
       "offset": 0.1,
       "height": {
@@ -86,9 +113,85 @@
     },
     {
       "type": "NATURAL_PATH",
-      "terrain": 4,
-      "between": "top-bottom",
-      "amount": { "min": 0, "max": 1 }
+      "terrain": 15,
+      "between": "points",
+      "midPoints": [
+        {
+          "xRange": {
+            "min": 2,
+            "max": 4
+          },
+          "yRange": {
+            "min": 48,
+            "max": 52
+          }
+        },
+        {
+          "xRange": {
+            "min": 48,
+            "max": 52
+          },
+          "yRange": {
+            "min": 96,
+            "max": 98
+          }
+        },
+        {
+          "xRange": {
+            "min": 96,
+            "max": 98
+          },
+          "yRange": {
+            "min": 48,
+            "max": 52
+          }
+        },
+        {
+          "xRange": {
+            "min": 48,
+            "max": 52
+          },
+          "yRange": {
+            "min": 2,
+            "max": 4
+          }
+        },
+        {
+          "xRange": {
+            "min": 2,
+            "max": 4
+          },
+          "yRange": {
+            "min": 48,
+            "max": 52
+          }
+        },
+        {
+          "xRange": {
+            "min": 96,
+            "max": 98
+          },
+          "yRange": {
+            "min": 48,
+            "max": 52
+          }
+        }
+      ],
+      "terrainCosts": [
+        {
+          "terrain": 4,
+          "cost": 10
+        },
+        {
+          "terrain": 1,
+          "cost": 10
+        },
+        {
+          "terrain": 16,
+          "cost": 2
+        }
+      ],
+      "amount": { "min": 1, "max": 1 }
     },
     {
       "type": "OBJECTIVE_LAYER",
