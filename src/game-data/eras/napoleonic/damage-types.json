@@ -935,7 +935,7 @@
     "shotSound": "artillery-fire",
     "shotAnim": "cannonVolley",
     "shotImpactAnim": "shellImpact",
-    "ammoCost": 93,
+    "ammoCost": 108,
     "extendRange": false
   },
   {
