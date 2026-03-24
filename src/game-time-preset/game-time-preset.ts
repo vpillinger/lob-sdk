@@ -73,6 +73,8 @@ export interface GameTimePreset {
   deploymentTimeSeconds: number;
   /** Whether the preset is intended for offline use only (e.g. replays) and should be hidden from selection menus. */
   isOffline?: boolean;
+  /** ELO K-factor for rated games; defaults to 0 when omitted. */
+  kFactor?: number;
 }
 
 export const OFFLINE_TIME_SETTINGS: GameTimePreset = {
@@ -107,54 +109,59 @@ export class GameTimePresetManager {
 
   private constructor() {
     // These presets were made with the assumption that avg game time is 20 turns, and thr first 5 turns will usually 1/4 the time of a normal turn
-    // Turn cap is generally limited to 2x the expected avg turn length to prevent stalling
+    // Turn cap is generally limited to ~2x the expected avg turn length to prevent stalling
     const presets: GameTimePreset[] = [
       {
-        // Est game time ~25 min + 2 deployment
+        // Est game time ~35 min + 2 deployment
         id: "bullet",
-        bankTimeSeconds: 60 * 20 * 1, // 1 min turns
-        incrementSeconds: 20, // results in extra ~6 mins
+        bankTimeSeconds: 60 * 2 * 9, // 9 turns bank
+        incrementSeconds: 45, // 45 turns
         turnCapSeconds: 60 * 2, // 2 min
         deploymentTimeSeconds: 120,
+        kFactor: 20,
       },
       {
-        // Est game time ~45 min + 3 deployment
+        // Est game time ~50 min + 3.5 deployment
         id: "blitz",
-        bankTimeSeconds: 60 * 20 * 1.5, // 1.5 min turns
-        incrementSeconds: 40, // results in extra ~13 mins
-        turnCapSeconds: 60 * 4, // 4 min
-        deploymentTimeSeconds: 60 * 3,
+        bankTimeSeconds: 60 * 3.5 * 6, // 6 turns bank
+        incrementSeconds: 60 * 1.5, // 1m 45s turns
+        turnCapSeconds: 60 * 3.5, // 3.5min cap
+        deploymentTimeSeconds: 60 * 3.5,
+        kFactor: 26,
       },
       {
-        // Est game time ~1 hour 15 min + 5 deployment
+        // Est game time ~1 hour 10 min + 5 deployment
         id: "rapid",
-        bankTimeSeconds: 60 * 20 * 2.5, // 2.5 min turns
-        incrementSeconds: 60, // results in extra ~20 mins
-        turnCapSeconds: 60 * 5, // 5 min
+        bankTimeSeconds: 60 * 5 * 4, // 4 turns bank
+        incrementSeconds: 60 * 2.5, // 2m 30s turns turns
+        turnCapSeconds: 60 * 5, // 5 min cap
         deploymentTimeSeconds: 60 * 5,
+        kFactor: 32,
       },
 
       {
-        // TODO: rename to slow
-        id: "daily",
+        id: "marathon",
         bankTimeSeconds: 60 * 60 * 4, // 4 hours
         incrementSeconds: 60 * 5, // 5 min
         turnCapSeconds: 0,
         deploymentTimeSeconds: 0,
+        kFactor: 36,
       },
       {
-        id: "correspondence", // TODO rename to something else
-        bankTimeSeconds: 60 * 60 * 24 * 3, // 24 hours
-        incrementSeconds: 60 * 60 * 24 * 0.5, // 12 hours
+        id: "daily",
+        bankTimeSeconds: 60 * 60 * 24 * 1.5, // 36 hours
+        incrementSeconds: 60 * 60 * 24 * 1, // 24 hours
         turnCapSeconds: 0,
         deploymentTimeSeconds: 0,
+        kFactor: 36,
       },
       {
-        id: "marathon", // TODO rename to daily
-        bankTimeSeconds: 60 * 60 * 24 * 7, // 3 days
-        incrementSeconds: 60 * 60 * 24 * 1, // 1 days
+        id: "correspondence",
+        bankTimeSeconds: 60 * 60 * 24 * 3, // 3 days
+        incrementSeconds: 60 * 60 * 24 * 3, // 3 days
         turnCapSeconds: 0,
         deploymentTimeSeconds: 0,
+        kFactor: 36,
       },
       {
         id: GameTimePresetManager.OFFLINE_PRESET_ID,
@@ -297,19 +304,3 @@ export class GameTimePresetManager {
     });
   }
 }
-
-/** Converts seconds to a compact, human-readable label for preset cards. */
-export const formatPresetTime = (seconds: number): string => {
-  if (seconds % SECONDS_PER_DAY === 0) {
-    const days = seconds / SECONDS_PER_DAY;
-    return days === 1 ? "1 day" : `${days} days`;
-  }
-  if (seconds % SECONDS_PER_HOUR === 0) {
-    const hours = seconds / SECONDS_PER_HOUR;
-    return `${hours}h`;
-  }
-  if (seconds % SECONDS_PER_MINUTE === 0) {
-    return `${seconds / SECONDS_PER_MINUTE} min`;
-  }
-  return `${seconds}s`;
-};

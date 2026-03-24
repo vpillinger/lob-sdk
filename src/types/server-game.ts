@@ -30,7 +30,7 @@ import { Point2, Vector2 } from "@lob-sdk/vector";
 import { BaseUnit } from "@lob-sdk/unit";
 import { BaseVpService } from "@lob-sdk/vp-service";
 import { BaseObjective } from "@lob-sdk/objective";
-import { GameTimePresetId, GameTimePreset } from "@lob-sdk/game-time-preset";
+import { GameTimePreset } from "@lob-sdk/game-time-preset";
 
 /**
  * A unique identifier for game entities (units, objectives, etc.).
@@ -84,8 +84,6 @@ export interface BattleTypeTemplate {
   skirmisherRatio?: number[];
   /** Maximum number of each unit type allowed. */
   unitCaps: Record<UnitType, number>;
-  /** ELO K-factor for rating calculations. */
-  eloKFactor: number;
   /** Number of ticks required to capture small objectives. */
   ticksToCaptureSmall: number;
   /** Number of ticks required to capture big objectives. */
@@ -105,6 +103,8 @@ export interface BattleTypeTemplate {
   mapSize: Array<string>;
   /** Chance (0-100) to receive premium currency as a reward. */
   premiumCurrencyChance: number;
+  /** Whether this battle type is allowed in ranked matchmaking (defaults to false when omitted). */
+  ranked?: boolean;
 }
 
 /**
@@ -188,6 +188,9 @@ export interface GameData {
    * The Fischer timing settings.
    */
   timePreset: GameTimePreset;
+
+  /** ELO K-factor for this game (from time control at creation; use 0 when not applicable). */
+  kFactor: number;
 
   /** Dynamic battle type configuration, if applicable. */
   dynamicBattleType: DynamicBattleType | null;
@@ -320,6 +323,10 @@ export interface CollisionData<T extends BaseUnit = BaseUnit> {
   directionA: Direction;
   /** The direction of unit B when the collision happens */
   directionB: Direction;
+  /** The flank modifier of unit A when the collision happens */
+  flankModA: number;
+  /** The flank modifier of unit B when the collision happens */
+  flankModB: number;
   /** The squared distance between the 2 collision points */
   squaredDistance: number;
   /** The total overlap percentage of the two units */
@@ -392,6 +399,8 @@ export interface IServerGame {
   readonly ranked: boolean;
   /** Whether this game gives rewards to players */
   readonly givesRewards: boolean;
+  /** ELO K-factor for this game (from time control at creation). */
+  readonly kFactor: number;
 
   /** Map of all units in the game, keyed by entity ID */
   units: Map<EntityId, BaseUnit>;
@@ -529,7 +538,7 @@ export interface IServerGame {
     username: string,
     elo: number,
     userTier: UserTier,
-    playerNumber?: number
+    playerNumber?: number,
   ): Player;
   /**
    * Gets the next available player number
@@ -615,7 +624,7 @@ export interface IServerGame {
    */
   handleTurnStatus(
     turnStatus: TurnStatus,
-    options?: Partial<HandleTurnStatusOptions>
+    options?: Partial<HandleTurnStatusOptions>,
   ): Promise<void>;
   /**
    * Gets IDs of players who are idle (haven't submitted orders)
@@ -663,7 +672,7 @@ export interface IServerGame {
     unit: BaseUnit,
     targetPosition: Vector2,
     ignoreEffects?: boolean,
-    forAutofire?: boolean
+    forAutofire?: boolean,
   ): any;
   /**
    * Executes a shot from a unit to a target position
@@ -675,7 +684,7 @@ export interface IServerGame {
   shoot(
     gameDataManager: GameDataManager,
     unit: BaseUnit,
-    targetPosition: Vector2
+    targetPosition: Vector2,
   ): ShootResult | null;
   /**
    * Calculates ranged damage between a shooter and target
@@ -689,21 +698,21 @@ export interface IServerGame {
     shooter: BaseUnit,
     target: BaseUnit,
     damageType: string,
-    stepStrength: number
+    stepStrength: number,
   ): DamageHit;
   /**
    * Calculates melee damage between an attacker and defender
    * @param attacker - The attacking unit
    * @param defender - The defending unit
-   * @param side - The direction of the attack
+   * @param flankPercent - The percentage of flank achieved 0-1
    * @param isCharging - Whether the attacker is charging
    * @returns The damage hit result, or null if attack is invalid
    */
   calculateMeleeDamage(
     attacker: BaseUnit,
     defender: BaseUnit,
-    side: Direction,
-    isCharging: boolean
+    flankPercent: number,
+    isCharging: boolean,
   ): DamageHit | null;
 
   /**
@@ -840,7 +849,7 @@ export interface IServerGame {
    */
   getClosestObjective(
     position: Vector2,
-    condition: (objective: BaseObjective) => boolean
+    condition: (objective: BaseObjective) => boolean,
   ): BaseObjective | null;
   /**
    * Gets the closest enemy objective to a position
@@ -850,7 +859,7 @@ export interface IServerGame {
    */
   getClosestEnemyObjective(
     position: Vector2,
-    team: number
+    team: number,
   ): BaseObjective | null;
   /**
    * Gets the closest ally objective to a position
@@ -860,7 +869,7 @@ export interface IServerGame {
    */
   getClosestAllyObjective(
     position: Vector2,
-    team: number
+    team: number,
   ): BaseObjective | null;
 
   /**
@@ -885,7 +894,7 @@ export interface IServerGame {
   getVisibleNearbyUnits(
     playerNumber: number,
     position: Vector2,
-    range: number
+    range: number,
   ): BaseUnit[];
   /**
    * Gets the closest unit from a list, but only if it's visible to the player
@@ -897,7 +906,7 @@ export interface IServerGame {
   getVisibleClosestUnitOf(
     playerNumber: number,
     position: Vector2,
-    units: BaseUnit[]
+    units: BaseUnit[],
   ): BaseUnit | null;
 
   /**
@@ -1015,7 +1024,7 @@ export interface IServerGame {
    */
   getNearbyUnits<T extends BaseUnit = BaseUnit>(
     position: Point2,
-    height: number
+    height: number,
   ): T[];
 }
 
@@ -1045,6 +1054,8 @@ export interface ServerGameProps {
   turnStartedTime: number;
   /** Fischer timing settings */
   timePreset: GameTimePreset;
+  /** ELO K-factor persisted for this game (matches {@link GameTimePreset.kFactor} at creation). */
+  kFactor?: number;
   /** Whether the game has started. */
   started: boolean;
   /** Whether the game has finished. */

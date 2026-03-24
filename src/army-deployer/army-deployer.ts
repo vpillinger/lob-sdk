@@ -83,7 +83,7 @@ export class ArmyDeployer {
     team: number,
     dynamicBattleType?: DynamicBattleType,
   ) {
-    this.units = units;
+    this.units = { ...units };
     this.player = player;
     this.team = team;
     this.dynamicBattleType =

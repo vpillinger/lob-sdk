@@ -75,6 +75,7 @@ export interface UnitCategoryTemplate {
   routingBehavior?: RoutingBehavior;
   enfiladeFire?: EnfiladeFireConfig;
   rearFire?: RearFireConfig;
+
   /**
    * List of allowed order names for this category.
    */
@@ -181,10 +182,10 @@ export interface GameConstants {
 
   OFFER_DRAW_COOLDOWN: number;
   MAX_ENTITY_NAME_LENGTH: number;
-  CHARGE_BACKLASH_BASE: number;
+  CHARGE_BACKLASH_RESIST_MOD: number; // The % of charge resist that can be used to mitigate backlash damage
+  CHARGE_BACKLASH_MAX_REDUCTION: number; // The % of backlash that can be mitigated from a front-charge
   CHARGE_BACKLASH_DEFENDER_CHARGE_BONUS_MULTIPLIER: number;
   CHARGE_BACKLASH_DEFENDER_RESISTANCE_MULTIPLIER: number;
-  CHARGE_BACKLASH_ATTACKER_RESISTANCE_OFFSET: number;
 
   HAS_TAKEN_FIRE_SPEED_MODIFIER: number;
 
@@ -241,14 +242,9 @@ export interface GameConstants {
   FOW_LEVEL_2_DISTANCE: number;
 
   /**
-   * Visible without bars.
+   * Fully Visible.
    */
   FOW_LEVEL_3_DISTANCE: number;
-
-  /**
-   * Fully visible.
-   */
-  FOW_LEVEL_4_DISTANCE: number;
 
   /**
    * ================================
@@ -308,7 +304,6 @@ export interface GameConstants {
    */
   VP_TICKS_UNDER_PRESSURE_BASE: number;
 
-  PRESET_SCENARIO_ELO_K_FACTOR: number;
   /** Multiplier for ELO K factor in cancelled ranked games (e.g., 0.5 = 50% of normal K factor) */
   CANCELLED_RANKED_GAME_ELO_K_FACTOR_MULTIPLIER: number;
 
