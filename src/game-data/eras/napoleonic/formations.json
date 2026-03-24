@@ -123,7 +123,6 @@
     "shootingAngle": 60,
     "shootingMaxTargets": 1,
     "minMovementModifier": -0.25,
-    "projectilePassThrough": 0.7,
     "disable180Turnaround": true,
     "friendlyFireImmuneDamageTypes": ["musket", "marksman-musket", "rifle"]
   },
@@ -147,7 +146,7 @@
     "shootingMaxTargets": 2,
     "shootingAngleMargin": 0,
     "minMovementModifier": -0.5,
-    "projectilePassThrough": 0.8,
+    "projectilePassThrough": 1,
     "friendlyFireImmuneDamageTypes": [
       "musket",
       "4lb-cannon-ball",
@@ -191,6 +190,7 @@
     "flankChargeResistance": -0.2,
     "shootingAngle": 360,
     "shootingMaxTargets": 1,
+    "projectilePassThrough": 0.5,
     "minMovementModifier": -0.3
   },
   {
