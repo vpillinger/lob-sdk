@@ -119,6 +119,9 @@ import romeFormations from "@lob-sdk/game-data/eras/rome/formations.json";
 import romeMapSizes from "@lob-sdk/game-data/eras/rome/map-sizes.json";
 import romeMatchmakingPresets from "@lob-sdk/game-data/eras/rome/matchmaking-presets.json";
 
+// Import rome scenarios
+import romePlains from "@lob-sdk/game-data/eras/rome/scenarios/plains.json";
+
 // Shared
 import gameConstantCategories from "@lob-sdk/game-data/shared/game-constant-categories.json";
 import { FormationTemplate, OrderTemplate, OrderType } from "@lob-sdk/types";
@@ -387,7 +390,9 @@ export class GameDataManager {
           romeMapSizes as unknown as Record<Size, MapSizeTemplate>;
         this.matchmakingPresets =
           romeMatchmakingPresets as unknown as MatchmakingPresetsData;
-        this.scenarios = {};
+        this.scenarios = {
+          plains: romePlains as GameScenario,
+        };
 
         break;
       default:
