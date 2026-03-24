@@ -432,5 +432,11 @@
     "name": "josip-jelacic",
     "tier": 1,
     "premiumPrice": 100
+  },
+  {
+    "id": 73,
+    "name": "nelson",
+    "tier": 1,
+    "premiumPrice": 100
   }
 ]
