@@ -56,13 +56,13 @@ export interface RearFireConfig {
   orgModifier: number;
 }
 
-export type DeploymentSection = "center" | "flank" | "forward" | "front";
+export type DeploymentSection = "center" | "flank" | "front";
 
 export interface UnitCategoryTemplate {
   id: UnitCategoryId;
   /**
    * The deployment section where units of this category should be deployed.
-   * Possible values: "flank" (split left/right), "center", "forward", "front"
+   * Possible values: "flank" (split left/right), "center", "front"
    * Default value: "center"
    */
   deploymentSection?: DeploymentSection;
@@ -75,6 +75,7 @@ export interface UnitCategoryTemplate {
   routingBehavior?: RoutingBehavior;
   enfiladeFire?: EnfiladeFireConfig;
   rearFire?: RearFireConfig;
+
   /**
    * List of allowed order names for this category.
    */
@@ -181,16 +182,15 @@ export interface GameConstants {
 
   OFFER_DRAW_COOLDOWN: number;
   MAX_ENTITY_NAME_LENGTH: number;
-  CHARGE_BACKLASH_BASE: number;
+  CHARGE_BACKLASH_RESIST_MOD: number; // The % of charge resist that can be used to mitigate backlash damage
+  CHARGE_BACKLASH_MAX_REDUCTION: number; // The % of backlash that can be mitigated from a front-charge
   CHARGE_BACKLASH_DEFENDER_CHARGE_BONUS_MULTIPLIER: number;
   CHARGE_BACKLASH_DEFENDER_RESISTANCE_MULTIPLIER: number;
-  CHARGE_BACKLASH_ATTACKER_RESISTANCE_OFFSET: number;
 
   HAS_TAKEN_FIRE_SPEED_MODIFIER: number;
 
   EFFECT_HAS_RAN_TICKS: number;
   EFFECT_STARTED_ROUTING_TICKS: number;
-
 
   /**
    * Maximum angle (in degrees) between a unit's movement direction and the direction
@@ -242,14 +242,9 @@ export interface GameConstants {
   FOW_LEVEL_2_DISTANCE: number;
 
   /**
-   * Visible without bars.
+   * Fully Visible.
    */
   FOW_LEVEL_3_DISTANCE: number;
-
-  /**
-   * Fully visible.
-   */
-  FOW_LEVEL_4_DISTANCE: number;
 
   /**
    * ================================
@@ -309,7 +304,6 @@ export interface GameConstants {
    */
   VP_TICKS_UNDER_PRESSURE_BASE: number;
 
-  PRESET_SCENARIO_ELO_K_FACTOR: number;
   /** Multiplier for ELO K factor in cancelled ranked games (e.g., 0.5 = 50% of normal K factor) */
   CANCELLED_RANKED_GAME_ELO_K_FACTOR_MULTIPLIER: number;
 
@@ -512,6 +506,15 @@ export interface SupplyLinesRule {
   supplyGoldCost?: number;
   /** Reinforcement rate (0-1) applied per turn. Defaults to 0.02 */
   reinforcementRate?: number;
+  /**
+   * Movement penalty (0 to -1) applied at zero supply for specific unit categories.
+   * Speed scales linearly from 100% at max supply to (1 + penalty) at zero supply.
+   */
+  noSupplyMovementPenalty?: Partial<Record<UnitCategoryId, number>>;
+  /**
+   * The unit category to use for passability checks when expanding supply.
+   */
+  movementCategory: UnitCategoryId;
 }
 
 export interface EntrenchmentRule {
@@ -594,7 +597,7 @@ export interface OrganizationRule {
   /** Run speed bonus when a unit starts routing, to help them get away: 1 turns off the function */
   startedRoutingOrgRadiusDistanceRunSpeedBonus: number;
   /** Run cost modifier when a unit is routing after they finish the initial route: 1 turns off the function */
-  routingRunCostModifier: number
+  routingRunCostModifier: number;
   /** Run cost modifier when a unit starts routing: 1 turns off the function */
   startedRoutingRunCostModifier: number;
   /** HP loss reduction factor for organization radius bonus (0-1, where 1 = full reduction at 0% HP) */
@@ -658,7 +661,8 @@ export interface UnitSkin {
 
 export interface MapSizeTemplate {
   map: { tilesX: number; tilesY: number };
-  deployment: { tilesX: number; tilesY: number; zoneSeparation: number };
+  mainDeployment: { tilesX: number; tilesY: number; zoneSeparation: number };
+  forwardDeployment: { tilesX: number; tilesY: number; zoneSeparation: number };
 }
 
 export interface MatchmakingPreset {
@@ -673,4 +677,6 @@ export interface MatchmakingPreset {
 
 export interface MatchmakingPresetsData {
   presets: MatchmakingPreset[];
+  /** Scenario IDs that must always be included in matchmaking for this era. Optional; empty if omitted. */
+  requiredScenarios?: ScenarioName[];
 }

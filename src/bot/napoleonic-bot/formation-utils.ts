@@ -1,4 +1,4 @@
-import { IServerGame, TerrainType } from "@lob-sdk/types";
+import { IServerGame, UnitCategoryId } from "@lob-sdk/types";
 import { BaseUnit } from "@lob-sdk/unit";
 import { Vector2 } from "@lob-sdk/vector";
 import { GameDataManager } from "@lob-sdk/game-data-manager";
@@ -126,6 +126,7 @@ export function findPreferredTerrain(
   game: IServerGame,
   gameDataManager: GameDataManager,
   preference: TerrainPreference,
+  unitCategory: UnitCategoryId,
   searchRadiusTiles: number = 4,
 ): Vector2 {
   const tileSize = 16;
@@ -157,7 +158,7 @@ export function findPreferredTerrain(
         const checkPos = new Vector2(tx * tileSize + tileSize / 2, ty * tileSize + tileSize / 2);
         
         // Skip impassable tiles
-        if (!isPassable(checkPos, game, gameDataManager)) continue;
+        if (!isPassable(checkPos, game, gameDataManager, unitCategory)) continue;
 
         const terrainType = map.terrains[tx][ty];
         const category = gameDataManager.getCategoryByTerrain(terrainType);
@@ -191,12 +192,20 @@ export function findPreferredTerrain(
 export function findHighGroundNearby(
   pos: Vector2,
   game: IServerGame,
+  unitCategory: UnitCategoryId,
   searchRadiusTiles: number = 3,
 ): Vector2 {
-  return findPreferredTerrain(pos, game, GameDataManager.get("napoleonic"), {
-    preferHighGround: true,
-    categoryPriority: {} // No preference
-  }, searchRadiusTiles);
+  return findPreferredTerrain(
+    pos,
+    game,
+    GameDataManager.get("napoleonic"),
+    {
+      preferHighGround: true,
+      categoryPriority: {}, // No preference
+    },
+    unitCategory,
+    searchRadiusTiles,
+  );
 }
 
 /**
@@ -205,16 +214,24 @@ export function findHighGroundNearby(
 export function findCoverNearby(
   pos: Vector2,
   game: IServerGame,
+  unitCategory: UnitCategoryId,
   searchRadiusTiles: number = 3,
 ): Vector2 {
   const { TerrainCategoryType } = require("@lob-sdk/types");
-  return findPreferredTerrain(pos, game, GameDataManager.get("napoleonic"), {
-    preferHighGround: false,
-    categoryPriority: {
-      [TerrainCategoryType.Building]: 1,
-      [TerrainCategoryType.Forest]: 1
-    }
-  }, searchRadiusTiles);
+  return findPreferredTerrain(
+    pos,
+    game,
+    GameDataManager.get("napoleonic"),
+    {
+      preferHighGround: false,
+      categoryPriority: {
+        [TerrainCategoryType.Building]: 1,
+        [TerrainCategoryType.Forest]: 1,
+      },
+    },
+    unitCategory,
+    searchRadiusTiles,
+  );
 }
 
 /**
@@ -224,6 +241,7 @@ export function isPassable(
   pos: Vector2,
   game: IServerGame,
   gameDataManager: GameDataManager,
+  unitCategory: UnitCategoryId,
   safetyRadiusTiles: number = 0,
 ): boolean {
   const tileSize = 16;
@@ -241,10 +259,7 @@ export function isPassable(
   const checkTile = (x: number, y: number) => {
     if (x < 0 || x >= tilesX || y < 0 || y >= tilesY) return false;
     const terrainType = game.map.terrains[x][y];
-    const terrainConfig = gameDataManager.getTerrains().find((t) => t.id === terrainType);
-    if (!terrainConfig) return false;
-    const categoryConfig = gameDataManager.getTerrainCategories()[terrainConfig.category];
-    return !categoryConfig?.impassable;
+    return gameDataManager.isPassable(terrainType, unitCategory);
   };
 
   if (!checkTile(tx, ty)) return false;
@@ -270,6 +285,7 @@ export function isPathClear(
   end: Vector2,
   game: IServerGame,
   gameDataManager: GameDataManager,
+  unitCategory: UnitCategoryId,
 ): boolean {
   const diff = end.subtract(start);
   const distance = diff.length();
@@ -281,7 +297,7 @@ export function isPathClear(
 
   for (let i = 1; i <= steps; i++) {
     const checkPos = start.add(stepVec.scale(i));
-    if (!isPassable(checkPos, game, gameDataManager, 1)) {
+    if (!isPassable(checkPos, game, gameDataManager, unitCategory, 1)) {
       return false;
     }
   }
@@ -296,9 +312,10 @@ export function findReachablePosition(
   target: Vector2,
   game: IServerGame,
   gameDataManager: GameDataManager,
+  unitCategory: UnitCategoryId,
 ): Vector2 {
   // 1. Try with safety margin (1 tile)
-  if (isPassable(target, game, gameDataManager, 1)) {
+  if (isPassable(target, game, gameDataManager, unitCategory, 1)) {
     return target;
   }
 
@@ -341,12 +358,12 @@ export function findReachablePosition(
       const pos = new Vector2(nx * tileSize + tileSize / 2, ny * tileSize + tileSize / 2);
       
       // Check for safety first
-      if (isPassable(pos, game, gameDataManager, 1)) {
+      if (isPassable(pos, game, gameDataManager, unitCategory, 1)) {
         return pos;
       }
       
       // If not safe but passable, store as fallback
-      if (!fallbackPos && isPassable(pos, game, gameDataManager, 0)) {
+      if (!fallbackPos && isPassable(pos, game, gameDataManager, unitCategory, 0)) {
         fallbackPos = pos;
       }
 
@@ -371,16 +388,16 @@ export function calculatePath(
   const tileSize = 16;
   
   // 1. Ensure end is reachable
-  const reachableEnd = findReachablePosition(end, game, gameDataManager);
-  
-  // 2. Optimization: Check if direct path is clear
-  if (isPathClear(start, reachableEnd, game, gameDataManager)) {
-    return [reachableEnd];
-  }
-  
-  // 3. Setup A*
   const unitTemplate = gameDataManager.getUnitTemplateManager().getTemplate(unit.type);
   const unitCategory = unitTemplate.category;
+  const reachableEnd = findReachablePosition(end, game, gameDataManager, unitCategory);
+  
+  // 2. Optimization: Check if direct path is clear
+  if (isPathClear(start, reachableEnd, game, gameDataManager, unitCategory)) {
+    return [reachableEnd];
+  }
+
+  // 3. Setup A*
   const terrainCategories = gameDataManager.getTerrainCategories();
   const terrains = gameDataManager.getTerrains();
 
@@ -393,23 +410,23 @@ export function calculatePath(
     const terrainConfig = terrains.find((t) => t.id === terrainType);
     if (!terrainConfig) return Infinity;
 
-    const categoryConfig = terrainCategories[terrainConfig.category];
-    if (categoryConfig?.impassable) return Infinity;
-
     // 2. Prevent diagonal clipping
     const dx = to.x - from.x;
     const dy = to.y - from.y;
     // If it's a diagonal move, both horizontal/vertical neighbor tiles must be passable
     if (dx !== 0 && dy !== 0) {
-      if (!isPassable(new Vector2(from.x * tileSize, to.y * tileSize), game, gameDataManager) ||
-          !isPassable(new Vector2(to.x * tileSize, from.y * tileSize), game, gameDataManager)) {
+      if (!isPassable(new Vector2(from.x * tileSize, to.y * tileSize), game, gameDataManager, unitCategory) ||
+          !isPassable(new Vector2(to.x * tileSize, from.y * tileSize), game, gameDataManager, unitCategory)) {
         return Infinity;
       }
     }
 
-    const moveModifier = categoryConfig?.movementModifier?.[unitCategory] || 0;
+    if (!gameDataManager.isPassable(terrainType, unitCategory)) return Infinity;
+    
+    const stepModifier = gameDataManager.getMovementModifier(terrainType, unitCategory);
+
     // Speed factor: 1 is base, higher is faster (lower cost)
-    return 1 / (1 + moveModifier);
+    return 1 / (1 + stepModifier);
   });
 
   const startTile = { x: Math.floor(start.x / tileSize), y: Math.floor(start.y / tileSize) };

@@ -20,6 +20,7 @@ import {
   checkCollision,
   degreesToRadians,
   getDirectionToPoint,
+  getFlankingPercent,
   getMaxOrgProportionDebuff,
 } from "@lob-sdk/utils";
 import { TerrainType } from "@lob-sdk/types";
@@ -224,7 +225,7 @@ export abstract class BaseUnit extends Entity {
 
     const { ranges } =
       gameDataManager.getDamageTypeByName<RangedDamageTypeTemplate>(
-        this.rangedDamageTypes[this.rangedDamageTypes.length - 1]
+        this.rangedDamageTypes[this.rangedDamageTypes.length - 1],
       );
 
     const { UNIT_RANGE_MARGIN } = gameDataManager.getGameConstants();
@@ -264,7 +265,7 @@ export abstract class BaseUnit extends Entity {
 
   getMeleeDamageTypeConfig() {
     return GameDataManager.get(
-      this.era
+      this.era,
     ).getDamageTypeByName<MeleeDamageTypeTemplate>(this.meleeDamageType);
   }
 
@@ -273,7 +274,7 @@ export abstract class BaseUnit extends Entity {
     const gameDataManager = GameDataManager.get(this.era);
     const dimensions = gameDataManager.getUnitDimensions(
       this.type,
-      this.currentFormation
+      this.currentFormation,
     );
 
     // Calculate the half-width and half-height
@@ -339,8 +340,8 @@ export abstract class BaseUnit extends Entity {
       getMaxOrgProportionDebuff(
         GameDataManager.get(this.era),
         this.getHpProportion(),
-        this.getStaminaProportion()
-      ) * this.template.org
+        this.getStaminaProportion(),
+      ) * this.template.org,
     );
   }
 
@@ -363,7 +364,7 @@ export abstract class BaseUnit extends Entity {
 
   isRunning(
     activeOrder: OrderType | null,
-    accumulatedRun: number = this.accumulatedRun
+    accumulatedRun: number = this.accumulatedRun,
   ) {
     const gameDataManager = GameDataManager.get(this.era);
 
@@ -495,7 +496,28 @@ export abstract class BaseUnit extends Entity {
       this.position,
       point,
       this.rotation,
-      frontBackArc
+      frontBackArc,
+    );
+  }
+
+  getFlankMod(attackerPoint: Vector2) {
+    const gameDataManager = GameDataManager.get(this.era);
+    const formation = gameDataManager
+      .getFormationManager()
+      .getTemplate(this.currentFormation);
+    const minFlank = formation?.minFlankAngle
+      ? degreesToRadians(formation.minFlankAngle)
+      : degreesToRadians(45);
+    const maxFlank = formation?.maxFlankAngle
+      ? degreesToRadians(formation.maxFlankAngle)
+      : degreesToRadians(135);
+
+    return getFlankingPercent(
+      attackerPoint,
+      this.position,
+      this.rotation,
+      minFlank,
+      maxFlank,
     );
   }
 
@@ -522,12 +544,8 @@ export abstract class BaseUnit extends Entity {
     return this.hasEffect(BeenInMelee.id) || this.hasEffect(TakenFire.id);
   }
 
-  getDeploymentBuffer() {
-    const { FORWARD_DEPLOYMENT_ZONE_OFFSET } = GameDataManager.get(
-      this.era
-    ).getGameConstants();
-
-    return this.template.canDeployForward ? FORWARD_DEPLOYMENT_ZONE_OFFSET : 0;
+  mustDeployForward() {
+    return this.template.canDeployForward;
   }
 
   /** Routing units cannot see */
@@ -560,7 +578,7 @@ export abstract class BaseUnit extends Entity {
 
     const gameDataManager = GameDataManager.get(this.era);
     const categoryTemplate = gameDataManager.getUnitCategoryTemplate(
-      this.category
+      this.category,
     );
     return categoryTemplate.routingBehavior?.baseSpeed === "run";
   }

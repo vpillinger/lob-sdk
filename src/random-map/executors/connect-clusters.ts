@@ -17,7 +17,7 @@ export class ConnectClustersExecutor {
     private seed: number,
     private index: number,
     private terrains: TerrainType[][],
-    private heightMap: number[][]
+    private heightMap: number[][],
   ) {
     this.random = randomSeeded(deriveSeed(seed, index + 1));
   }
@@ -33,13 +33,47 @@ export class ConnectClustersExecutor {
     const tilesY = this.terrains[0].length;
 
     const {
-      fromTerrain,
-      pathTerrain,
       minGroupSize,
+      fromTerrain,
       maxDistance,
+      pathTerrain,
+      terrain,
+      height,
+      width,
       terrainReplacements,
       terrainCosts,
+      curveLen,
+      curveWeight,
+      noiseWeight,
+      noiseSmoothness,
+      edgeDistance,
+      edgeWeight,
+      uphillHeightCost,
+      downHillHeightCost,
+      heightDiffCost,
+      printNoiseDebug,
     } = this.instruction;
+
+    const pathGen = new NaturalPathGenerator(
+      random,
+      terrains,
+      heightMap,
+      terrain ?? pathTerrain,
+      height ?? 1,
+      width,
+      terrainReplacements,
+      terrainCosts,
+      curveLen,
+      curveWeight,
+      noiseWeight,
+      noiseSmoothness,
+      edgeDistance,
+      edgeWeight,
+      uphillHeightCost,
+      downHillHeightCost,
+      heightDiffCost,
+      printNoiseDebug,
+    );
 
     // Helper to check if a terrain matches fromTerrain
     const isFromTerrain = (terrain: number) =>
@@ -149,37 +183,7 @@ export class ConnectClustersExecutor {
             x: Math.round(clusterB.centroid.x),
             y: Math.round(clusterB.centroid.y),
           };
-          const pathGen = new NaturalPathGenerator(
-            random,
-            terrains,
-            heightMap,
-            1,
-            0.5,
-            4,
-            terrainReplacements,
-            terrainCosts
-          );
-          const path = pathGen.generatePath(start, end);
-          const pathTiles = pathGen.getPathTiles(path);
-          for (let k = 0; k < pathTiles.length; k++) {
-            const x = pathTiles[k].x,
-              y = pathTiles[k].y;
-            if (
-              x >= 0 &&
-              x < tilesX &&
-              y >= 0 &&
-              y < tilesY &&
-              !isFromTerrain(terrains[x][y])
-            ) {
-              const terrainType = pathGen.getTerrainForTile(
-                x,
-                y,
-                pathTerrain,
-                terrains
-              );
-              terrains[x][y] = terrainType;
-            }
-          }
+          pathGen.generatePath([start, end]);
         }
       }
     }

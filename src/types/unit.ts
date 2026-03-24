@@ -86,6 +86,11 @@ export interface UnitDto {
    * Stopped ticks.
    */
   stt?: number;
+
+  /**
+   * Bars Hidden
+   */
+  bh?: boolean;
 }
 
 export interface UnitDtoPartialId extends Omit<UnitDto, "id"> {
@@ -138,10 +143,13 @@ interface BaseUnitTemplate {
   meleeDamageType: string;
   chargeBonus: number;
   chargePenetration?: number;
+  flankMeleeOrgModifier?: number;
+  flankChargePenBonus?: number;
   walkMovement: number;
   runStartUpMovement?: number;
   runMovement: number;
   timeToRun: number;
+  unlimberTime?: number;
   runCost: number;
   startsRunning?: boolean;
   hp: number;
@@ -272,6 +280,10 @@ export interface RangeUnitTemplate extends BaseUnitTemplate {
   minDistanceToFAA?: number;
   /** Ammo system properties for artillery */
   ammo?: number;
+  /** Disable ammo regen for the unit (eg. rockets) */
+  noAmmoRegain?: boolean;
+  /** Units with this property will fire at the closest unit instead of ordered target with the shoot order */
+  panicFireDistance?: number;
 }
 
 export type UnitTemplate = Readonly<BaseUnitTemplate | RangeUnitTemplate>;
@@ -299,6 +311,10 @@ export interface FormationCheckPointWithProportion extends FormationCheckPoint {
 export interface FormationTemplate {
   id: string;
   frontBackArc: number;
+  /* in degrees */
+  minFlankAngle: number;
+  /* in degrees */
+  maxFlankAngle: number;
 
   /**
    * Number of collision circles for this formation.
@@ -327,7 +343,9 @@ export interface FormationTemplate {
   checkPoints?: Array<FormationCheckPoint>;
 
   movementModifier?: number;
+  runMovementModifier?: number;
   rotationSpeedModifier?: number;
+  disable180Turnaround?: boolean;
   rangedAttackModifier?: number;
   chargeBonusModifier?: number;
   chargePenetrationModifier?: number;
@@ -335,7 +353,6 @@ export interface FormationTemplate {
   pushStrengthModifier?: number;
 
   disablesFlankMelee?: boolean;
-  disablesRearMelee?: boolean;
   disablesEnfiladeFire?: boolean;
   disablesRearFire?: boolean;
 

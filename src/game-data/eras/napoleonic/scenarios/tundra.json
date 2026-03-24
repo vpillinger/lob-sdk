@@ -4,6 +4,40 @@
   "type": "random",
   "ranked": true,
   "baseTerrain": 8,
+  "defaultDeploymentZones": {
+    "topForwardDeploymentZone": {
+      "minX": 30,
+      "maxX": 30,
+      "minY": 3,
+      "maxY": 3,
+      "width": 45,
+      "height": 5
+    },
+    "topMainDeploymentZone": {
+      "minX": 30,
+      "maxX": 30,
+      "minY": 24,
+      "maxY": 24,
+      "width": 45,
+      "height": 5
+    },
+    "bottomForwardDeploymentZone": {
+      "minX": 30,
+      "maxX": 30,
+      "minY": 95,
+      "maxY": 95,
+      "width": 45,
+      "height": 5
+    },
+    "bottomMainDeploymentZone": {
+      "minX": 30,
+      "maxX": 30,
+      "minY": 76,
+      "maxY": 76,
+      "width": 45,
+      "height": 5
+    }
+  },
   "instructions": [
     {
       "type": "HEIGHT_NOISE",
@@ -29,6 +63,33 @@
       "type": "TERRAIN_NOISE",
       "terrain": 4,
       "scale": 30,
+      "xBounds": {
+        "min": 0,
+        "max": 40
+      },
+      "yBounds": {
+        "min": 0,
+        "max": 100
+      },
+      "ranges": [{ "min": 0.93, "max": 1.0 }],
+      "offset": 0.1,
+      "height": {
+        "min": 0,
+        "max": 0
+      }
+    },
+    {
+      "type": "TERRAIN_NOISE",
+      "terrain": 4,
+      "scale": 30,
+      "xBounds": {
+        "min": 60,
+        "max": 100
+      },
+      "yBounds": {
+        "min": 0,
+        "max": 100
+      },
       "ranges": [{ "min": 0.93, "max": 1.0 }],
       "offset": 0.1,
       "height": {
@@ -47,47 +108,142 @@
       "type": "NATURAL_PATH",
       "terrain": 16,
       "between": "edges",
-      "amount": { "min": 1, "max": 2 },
+      "amount": { "min": 2, "max": 3 },
       "height": 0
     },
     {
       "type": "NATURAL_PATH",
-      "terrain": 4,
-      "between": "edges",
-      "amount": { "min": 0, "max": 1 }
-    }
-  ],
-  "triggers": [
-    {
-      "event": "onTurnEnd",
-      "conditions": [
+      "terrain": 15,
+      "between": "points",
+      "midPoints": [
         {
-          "type": "isTurn",
-          "value": 0
-        }
-      ],
-      "conditionLogic": "AND",
-      "actions": [
+          "xRange": {
+            "min": 2,
+            "max": 4
+          },
+          "yRange": {
+            "min": 48,
+            "max": 52
+          }
+        },
         {
-          "type": "spawnNeutralObjectives",
-          "value": {
-            "orientation": "circle",
-            "spacing": 0.75,
-            "amount": {
-              "micro": 4,
-              "clash": 4,
-              "combat": 4,
-              "battle": 4,
-              "grand_battle": 4
-            },
-            "minX": 0.25,
-            "maxX": 0.75,
-            "minY": 0.3,
-            "maxY": 0.7
+          "xRange": {
+            "min": 48,
+            "max": 52
+          },
+          "yRange": {
+            "min": 96,
+            "max": 98
+          }
+        },
+        {
+          "xRange": {
+            "min": 96,
+            "max": 98
+          },
+          "yRange": {
+            "min": 48,
+            "max": 52
+          }
+        },
+        {
+          "xRange": {
+            "min": 48,
+            "max": 52
+          },
+          "yRange": {
+            "min": 2,
+            "max": 4
+          }
+        },
+        {
+          "xRange": {
+            "min": 2,
+            "max": 4
+          },
+          "yRange": {
+            "min": 48,
+            "max": 52
+          }
+        },
+        {
+          "xRange": {
+            "min": 96,
+            "max": 98
+          },
+          "yRange": {
+            "min": 48,
+            "max": 52
           }
         }
       ],
-      "once": true
+      "terrainCosts": [
+        {
+          "terrain": 4,
+          "cost": 10
+        },
+        {
+          "terrain": 1,
+          "cost": 10
+        },
+        {
+          "terrain": 16,
+          "cost": 2
+        }
+      ],
+      "amount": { "min": 1, "max": 1 }
+    },
+    {
+      "type": "OBJECTIVE_LAYER",
+      "player": 1,
+      "xBounds": { "min": 49, "max": 51 },
+      "yBounds": { "min": 59, "max": 60 },
+      "minDistance": 10,
+      "objectiveType": 2,
+      "maxObj": 1
+    },
+    {
+      "type": "OBJECTIVE_LAYER",
+      "player": 2,
+      "xBounds": { "min": 49, "max": 51 },
+      "yBounds": { "min": 39, "max": 40 },
+      "minDistance": 10,
+      "objectiveType": 2,
+      "maxObj": 1
+    },
+    {
+      "type": "OBJECTIVE_LAYER",
+      "xBounds": { "min": 10, "max": 20 },
+      "yBounds": { "min": 35, "max": 45 },
+      "minDistance": 5,
+      "objectiveType": 1,
+      "maxObj": 1
+    },
+    {
+      "type": "OBJECTIVE_LAYER",
+      "xBounds": { "min": 10, "max": 20 },
+      "yBounds": { "min": 45, "max": 55 },
+      "minDistance": 5,
+      "objectiveType": 1,
+      "maxObj": 1
+    },
+    {
+      "type": "OBJECTIVE_LAYER",
+      "xBounds": { "min": 80, "max": 90 },
+      "yBounds": { "min": 35, "max": 45 },
+      "minDistance": 5,
+      "objectiveType": 1,
+      "maxObj": 1
+    },
+
+    {
+      "type": "OBJECTIVE_LAYER",
+      "xBounds": { "min": 80, "max": 90 },
+      "yBounds": { "min": 45, "max": 55 },
+      "minDistance": 5,
+      "objectiveType": 1,
+      "maxObj": 1
     }
-  ]
+  ],
+  "triggers": []
 }

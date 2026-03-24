@@ -4,9 +4,7 @@
     "gold": 1650,
     "ammoReserve": 2800,
     "goldToAmmoRate": 13,
-    "fogOfWar": true,
     "unitCaps": {},
-    "eloKFactor": 32,
     "ticksToCaptureSmall": 2,
     "ticksToCaptureBig": 4,
     "bigVps": 50,
@@ -18,6 +16,7 @@
     },
     "logistics": 300,
     "mapSize": ["m", "l"],
-    "premiumCurrencyChance": 10
+    "premiumCurrencyChance": 8,
+    "ranked": true
   }
 }

@@ -28,8 +28,6 @@ export class CavalryStrategy implements NapoleonicBotStrategy {
     const { 
       game, 
       visibleEnemies,
-      orders, 
-      formationChanges, 
       formationCenter, 
       direction, 
       perpendicular, 
@@ -160,6 +158,7 @@ export class CavalryStrategy implements NapoleonicBotStrategy {
             game,
             this._bot.getGameDataManager(),
             this.getTerrainPreference(),
+            unit.category,
             3,
           );
         }

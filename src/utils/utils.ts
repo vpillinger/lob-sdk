@@ -73,15 +73,15 @@ export function divideArrayInHalf<T>(array: T[]): [T[], T[]] {
 export const getClosestPointInsideZone = (
   zone: Zone,
   point: Point2,
-  buffer: number = 0
+  buffer: number = 0,
 ) => {
   const clampedX = Math.max(
     zone.x - buffer,
-    Math.min(point.x, zone.x + zone.width + buffer)
+    Math.min(point.x, zone.x + zone.width + buffer),
   );
   const clampedY = Math.max(
     zone.y - buffer,
-    Math.min(point.y, zone.y + zone.height + buffer)
+    Math.min(point.y, zone.y + zone.height + buffer),
   );
   return new Vector2(clampedX, clampedY);
 };
@@ -124,7 +124,7 @@ export function degreesToRadiansNormalized(degrees: number): number {
 export function getRandomInt(
   min: number,
   max: number,
-  randomFn: () => number = Math.random
+  randomFn: () => number = Math.random,
 ): number {
   min = Math.ceil(min);
   max = Math.floor(max);
@@ -134,7 +134,7 @@ export function getRandomInt(
 export function getRandomFloat(
   min: number,
   max: number,
-  randomFn: () => number = Math.random
+  randomFn: () => number = Math.random,
 ): number {
   return randomFn() * (max - min) + min;
 }
@@ -164,7 +164,7 @@ export const setHeightRecursively = (
   x: number,
   y: number,
   height: number,
-  heightMap: number[][]
+  heightMap: number[][],
 ) => {
   const queue: { x: number; y: number; height: number }[] = [{ x, y, height }];
   const visited: Set<string> = new Set();
@@ -216,7 +216,7 @@ export const setHeightRecursively = (
 const getNeighborHeights = (
   tileX: number,
   tileY: number,
-  heightMap: number[][]
+  heightMap: number[][],
 ) => {
   const neighborHeights: { x: number; y: number; height: number }[] = [];
 
@@ -265,13 +265,6 @@ export const unpack2D = (key: number) => ({
   y: key & 0xff,
 });
 
-/**
- * Packs four 8-bit coordinates (sourceX, sourceY, targetX, targetY) into a single 32-bit number.
- * Useful for caching line-of-sight or other relationships between two points on a map up to 256x256.
- */
-export const pack4D = (sx: number, sy: number, tx: number, ty: number) =>
-  (pack2D(sx, sy) << 16) | pack2D(tx, ty);
-
 export const nowInSeconds = () => Math.floor(Date.now() / 1000);
 
 /**
@@ -297,7 +290,7 @@ export function probabilisticRound(number: number): number {
  */
 export const checkCollision = (
   collisionLevel1: number,
-  collisionLevel2: number
+  collisionLevel2: number,
 ) => {
   return (
     collisionLevel1 !== NO_COLLISION_LEVEL &&
@@ -321,7 +314,7 @@ export const getDirectionToPoint = (
   from: Point2,
   to: Point2,
   rotation: number,
-  frontBackArc: number
+  frontBackArc: number,
 ) => {
   const translatedPoint: Point2 = {
     x: to.x - from.x,
@@ -329,7 +322,7 @@ export const getDirectionToPoint = (
   };
 
   const angle = normalizeAngle(
-    Math.atan2(translatedPoint.y, translatedPoint.x) - rotation
+    Math.atan2(translatedPoint.y, translatedPoint.x) - rotation,
   );
 
   // Calculate arc boundaries
@@ -355,15 +348,37 @@ export const getDirectionToPoint = (
   }
 };
 
+export function getFlankingPercent(
+  attackerPos: Point2,
+  defenderPos: Point2,
+  defenderRotation: number, // in radians
+  minAngle: number, // e.g., Math.PI / 4 (45 degrees)
+  maxAngle: number, // e.g., Math.PI / 2 (90 degrees)
+): number {
+  const angleToAttacker = Math.atan2(
+    attackerPos.y - defenderPos.y,
+    attackerPos.x - defenderPos.x,
+  );
+  const rawDiff = normalizeAngle(angleToAttacker - defenderRotation);
+
+  // This treats left and right side identically
+  const theta = Math.abs(normalizeAngle(rawDiff + Math.PI) - Math.PI);
+
+  if (theta <= minAngle) return 0;
+  if (theta >= maxAngle) return 1;
+
+  return (theta - minAngle) / (maxAngle - minAngle);
+}
+
 export function getMaxOrgProportionDebuff(
   gameDataManager: GameDataManager,
   hpProportion: number,
-  staminaProportion: number
+  staminaProportion: number,
 ): number {
   const { organization } = gameDataManager.getGameRules();
   if (!organization) {
     throw new Error(
-      `organization rule is required in game rules for era ${gameDataManager.era}`
+      `organization rule is required in game rules for era ${gameDataManager.era}`,
     );
   }
   const MAX_ORG_DEBUFF_MIN_HP_PROPORTION =
@@ -393,7 +408,7 @@ export function getMaxOrgProportionDebuff(
     // Linearly scale stamina debuff from 0 at high stamina to MAX_ORG_DEBUFF_STAMINA at low stamina
     const clampedStamina = Math.max(
       staminaProportion,
-      MAX_ORG_DEBUFF_STAMINA_LOW_PROPORTION
+      MAX_ORG_DEBUFF_STAMINA_LOW_PROPORTION,
     );
     staminaDebuff =
       ((MAX_ORG_DEBUFF_STAMINA_HIGH_PROPORTION - clampedStamina) /
