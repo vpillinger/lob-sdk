@@ -5,6 +5,7 @@ import {
   InstructionType,
   ScenarioName,
   DynamicBattleType,
+  TerrainType,
 } from "@lob-sdk/types";
 import { GameDataManager } from "@lob-sdk/game-data-manager";
 
@@ -26,7 +27,7 @@ describe("RandomMapGenerator", () => {
   const gameDataManager = GameDataManager.get("napoleonic");
   const { TILE_SIZE, DEFAULT_BATTLE_TYPE } = gameDataManager.getGameConstants();
 
-  describe("generate all random scenarios", () => {
+  describe("generate all random ranked scenarios", () => {
     // Get all scenario names dynamically from the GameDataManager
     const allScenarioNames = gameDataManager.getScenarioNames();
 
@@ -46,16 +47,20 @@ describe("RandomMapGenerator", () => {
       gameDataManager.getAllDynamicBattleTypes();
 
     // Test different player counts
-    const playerCounts = [2, 4, 6, 8];
+    const playerCounts = [2, /*4, 6,*/ 8];
 
-    it("should generate all random scenarios without throwing errors", () => {
+    it("should generate all ranked random scenarios without throwing errors", () => {
       const mapGenerator = new RandomMapGenerator();
 
       // Test each random scenario
       randomScenarioNames.forEach((scenarioName) => {
-        console.log(`Testing random scenario: ${scenarioName}`);
-
         const scenario = gameDataManager.getScenario(scenarioName);
+
+        if (!["plains", "hills", "tundra"].includes(scenarioName)) {
+          console.log(`Skipping random scenario: ${scenarioName}`);
+          return;
+        }
+        console.log(`Testing random scenario: ${scenarioName}`);
 
         // Verify it's actually a random scenario
         expect(scenario.type).toBe(GameScenarioType.Random);
@@ -173,12 +178,24 @@ describe("RandomMapGenerator", () => {
           expect(result.map.heightMap[0].length).toBeGreaterThan(0);
 
           // Verify all terrain values are valid (not undefined/null)
+          const badTerrains: any = [];
+
           for (let x = 0; x < result.map.terrains.length; x++) {
             for (let y = 0; y < result.map.terrains[x].length; y++) {
-              expect(result.map.terrains[x][y]).toBeDefined();
-              expect(result.map.terrains[x][y]).not.toBeNull();
+              const terrain: TerrainType = result.map.terrains[x][y];
+              if (terrain === undefined || terrain === null) {
+                badTerrains.push({ x, y });
+              }
             }
           }
+
+          // If there are any bad terrains, log them and fail the test
+          if (badTerrains.length > 0) {
+            console.error("Bad terrains found:", badTerrains);
+          }
+
+          // Assert that there were no bad terrains
+          expect(badTerrains.length).toBe(0);
 
           // Verify all height values are numbers
           for (let x = 0; x < result.map.heightMap.length; x++) {

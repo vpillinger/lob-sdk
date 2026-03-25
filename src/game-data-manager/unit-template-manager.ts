@@ -45,6 +45,11 @@ export class UnitTemplateManager {
     return template as T;
   }
 
+  tryGetTemplate<T extends UnitTemplate = UnitTemplate>(type: UnitType): T | undefined {
+    const template = this._map.get(type);
+    return template as T | undefined;
+  }
+
   /**
    * Gets all unit templates.
    * @returns An array of all unit templates.

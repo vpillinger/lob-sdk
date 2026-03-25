@@ -1,5 +1,5 @@
-import { getDeploymentZoneBySize, getMapSizeIndex } from "./map-size";
-import { Size } from "@lob-sdk/types";
+import { getDeploymentZonesByMapSize, getMapSizeIndex } from "./map-size";
+import { RandomScenario, Size, TeamDeploymentZones } from "@lob-sdk/types";
 import {
   ObjectiveDto,
   TeamDeploymentZone,
@@ -9,6 +9,7 @@ import {
   AnyInstruction,
   ProceduralScenario,
   TerrainType,
+  Range,
 } from "@lob-sdk/types";
 import { TerrainNoiseExecutor } from "./executors/terrain-noise";
 import { HeightNoiseExecutor } from "./executors/height-noise";
@@ -19,8 +20,9 @@ import { ConnectClustersExecutor } from "./executors/connect-clusters";
 import { ObjectiveExecutor } from "./executors/objective";
 import { ObjectiveLayerExecutor } from "./executors/objective-layer";
 import { LakeExecutor } from "./executors/lake";
-import { generateRandomSeed } from "@lob-sdk/seed";
-import { GameDataManager } from "@lob-sdk/game-data-manager";
+import { deriveSeed, generateRandomSeed, randomSeeded } from "@lob-sdk/seed";
+import { GameDataManager, GameEra } from "@lob-sdk/game-data-manager";
+import { getRandomInt } from "@lob-sdk/utils";
 
 export class RandomMapGenerator {
   generate({
@@ -50,10 +52,6 @@ export class RandomMapGenerator {
     const widthPx = tilesX * tileSize;
     const heightPx = tilesY * tileSize;
 
-    const deploymentZones: [TeamDeploymentZone, TeamDeploymentZone] = [
-      getDeploymentZoneBySize(battleSize, widthPx, heightPx, 1, era, tileSize),
-      getDeploymentZoneBySize(battleSize, widthPx, heightPx, 2, era, tileSize),
-    ];
     const objectives: ObjectiveDto<false>[] = [];
 
     const mapSeed = seed ?? generateRandomSeed();
@@ -66,19 +64,8 @@ export class RandomMapGenerator {
       terrains[x] = [];
       heightMap[x] = [];
       for (let y = 0; y < tilesY; y++) {
-        terrains[x][y] = TerrainType.Grass;
+        terrains[x][y] = scenario.baseTerrain ?? TerrainType.Grass;
         heightMap[x][y] = 0;
-      }
-    }
-
-    // Use baseTerrain from scenario if present, otherwise default to Grass
-    const baseTerrain = scenario.baseTerrain ?? TerrainType.Grass;
-
-    // Generate terrain and height
-    for (let x = 0; x < tilesX; x++) {
-      for (let y = 0; y < tilesY; y++) {
-        // Start with base terrain
-        terrains[x][y] = baseTerrain;
       }
     }
 
@@ -90,10 +77,21 @@ export class RandomMapGenerator {
       objectives,
       widthPx,
       heightPx,
-      tilesX,
-      tilesY,
-      tileSize
+      tileSize,
+      battleSize,
     );
+
+    const deploymentZones: [TeamDeploymentZones, TeamDeploymentZones] =
+      this.getDeploymentZones(
+        scenario,
+        battleSize,
+        widthPx,
+        heightPx,
+        era,
+        tileSize,
+        terrains,
+        mapSeed,
+      );
 
     return {
       map: {
@@ -108,6 +106,203 @@ export class RandomMapGenerator {
     };
   }
 
+  private getDeploymentZones(
+    scenario: RandomScenario,
+    battleSize: Size,
+    widthPx: number,
+    heightPx: number,
+    era: GameEra,
+    tileSize: number,
+    terrains: TerrainType[][],
+    seed: number,
+  ): [TeamDeploymentZones, TeamDeploymentZones] {
+    if (!scenario.defaultDeploymentZones) {
+      return [
+        getDeploymentZonesByMapSize(
+          battleSize,
+          widthPx,
+          heightPx,
+          1,
+          era,
+          tileSize,
+        ),
+        getDeploymentZonesByMapSize(
+          battleSize,
+          widthPx,
+          heightPx,
+          2,
+          era,
+          tileSize,
+        ),
+      ];
+    }
+    const deploymentZones =
+      scenario.scaledDeploymentZones?.[battleSize] ??
+      scenario.defaultDeploymentZones;
+    const random = randomSeeded(deriveSeed(seed, 0));
+
+    return [
+      {
+        team: 1,
+        mainZone: {
+          team: 1,
+          x:
+            getRandomInt(
+              this.percentToTiles(
+                deploymentZones.bottomMainDeploymentZone.minX,
+                terrains.length,
+              ),
+              this.percentToTiles(
+                deploymentZones.bottomMainDeploymentZone.maxX,
+                terrains.length,
+              ),
+              random,
+            ) * tileSize,
+          y:
+            getRandomInt(
+              this.percentToTiles(
+                deploymentZones.bottomMainDeploymentZone.minY,
+                terrains[0].length,
+              ),
+              this.percentToTiles(
+                deploymentZones.bottomMainDeploymentZone.maxY,
+                terrains[0].length,
+              ),
+              random,
+            ) * tileSize,
+          width:
+            this.percentToTiles(
+              deploymentZones.bottomMainDeploymentZone.width,
+              terrains.length,
+            ) * tileSize,
+          height:
+            this.percentToTiles(
+              deploymentZones.bottomMainDeploymentZone.height,
+              terrains[0].length,
+            ) * tileSize,
+        },
+        forwardZone: {
+          team: 1,
+          x:
+            getRandomInt(
+              this.percentToTiles(
+                deploymentZones.bottomForwardDeploymentZone.minX,
+                terrains.length,
+              ),
+              this.percentToTiles(
+                deploymentZones.bottomForwardDeploymentZone.maxX,
+                terrains.length,
+              ),
+              random,
+            ) * tileSize,
+          y:
+            getRandomInt(
+              this.percentToTiles(
+                deploymentZones.bottomForwardDeploymentZone.minY,
+                terrains[0].length,
+              ),
+              this.percentToTiles(
+                deploymentZones.bottomForwardDeploymentZone.maxY,
+                terrains[0].length,
+              ),
+              random,
+            ) * tileSize,
+          width:
+            this.percentToTiles(
+              deploymentZones.bottomForwardDeploymentZone.width,
+              terrains.length,
+            ) * tileSize,
+          height:
+            this.percentToTiles(
+              deploymentZones.bottomForwardDeploymentZone.height,
+              terrains[0].length,
+            ) * tileSize,
+        },
+      },
+      {
+        team: 2,
+        mainZone: {
+          team: 2,
+          x:
+            getRandomInt(
+              this.percentToTiles(
+                deploymentZones.topMainDeploymentZone.minX,
+                terrains.length,
+              ),
+              this.percentToTiles(
+                deploymentZones.topMainDeploymentZone.maxX,
+                terrains.length,
+              ),
+              random,
+            ) * tileSize,
+          y:
+            getRandomInt(
+              this.percentToTiles(
+                deploymentZones.topMainDeploymentZone.minY,
+                terrains[0].length,
+              ),
+              this.percentToTiles(
+                deploymentZones.topMainDeploymentZone.maxY,
+                terrains[0].length,
+              ),
+              random,
+            ) * tileSize,
+          width:
+            this.percentToTiles(
+              deploymentZones.topMainDeploymentZone.width,
+              terrains.length,
+            ) * tileSize,
+          height:
+            this.percentToTiles(
+              deploymentZones.topMainDeploymentZone.height,
+              terrains[0].length,
+            ) * tileSize,
+        },
+        forwardZone: {
+          team: 2,
+          x:
+            getRandomInt(
+              this.percentToTiles(
+                deploymentZones.topForwardDeploymentZone.minX,
+                terrains.length,
+              ),
+              this.percentToTiles(
+                deploymentZones.topForwardDeploymentZone.maxX,
+                terrains.length,
+              ),
+              random,
+            ) * tileSize,
+          y:
+            getRandomInt(
+              this.percentToTiles(
+                deploymentZones.topForwardDeploymentZone.minY,
+                terrains[0].length,
+              ),
+              this.percentToTiles(
+                deploymentZones.topForwardDeploymentZone.maxY,
+                terrains[0].length,
+              ),
+              random,
+            ) * tileSize,
+          width:
+            this.percentToTiles(
+              deploymentZones.topForwardDeploymentZone.width,
+              terrains.length,
+            ) * tileSize,
+          height:
+            this.percentToTiles(
+              deploymentZones.topForwardDeploymentZone.height,
+              terrains[0].length,
+            ) * tileSize,
+        },
+      },
+    ];
+  }
+
+  private percentToTiles(percent: number, tileLength: number) {
+    return Math.floor((percent / 100) * (tileLength - 1));
+  }
+
   private executeInstructions(
     scenario: ProceduralScenario,
     seed: number,
@@ -116,12 +311,25 @@ export class RandomMapGenerator {
     objectives: ObjectiveDto<false>[],
     widthPx: number,
     heightPx: number,
-    tilesX: number,
-    tilesY: number,
-    tileSize: number
+    tileSize: number,
+    battleSize: Size,
   ) {
     scenario.instructions.forEach(
       (instruction: AnyInstruction, index: number) => {
+        let boundedTerrains = terrains;
+        let boundedHeightMap = heightMap;
+        if (instruction.xBounds && instruction.yBounds) {
+          boundedTerrains = this.create2DSliceProxy(
+            terrains,
+            instruction.xBounds,
+            instruction.yBounds,
+          );
+          boundedHeightMap = this.create2DSliceProxy(
+            heightMap,
+            instruction.xBounds,
+            instruction.yBounds,
+          );
+        }
         switch (instruction.type) {
           case InstructionType.HeightNoise: {
             new HeightNoiseExecutor(
@@ -129,8 +337,8 @@ export class RandomMapGenerator {
               scenario,
               seed,
               index,
-              terrains,
-              heightMap
+              boundedTerrains,
+              boundedHeightMap,
             ).execute();
             break;
           }
@@ -140,8 +348,8 @@ export class RandomMapGenerator {
               scenario,
               seed,
               index,
-              terrains,
-              heightMap
+              boundedTerrains,
+              boundedHeightMap,
             ).execute();
             break;
           }
@@ -151,8 +359,8 @@ export class RandomMapGenerator {
               scenario,
               seed,
               index,
-              terrains,
-              heightMap
+              boundedTerrains,
+              boundedHeightMap,
             ).execute();
             break;
           }
@@ -162,8 +370,8 @@ export class RandomMapGenerator {
               scenario,
               seed,
               index,
-              terrains,
-              heightMap
+              boundedTerrains,
+              boundedHeightMap,
             ).execute();
             break;
           }
@@ -173,8 +381,9 @@ export class RandomMapGenerator {
               scenario,
               seed,
               index,
-              terrains,
-              heightMap
+              boundedTerrains,
+              boundedHeightMap,
+              battleSize,
             ).execute();
             break;
           }
@@ -184,8 +393,8 @@ export class RandomMapGenerator {
               scenario,
               seed,
               index,
-              terrains,
-              heightMap
+              boundedTerrains,
+              boundedHeightMap,
             ).execute();
             break;
           }
@@ -197,7 +406,7 @@ export class RandomMapGenerator {
               index,
               widthPx,
               heightPx,
-              objectives
+              objectives,
             ).execute();
             break;
           }
@@ -207,8 +416,8 @@ export class RandomMapGenerator {
               scenario,
               seed,
               index,
-              terrains,
-              heightMap
+              boundedTerrains,
+              boundedHeightMap,
             ).execute();
             break;
           }
@@ -219,22 +428,64 @@ export class RandomMapGenerator {
               scenario,
               seed,
               index,
-              terrains,
-              heightMap,
+              boundedTerrains,
+              boundedHeightMap,
               objectives,
-              tilesX,
-              tilesY
+              Math.floor(
+                ((instruction.xBounds?.min ?? 0) / 100) * terrains.length,
+              ),
+              Math.floor(
+                ((instruction.yBounds?.min ?? 0) / 100) * terrains[0].length,
+              ),
             ).execute();
             break;
           }
 
           default: {
             throw new Error(
-              `Unknown instruction type: ${(instruction as any)?.type}`
+              `Unknown instruction type: ${(instruction as any)?.type}`,
             );
           }
         }
-      }
+      },
     );
+  }
+
+  // Creates a proxy for a slice of a 2D array. So we can pass bounded areas without having to reprogram all executors
+  private create2DSliceProxy<T>(
+    array: T[][],
+    xRange: Range,
+    yRange: Range,
+  ): T[][] {
+    // Slice the 2D array according to specified rows and columns
+    const xStart = Math.floor((xRange.min / 100) * array.length);
+    const xEnd = Math.floor((xRange.max / 100) * array.length);
+    const yStart = Math.floor((yRange.min / 100) * array[0].length);
+    const yEnd = Math.floor((yRange.max / 100) * array[0].length);
+
+    // Create proxied rows
+    const proxiedRows: T[][] = [];
+    for (let i = xStart; i < xEnd; i++) {
+      const originalRow = array[i];
+      const rowSlice = originalRow.slice(yStart, yEnd);
+
+      // Wrap the row slice in a proxy
+      const rowProxy = new Proxy(rowSlice, {
+        set(target, colKey, value) {
+          const colIndex = Number(colKey);
+          if (!isNaN(colIndex) && colIndex < rowSlice.length) {
+            // Update original array
+            array[i][yStart + colIndex] = value;
+            // Update proxy
+            target[colIndex] = value;
+            return true;
+          }
+          return false;
+        },
+      });
+
+      proxiedRows.push(rowProxy);
+    }
+    return proxiedRows;
   }
 }

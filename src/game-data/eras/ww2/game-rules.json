@@ -9,7 +9,12 @@
     "defaultGoldPerTurn": 50000,
     "noSupplyHpAttrition": 0.18,
     "noSupplyOrgAttrition": 0.15,
-    "reinforcementRate": 0.04
+    "reinforcementRate": 0.04,
+    "noSupplyMovementPenalty": {
+      "armored": -0.5,
+      "motorized": -0.5
+    },
+    "movementCategory": "infantry"
   },
   "entrenchment": {
     "ranges": [
@@ -46,7 +51,7 @@
     "maxOrgDebuffStaminaLowProportion": 0.2,
     "maxOrgRangedAttackPenalty": -0.7,
     "maxOrgMeleeAttackBonus": 0.25,
-    "maxOrgMeleeAttackPenalty": 0.25,
+    "maxOrgMeleeAttackPenalty": -0.25,
     "regainRate": 0.16,
     "upperModifierLimit": 0.9,
     "lowerModifierLimit": 0.4,
@@ -56,6 +61,10 @@
     "nearbyUnitsOrgDamageModifierCap": 0.4,
     "routingUnitNearbyUnitsOrgBonus": 4,
     "startedRoutingOrgRadiusModifier": -4,
+    "startedRoutingOrgRadiusDistance": 0,
+    "startedRoutingOrgRadiusDistanceRunSpeedBonus": 1,
+    "startedRoutingRunCostModifier": 1,
+    "routingRunCostModifier": 1,
     "orgRadiusBonusHpLossReduction": 0.75,
     "safeOrgRecoveryModifier": 0.5,
     "safeDistance": 184,

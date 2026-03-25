@@ -1,14 +1,8 @@
 {
-  "flanking": {
-    "meleeOrgDamageModifier": 0.75,
-    "rearMeleeOrgDamageModifier": 0.75,
-    "chargePenetrationModifier": 0.75,
-    "rearChargePenetrationModifier": 1.0
-  },
   "stamina": {
     "meleeTurnCost": 200,
     "rangedTurnCost": 50,
-    "hasRanMeleeStaminaCostModifier": 1.0,
+    "hasRanMeleeStaminaCostModifier": 0.5,
     "regainRates": {
       "range1": 0.048,
       "range2": 0.072,
@@ -25,10 +19,10 @@
     "meleeDefensePenalty": -0.6
   },
   "ammo": {
-    "baseReserve": 3500,
-    "regenerationBaseRate": 0.025,
-    "regenerationBonusRate": 0.075,
-    "maxHpConsumptionReduction": -0.75
+    "baseReserve": 2500,
+    "regenerationBaseRate": 0.04,
+    "regenerationBonusRate": 0.16,
+    "maxHpConsumptionReduction": -0.5
   },
   "skirmisherSpawning": {
     "unitType": 16
@@ -46,27 +40,31 @@
   },
   "objectives": {
     "radius": 64,
-    "pressureThreshold": 0.3
+    "pressureThreshold": 0.41
   },
   "organization": {
     "speedModifier": -0.15,
-    "maxOrgDebuffMinHpProportion": 0.3,
+    "maxOrgDebuffMinHpProportion": 0.25,
     "maxOrgDebuffHp": 0.6,
     "maxOrgDebuffStamina": 0.3,
     "maxOrgDebuffStaminaHighProportion": 0.8,
     "maxOrgDebuffStaminaLowProportion": 0.2,
     "maxOrgRangedAttackPenalty": -0.5,
-    "maxOrgMeleeAttackBonus": 0.35,
-    "maxOrgMeleeAttackPenalty": 0.2,
+    "maxOrgMeleeAttackBonus": 0.25,
+    "maxOrgMeleeAttackPenalty": -0.25,
     "regainRate": 0.1,
     "upperModifierLimit": 0.95,
     "lowerModifierLimit": 0.35,
     "nearbyUnitsDistance": 64,
     "nearbyUnitsPositiveOrgBonusCap": 56,
     "nearbyUnitsNegativeOrgBonusCap": -56,
-    "nearbyUnitsOrgDamageModifierCap": 0.4,
+    "nearbyUnitsOrgDamageModifierCap": 0.2,
     "routingUnitNearbyUnitsOrgBonus": 5,
-    "startedRoutingOrgRadiusModifier": -4,
+    "startedRoutingOrgRadiusModifier": -2,
+    "startedRoutingOrgRadiusDistance": 64,
+    "startedRoutingOrgRadiusDistanceRunSpeedBonus": 1.5,
+    "routingRunCostModifier": 0.1,
+    "startedRoutingRunCostModifier": 2,
     "orgRadiusBonusHpLossReduction": 0.8,
     "safeOrgRecoveryModifier": 0.3,
     "safeDistance": 144,

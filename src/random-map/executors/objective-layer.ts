@@ -25,8 +25,8 @@ export class ObjectiveLayerExecutor {
     private terrains: TerrainType[][],
     private heightMap: number[][],
     private objectives: ObjectiveDto<false>[],
-    private tilesX: number,
-    private tilesY: number
+    private xStartTile: number,
+    private yStartTile: number,
   ) {
     this.random = randomSeeded(deriveSeed(seed, index + 1));
   }
@@ -41,21 +41,12 @@ export class ObjectiveLayerExecutor {
       chance,
       terrainFilter,
       minDistance = 0,
+      maxObj = Infinity,
     } = instruction;
 
-    // Find all valid positions
-    const validPositions: Array<{ x: number; y: number }> = [];
-
-    // minDistance is in tile units, so we'll convert pixel distances to tile distances
-    const minDistanceSquaredInTiles = minDistance * minDistance;
-    const tileSizeSquared = tileSize * tileSize;
-
     // Check chance if provided (before processing tiles)
-    if (chance !== undefined) {
-      const roll = random() * 100;
-      if (roll >= chance) {
-        return; // Skip this objective layer
-      }
+    if (chance !== undefined && random() * 100 >= chance) {
+      return; // Skip this objective layer
     }
 
     // Helper function to check terrain filter using BFS
@@ -109,7 +100,12 @@ export class ObjectiveLayerExecutor {
             const ny = current.y + dy;
 
             // Check bounds
-            if (nx >= 0 && nx < this.tilesX && ny >= 0 && ny < this.tilesY) {
+            if (
+              nx >= 0 &&
+              nx < this.terrains.length &&
+              ny >= 0 &&
+              ny < this.terrains[0].length
+            ) {
               const neighborKey = pack2D(nx, ny);
               if (!visited.has(neighborKey)) {
                 queue.push({ x: nx, y: ny, distance: current.distance + 1 });
@@ -122,8 +118,30 @@ export class ObjectiveLayerExecutor {
       return matchingCount >= minAmount;
     };
 
-    for (let x = 0; x < this.tilesX; x++) {
-      for (let y = 0; y < this.tilesY; y++) {
+    // Do a random walk instead of always starting from the same place
+    // TODO: this would be a good helper util that accepts a function, also used in natural path
+    const xLen = this.terrains.length;
+    const yLen = this.terrains[0].length;
+
+    // Random starting offsets
+    const xOffset = Math.round(this.random() * this.terrains.length);
+    const yOffset = Math.round(this.random() * this.terrains[0].length);
+
+    // Randomize directions: +1 (forward) or -1 (backward)
+    const xStep = this.random() < 0.5 ? 1 : -1;
+    const yStep = this.random() < 0.5 ? 1 : -1;
+
+    // Randomize axis order
+    const xFirst = this.random() < 0.5;
+
+    let objectivesAdded = 0;
+    for (let i = 0; i < (xFirst ? xLen : yLen); i++) {
+      for (let j = 0; j < (xFirst ? yLen : xLen); j++) {
+        let x = xFirst ? i : j;
+        let y = xFirst ? j : i;
+        x = (xOffset + x * xStep + xLen) % xLen; // adding length to fix negative modulos
+        y = (yOffset + y * yStep + yLen) % yLen;
+
         // Check terrain filter constraint
         if (!checkTerrainFilter(x, y)) {
           continue;
@@ -136,32 +154,41 @@ export class ObjectiveLayerExecutor {
         ) {
           const height = heightMap[x]?.[y] ?? 0;
           const heightValid = terrainFilter.heights.some(
-            (range) => height >= range.min && height <= range.max
+            (range) => height >= range.min && height <= range.max,
           );
           if (!heightValid) {
             continue;
           }
         }
 
-        // Calculate the position (center of tile)
-        const positionX = x * tileSize + tileSize / 2;
-        const positionY = y * tileSize + tileSize / 2;
+        // Calculate the real position (center of tile)
+        const positionX =
+          x * tileSize + tileSize / 2 + tileSize * this.xStartTile;
+        const positionY =
+          y * tileSize + tileSize / 2 + tileSize * this.yStartTile;
 
         // Check minDistance constraint if provided (minDistance is in tile units)
-        if (minDistanceSquaredInTiles > 0) {
+        if (minDistance > 0) {
           let tooClose = false;
 
           for (const existingObjective of objectives) {
-            // Calculate distance in pixels
-            const dx = existingObjective.pos.x - positionX;
-            const dy = existingObjective.pos.y - positionY;
-            const distanceSquaredInPixels = dx * dx + dy * dy;
+            // Note: these objectives can be outside of the bounds argument
+            // Convert existing objective world position -> tile coordinates
+            const existingTileX = Math.floor(
+              existingObjective.pos.x / tileSize,
+            );
+            const existingTileY = Math.floor(
+              existingObjective.pos.y / tileSize,
+            );
 
-            // Convert to tile units
-            const distanceSquaredInTiles =
-              distanceSquaredInPixels / tileSizeSquared;
+            const dx = Math.abs(existingTileX - x - this.xStartTile);
+            const dy = Math.abs(existingTileY - y - this.yStartTile);
 
-            if (distanceSquaredInTiles < minDistanceSquaredInTiles) {
+            if (
+              // octile distance
+              dx + dy + (Math.SQRT2 - 2) * Math.min(dx, dy) <
+              minDistance
+            ) {
               tooClose = true;
               break;
             }
@@ -172,12 +199,15 @@ export class ObjectiveLayerExecutor {
           }
         }
 
-        validPositions.push({ x: positionX, y: positionY });
         objectives.push({
           pos: { x: positionX, y: positionY },
           player: player,
           type: objectiveType,
         });
+        objectivesAdded++;
+        if (objectivesAdded >= maxObj) {
+          return;
+        }
       }
     }
   }

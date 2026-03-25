@@ -48,6 +48,8 @@ import napoleonicMatchmakingPresets from "@lob-sdk/game-data/eras/napoleonic/mat
 import napoleonicWaterloo from "@lob-sdk/game-data/eras/napoleonic/scenarios/waterloo.json";
 import napoleonicHills from "@lob-sdk/game-data/eras/napoleonic/scenarios/hills.json";
 import napoleonicPlains from "@lob-sdk/game-data/eras/napoleonic/scenarios/plains.json";
+import napoleonicPlainsV3 from "@lob-sdk/game-data/eras/napoleonic/scenarios/plains-v3.json";
+import napoleonicIberia from "@lob-sdk/game-data/eras/napoleonic/scenarios/iberia.json";
 import napoleonicCity from "@lob-sdk/game-data/eras/napoleonic/scenarios/city.json";
 import napoleonicFauconRiverValley from "@lob-sdk/game-data/eras/napoleonic/scenarios/faucon-river-valley.json";
 import napoleonicSaandLakes from "@lob-sdk/game-data/eras/napoleonic/scenarios/saand-lakes.json";
@@ -116,6 +118,11 @@ import { degreesToRadians } from "@lob-sdk/utils";
 export class GameDataManager {
   readonly era: GameEra;
   private static instances: Map<GameEra, GameDataManager> = new Map();
+
+  /**
+   * Terrain is considered globally impassable (e.g., Deep Water) if the modifier is this or less.
+   */
+  public static readonly IMPASSABLE_THRESHOLD = -10;
 
   // Centralized data cache
   private battleTypes: Record<DynamicBattleType, BattleTypeTemplate> =
@@ -245,7 +252,7 @@ export class GameDataManager {
           BattleTypeTemplate
         >;
         this._unitTemplateManager.load(
-          napoleonicUnitTemplates as UnitTemplate[]
+          napoleonicUnitTemplates as UnitTemplate[],
         );
         this.gameConstants = napoleonicGameConstants as GameConstants;
         this.avatars = napoleonicAvatars as Avatar[];
@@ -261,19 +268,21 @@ export class GameDataManager {
         this.unitSkins = napoleonicUnitSkinsData as unknown as UnitSkin[];
         this.gameRules = napoleonicGameRules as GameRules;
         this._formationManager.load(
-          napoleonicFormations as FormationTemplate[]
+          napoleonicFormations as FormationTemplate[],
         );
         this.mapSizes = napoleonicMapSizes as Record<Size, MapSizeTemplate>;
         this.matchmakingPresets =
           napoleonicMatchmakingPresets as MatchmakingPresetsData;
         this.scenarios = {
           plains: napoleonicPlains as GameScenario,
+          "plains-v3": napoleonicPlainsV3 as GameScenario,
           hills: napoleonicHills as GameScenario,
+          iberia: napoleonicIberia as GameScenario,
+          tundra: napoleonicTundra as GameScenario,
           city: napoleonicCity as GameScenario,
           hedgerows: napoleonicHedgerows as GameScenario,
           "low-countries": napoleonicLowCountries as GameScenario,
           lake: napoleonicLake as GameScenario,
-          tundra: napoleonicTundra as GameScenario,
           "black-forest": napoleonicBlackForest as GameScenario,
           "silva-sanctorum": napoleonicSilvaSanctorum as GameScenario,
           "andes-and-valley": napoleonicAndesAndValley as GameScenario,
@@ -315,7 +324,7 @@ export class GameDataManager {
           BattleTypeTemplate
         >;
         this._unitTemplateManager.load(
-          ww2UnitTemplates as unknown as UnitTemplate[]
+          ww2UnitTemplates as unknown as UnitTemplate[],
         );
         this.gameConstants = ww2GameConstants as GameConstants;
         this.avatars = ww2Avatars as Avatar[];
@@ -364,8 +373,8 @@ export class GameDataManager {
                 return orderType;
               }
               throw new Error(`Order ${order} not found`);
-            })
-          )
+            }),
+          ),
         );
       }
     });
@@ -386,6 +395,51 @@ export class GameDataManager {
       this._damageTypeMap.set(damageType.id, damageType);
       this._damageTypeNameMap.set(damageType.name, damageType);
     });
+
+    this.expandTerrainCategoryWildcards();
+  }
+
+  /**
+   * Expands wildcard '*' in terrain category modifiers to all unit categories.
+   */
+  private expandTerrainCategoryWildcards(): void {
+    if (!this.terrainCategories) {
+      throw new Error("Terrain Categories should be defined");
+    }
+
+    // Narrowing the keys to those that share the modifier map shape.
+    // 'as const' allows TS to know exactly which strings are in the array.
+    const modifierFields = [
+      "movementModifier",
+      "attackModifier",
+      "defenseModifier",
+      "rangedAttackModifier",
+      "chargeResistanceModifier",
+      "chargeBonusModifier",
+    ] as const;
+
+    // Using Object.values avoids the need to cast keys from 'for...in'
+    for (const category of Object.values(this.terrainCategories)) {
+      if (!category) continue;
+
+      for (const field of modifierFields) {
+        // Because all keys in 'modifierFields' map to the same type in
+        // TerrainCategoryConfig, TS safely resolves the common return type.
+        const modifierMap = category[field];
+
+        if (modifierMap && "*" in modifierMap) {
+          const defaultValue = modifierMap["*"];
+          if (defaultValue === undefined) continue;
+
+          for (const unitCategory of this.unitCategories) {
+            // UnitCategoryId is a string, so bracket access is safe and supported.
+            if (!(unitCategory.id in modifierMap)) {
+              modifierMap[unitCategory.id] = defaultValue;
+            }
+          }
+        }
+      }
+    }
   }
 
   /**
@@ -410,7 +464,7 @@ export class GameDataManager {
    * @returns The battle type template, or undefined if not found.
    */
   public tryGetBattleType(
-    battleType: DynamicBattleType
+    battleType: DynamicBattleType,
   ): BattleTypeTemplate | undefined {
     return this.battleTypes[battleType];
   }
@@ -545,13 +599,13 @@ export class GameDataManager {
    * @throws Error if the category template is not found.
    */
   public getUnitCategoryTemplate(
-    unitCategory: UnitCategoryId
+    unitCategory: UnitCategoryId,
   ): UnitCategoryTemplate {
     const template = this.unitCategoryMap.get(unitCategory);
 
     if (!template) {
       throw new Error(
-        `Unit category template with type ${unitCategory} not found`
+        `Unit category template with type ${unitCategory} not found`,
       );
     }
 
@@ -592,10 +646,10 @@ export class GameDataManager {
 
   public getMinMaxAmmoConsumption(
     unitType: UnitType,
-    modifier: number = 0
+    modifier: number = 0,
   ): { min: number; max: number } | null {
     const { rangedDamageTypes } = this._unitTemplateManager.getTemplate(
-      unitType
+      unitType,
     ) as RangeUnitTemplate;
 
     if (!rangedDamageTypes) {
@@ -630,7 +684,7 @@ export class GameDataManager {
    */
   public getUnitDimensions(
     unitType: UnitType,
-    formationId?: string
+    formationId?: string,
   ): {
     width: number;
     height: number;
@@ -675,7 +729,7 @@ export class GameDataManager {
     const template = this._unitTemplateManager.getTemplate(unitType);
     // Get sprite from default formation
     const defaultFormation = template.formations.find(
-      (f) => f.id === template.defaultFormation
+      (f) => f.id === template.defaultFormation,
     );
     if (defaultFormation) {
       return defaultFormation.baseSprite;
@@ -688,7 +742,7 @@ export class GameDataManager {
     const template = this._unitTemplateManager.getTemplate(unitType);
     // Get sprite from default formation
     const defaultFormation = template.formations.find(
-      (f) => f.id === template.defaultFormation
+      (f) => f.id === template.defaultFormation,
     );
     if (defaultFormation) {
       return defaultFormation.overlaySprite || null;
@@ -740,7 +794,7 @@ export class GameDataManager {
    */
   public getUnitCategoryResistance(
     unitCategory: UnitCategoryId,
-    damageType: string
+    damageType: string,
   ): number {
     return (
       this.getUnitCategoryTemplate(unitCategory).damageTypeResistances?.[
@@ -750,14 +804,14 @@ export class GameDataManager {
   }
 
   public getUnitCategoryAllowedOrders(
-    unitCategory: UnitCategoryId
+    unitCategory: UnitCategoryId,
   ): Array<OrderType> {
     return Array.from(this._unitCategoryAllowedOrders.get(unitCategory) ?? []);
   }
 
   public canUseOrder(
     unitCategory: UnitCategoryId,
-    orderType: OrderType
+    orderType: OrderType,
   ): boolean {
     return (
       this._unitCategoryAllowedOrders.get(unitCategory)?.has(orderType) ?? false
@@ -768,7 +822,7 @@ export class GameDataManager {
    * Get charge restrictions for a damage type (O(1) lookup with lazy initialization)
    */
   public getChargeRestrictions(
-    damageType: string
+    damageType: string,
   ): Set<UnitCategoryId> | undefined {
     // Check cache first
     if (this.chargeRestrictionsCache.has(damageType)) {
@@ -784,7 +838,7 @@ export class GameDataManager {
       (damageTypeConfig as any).cannotChargeAgainst
     ) {
       const restrictions = new Set(
-        (damageTypeConfig as any).cannotChargeAgainst as UnitCategoryId[]
+        (damageTypeConfig as any).cannotChargeAgainst as UnitCategoryId[],
       );
       this.chargeRestrictionsCache.set(damageType, restrictions);
       return restrictions;
@@ -831,7 +885,7 @@ export class GameDataManager {
    */
   public getUnitTerrainAttackModifier(
     unitCategory: UnitCategoryId,
-    terrainType: TerrainType
+    terrainType: TerrainType,
   ): number {
     const category = this.getCategoryByTerrain(terrainType);
     const terrainCategory = this.terrainCategories![category]; // This indirection on lookup is painful, becuase its done many times. Replace with direct lookup
@@ -843,11 +897,11 @@ export class GameDataManager {
    */
   public getUnitTerrainDefenseModifier(
     unitCategory: UnitCategoryId,
-    terrainType: TerrainType
+    terrainType: TerrainType,
   ): number {
     const category = this.getCategoryByTerrain(terrainType);
     const terrainCategory = this.terrainCategories![category]; // This indirection on lookup is painful, becuase its done many times. Replace with direct lookup
-    return terrainCategory?.defenseModifier?.[unitCategory] ?? 0;  // these conditionals cause big-suck on performance, set defaults at initialization
+    return terrainCategory?.defenseModifier?.[unitCategory] ?? 0; // these conditionals cause big-suck on performance, set defaults at initialization
   }
 
   /**
@@ -855,7 +909,7 @@ export class GameDataManager {
    */
   public getTerrainProjectileAbsorption(
     terrainType: TerrainType | null,
-    damageType: string
+    damageType: string,
   ): number {
     if (terrainType === null) {
       return 0;
@@ -863,7 +917,7 @@ export class GameDataManager {
 
     const category = this.getCategoryByTerrain(terrainType);
     const terrainCategory = this.terrainCategories![category]; // This indirection on lookup is painful, becuase its done many times. Replace with direct lookup
-    return terrainCategory?.projectileAbsorption?.[damageType] ?? 0;  // these conditionals cause big-suck on performance, set defaults at initialization
+    return terrainCategory?.projectileAbsorption?.[damageType] ?? 0; // these conditionals cause big-suck on performance, set defaults at initialization
   }
 
   /**
@@ -871,11 +925,11 @@ export class GameDataManager {
    */
   public getMovementModifier(
     terrainType: TerrainType,
-    unitCategory: UnitCategoryId
+    unitCategory: UnitCategoryId,
   ): number {
     const category = this.getCategoryByTerrain(terrainType);
     const terrainCategory = this.terrainCategories![category]; // This indirection on lookup is painful, becuase its done many times. Replace with direct lookup
-    return terrainCategory?.movementModifier?.[unitCategory] ?? 0;  // these conditionals cause big-suck on performance, set defaults at initialization
+    return terrainCategory?.movementModifier?.[unitCategory] ?? 0; // these conditionals cause big-suck on performance, set defaults at initialization
   }
 
   /**
@@ -884,7 +938,7 @@ export class GameDataManager {
   public hasPrioritizeMovement(terrainType: TerrainType): boolean {
     const category = this.getCategoryByTerrain(terrainType);
     const terrainCategory = this.terrainCategories![category]; // This indirection on lookup is painful, becuase its done many times. Replace with direct lookup
-    return terrainCategory?.prioritizeMovement ?? false;  // these conditionals cause big-suck on performance, set defaults at initialization
+    return terrainCategory?.prioritizeMovement ?? false; // these conditionals cause big-suck on performance, set defaults at initialization
   }
 
   /**
@@ -893,7 +947,7 @@ export class GameDataManager {
   public hasSupplyRoute(terrainType: TerrainType): boolean {
     const category = this.getCategoryByTerrain(terrainType);
     const terrainCategory = this.terrainCategories![category]; // This indirection on lookup is painful, becuase its done many times. Replace with direct lookup
-    return terrainCategory?.supplyRoute ?? false;  // these conditionals cause big-suck on performance, set defaults at initialization
+    return terrainCategory?.supplyRoute ?? false; // these conditionals cause big-suck on performance, set defaults at initialization
   }
 
   /**
@@ -906,7 +960,7 @@ export class GameDataManager {
 
     const category = this.getCategoryByTerrain(terrainType);
     const terrainCategory = this.terrainCategories![category]; // This indirection on lookup is painful, becuase its done many times. Replace with direct lookup
-    return terrainCategory?.hitboxHeight ?? 0;  // these conditionals cause big-suck on performance, set defaults at initialization
+    return terrainCategory?.hitboxHeight ?? 0; // these conditionals cause big-suck on performance, set defaults at initialization
   }
 
   /**
@@ -914,11 +968,11 @@ export class GameDataManager {
    */
   public getRangedAttackModifier(
     terrainType: TerrainType,
-    unitCategory: UnitCategoryId
+    unitCategory: UnitCategoryId,
   ): number {
     const category = this.getCategoryByTerrain(terrainType);
     const terrainCategory = this.terrainCategories![category]; // This indirection on lookup is painful, becuase its done many times. Replace with direct lookup
-    return terrainCategory?.rangedAttackModifier?.[unitCategory] ?? 0;  // these conditionals cause big-suck on performance, set defaults at initialization
+    return terrainCategory?.rangedAttackModifier?.[unitCategory] ?? 0; // these conditionals cause big-suck on performance, set defaults at initialization
   }
 
   /**
@@ -927,16 +981,20 @@ export class GameDataManager {
   public canPlaceObjectives(terrainType: TerrainType): boolean {
     const category = this.getCategoryByTerrain(terrainType);
     const terrainCategory = this.terrainCategories![category]; // This indirection on lookup is painful, becuase its done many times. Replace with direct lookup
-    return !!terrainCategory?.canPlaceObjectives;  // these conditionals cause big-suck on performance, set defaults at initialization
+    return !!terrainCategory?.canPlaceObjectives; // these conditionals cause big-suck on performance, set defaults at initialization
   }
 
   /**
-   * Check if terrain is passable
+   * Check if terrain is passable.
+   * If no category is provided, it falls back to the supplyLines.movementCategory or "infantry".
+   * Terrain is considered impassable if the movement modifier is -10 or less.
    */
-  public isPassable(terrainType: TerrainType): boolean {
-    const category = this.getCategoryByTerrain(terrainType);
-    const terrainCategory = this.terrainCategories![category]; // This indirection on lookup is painful, becuase its done many times. Replace with direct lookup
-    return !terrainCategory?.impassable;  // these conditionals cause big-suck on performance, set defaults at initialization
+  public isPassable(
+    terrainType: TerrainType,
+    unitCategory: UnitCategoryId,
+  ): boolean {
+    const modifier = this.getMovementModifier(terrainType, unitCategory);
+    return modifier > GameDataManager.IMPASSABLE_THRESHOLD;
   }
 
   /**
@@ -945,7 +1003,7 @@ export class GameDataManager {
   public getStaminaCost(terrainType: TerrainType): number {
     const category = this.getCategoryByTerrain(terrainType);
     const terrainCategory = this.terrainCategories![category]; // This indirection on lookup is painful, becuase its done many times. Replace with direct lookup
-    return terrainCategory?.staminaCostModifier ?? 0;  // these conditionals cause big-suck on performance, set defaults at initialization
+    return terrainCategory?.staminaCostModifier ?? 0; // these conditionals cause big-suck on performance, set defaults at initialization
   }
 
   /**
@@ -954,7 +1012,7 @@ export class GameDataManager {
   public getPushStrengthModifier(terrainType: TerrainType): number {
     const category = this.getCategoryByTerrain(terrainType);
     const terrainCategory = this.terrainCategories![category]; // This indirection on lookup is painful, becuase its done many times. Replace with direct lookup
-    return terrainCategory?.pushStrengthModifier ?? 0;  // these conditionals cause big-suck on performance, set defaults at initialization
+    return terrainCategory?.pushStrengthModifier ?? 0; // these conditionals cause big-suck on performance, set defaults at initialization
   }
 
   /**
@@ -963,7 +1021,7 @@ export class GameDataManager {
   public getPushDistanceModifier(terrainType: TerrainType): number {
     const category = this.getCategoryByTerrain(terrainType);
     const terrainCategory = this.terrainCategories![category]; // This indirection on lookup is painful, becuase its done many times. Replace with direct lookup
-    return terrainCategory?.pushDistanceModifier ?? 0;  // these conditionals cause big-suck on performance, set defaults at initialization
+    return terrainCategory?.pushDistanceModifier ?? 0; // these conditionals cause big-suck on performance, set defaults at initialization
   }
 
   /**
@@ -971,11 +1029,11 @@ export class GameDataManager {
    */
   public getChargeResistanceModifier(
     unitCategory: UnitCategoryId,
-    terrainType: TerrainType
+    terrainType: TerrainType,
   ): number {
     const category = this.getCategoryByTerrain(terrainType);
     const terrainCategory = this.terrainCategories![category]; // This indirection on lookup is painful, becuase its done many times. Replace with direct lookup
-    return terrainCategory?.chargeResistanceModifier?.[unitCategory] ?? 0;  // these conditionals cause big-suck on performance, set defaults at initialization
+    return terrainCategory?.chargeResistanceModifier?.[unitCategory] ?? 0; // these conditionals cause big-suck on performance, set defaults at initialization
   }
 
   /**
@@ -983,22 +1041,22 @@ export class GameDataManager {
    */
   public getChargeBonusModifier(
     unitCategory: UnitCategoryId,
-    terrainType: TerrainType
+    terrainType: TerrainType,
   ): number {
     const category = this.getCategoryByTerrain(terrainType);
     const terrainCategory = this.terrainCategories![category]; // This indirection on lookup is painful, becuase its done many times. Replace with direct lookup
-    return terrainCategory?.chargeBonusModifier?.[unitCategory] ?? 0;  // these conditionals cause big-suck on performance, set defaults at initialization
+    return terrainCategory?.chargeBonusModifier?.[unitCategory] ?? 0; // these conditionals cause big-suck on performance, set defaults at initialization
   }
 
   /**
    * Get fixed enemy collision level for terrain
    */
   public getFixedEnemyCollisionLevel(
-    terrainType: TerrainType
+    terrainType: TerrainType,
   ): number | undefined {
     const category = this.getCategoryByTerrain(terrainType);
     const terrainCategory = this.terrainCategories![category]; // This indirection on lookup is painful, becuase its done many times. Replace with direct lookup
-    return terrainCategory?.fixedEnemyCollisionLevel;  // these conditionals cause big-suck on performance, set defaults at initialization
+    return terrainCategory?.fixedEnemyCollisionLevel; // these conditionals cause big-suck on performance, set defaults at initialization
   }
 
   /**
@@ -1025,7 +1083,7 @@ export class GameDataManager {
   public getTerrainColor(terrainType: TerrainType): string | undefined {
     const category = this.getCategoryByTerrain(terrainType);
     const terrainCategory = this.terrainCategories![category]; // This indirection on lookup is painful, becuase its done many times. Replace with direct lookup
-    return terrainCategory?.color;  // these conditionals cause big-suck on performance, set defaults at initialization
+    return terrainCategory?.color; // these conditionals cause big-suck on performance, set defaults at initialization
   }
 
   public tryGetOrderTemplate(orderId: OrderType | null): OrderTemplate | null {
@@ -1051,7 +1109,7 @@ export class GameDataManager {
    * Try to get a scenario by name
    */
   public tryGetScenario<T extends GameScenario>(
-    scenarioName: ScenarioName
+    scenarioName: ScenarioName,
   ): T | null {
     const scenario = this.scenarios[scenarioName];
     return (scenario ?? null) as T | null;
@@ -1099,7 +1157,7 @@ export class GameDataManager {
 
     const value =
       Math.cos(
-        degreesToRadians(this.gameConstants!.HEAD_ON_COLLISION_ANGLE_DEGREES)
+        degreesToRadians(this.gameConstants!.HEAD_ON_COLLISION_ANGLE_DEGREES),
       ) ** 2;
 
     this._headOnCollisionCosineThresholdSquared = value;
@@ -1117,5 +1175,47 @@ export class GameDataManager {
    */
   public getMatchmakingPresets(): MatchmakingPresetsData {
     return this.matchmakingPresets!;
+  }
+
+  /**
+   * Gets scenario IDs that must always be included in matchmaking for this era.
+   * Only when ranked; returns only names that exist in this era and are ranked (matchmaking-eligible).
+   */
+  public getRequiredMatchmakingScenarios(isRanked = true): ScenarioName[] {
+    if (!isRanked) return [];
+    const raw: ScenarioName[] =
+      this.matchmakingPresets?.requiredScenarios ?? [];
+    return raw.filter((name) => {
+      const scenario = this.scenarios[name];
+      return !!scenario && !scenario.hidden && !!scenario.ranked;
+    });
+  }
+
+  /**
+   * Gets movement speed modifier based on current supply for mechanized units.
+   */
+  public getSupplyMovementModifier(
+    unitCategory: UnitCategoryId,
+    supply: number | null,
+    maxSupply: number | null,
+  ): number {
+    const supplyLines = this.getGameRules().supplyLines;
+    if (
+      !supplyLines ||
+      !supplyLines.noSupplyMovementPenalty ||
+      supply === null ||
+      maxSupply === null ||
+      maxSupply === 0
+    ) {
+      return 0;
+    }
+
+    const penalty = supplyLines.noSupplyMovementPenalty[unitCategory];
+    if (penalty !== undefined) {
+      // Speed scales linearly based on supply proportion
+      return penalty * (1 - supply / maxSupply);
+    }
+
+    return 0;
   }
 }
