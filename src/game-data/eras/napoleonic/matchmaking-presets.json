@@ -1,5 +1,5 @@
 {
-  "requiredScenarios": ["plains", "hills", "tundra", "iberia"],
+  "requiredScenarios": ["plains", "hills", "iberia"],
   "presets": [
     {
       "id": "ranked_clash_1v1_1m_napoleonic",
