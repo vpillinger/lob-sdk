@@ -114,28 +114,28 @@ export class GameTimePresetManager {
       {
         // Est game time ~35 min + 2 deployment
         id: "bullet",
-        bankTimeSeconds: 60 * 2 * 9, // 9 turns bank
-        incrementSeconds: 45, // 45 turns
-        turnCapSeconds: 60 * 2, // 2 min
+        bankTimeSeconds: 600,
+        incrementSeconds: 60,
+        turnCapSeconds: 120,
         deploymentTimeSeconds: 120,
         kFactor: 20,
       },
       {
         // Est game time ~50 min + 3.5 deployment
         id: "blitz",
-        bankTimeSeconds: 60 * 3.5 * 6, // 6 turns bank
-        incrementSeconds: 60 * 1.5, // 1m 45s turns
-        turnCapSeconds: 60 * 3.5, // 3.5min cap
-        deploymentTimeSeconds: 60 * 3.5,
+        bankTimeSeconds: 1200,
+        incrementSeconds: 120,
+        turnCapSeconds: 240,
+        deploymentTimeSeconds: 240,
         kFactor: 26,
       },
       {
         // Est game time ~1 hour 10 min + 5 deployment
         id: "rapid",
-        bankTimeSeconds: 60 * 5 * 4, // 4 turns bank
-        incrementSeconds: 60 * 2.5, // 2m 30s turns turns
-        turnCapSeconds: 60 * 5, // 5 min cap
-        deploymentTimeSeconds: 60 * 5,
+        bankTimeSeconds: 1800,
+        incrementSeconds: 180,
+        turnCapSeconds: 360,
+        deploymentTimeSeconds: 360,
         kFactor: 32,
       },
 
