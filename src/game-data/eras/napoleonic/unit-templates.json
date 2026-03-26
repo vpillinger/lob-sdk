@@ -42,7 +42,7 @@
       "horse": 0,
       "guns": 0
     },
-    "defaultFormation": "mass",
+    "defaultFormation": "column",
     "formations": [
       {
         "id": "mass",
@@ -216,13 +216,13 @@
     "runMovement": 110,
     "timeToRun": 4,
     "runCost": 112,
-    "hp": 800,
+    "hp": 700,
     "org": 1125,
     "shattersAtOrg": -150,
     "routesAtOrg": 25,
     "recoversAtOrg": 100,
     "ralliesAtOrg": 200,
-    "stamina": 1900,
+    "stamina": 1700,
     "orgRadius": 64,
     "orgRadiusBonus": 18,
     "movementSound": "infantry-movement",
@@ -242,7 +242,7 @@
     "rotationMaxThreshold": 0.55,
     "runRotationSpeed": 0.214,
     "turningDelay": 6,
-    "defaultFormation": "mass",
+    "defaultFormation": "column",
     "formations": [
       {
         "id": "mass",
@@ -447,7 +447,7 @@
     "rotationMaxThreshold": 0.66,
     "runRotationSpeed": 0.3,
     "turningDelay": 4,
-    "defaultFormation": "mass",
+    "defaultFormation": "column",
     "formations": [
       {
         "id": "mass",
@@ -645,7 +645,7 @@
     "rotationMaxThreshold": 0.523,
     "runRotationSpeed": 0.204,
     "turningDelay": 10,
-    "defaultFormation": "mass",
+    "defaultFormation": "column",
     "formations": [
       {
         "id": "mass",
@@ -899,7 +899,7 @@
     "rotationMaxThreshold": 0.523,
     "runRotationSpeed": 0.204,
     "turningDelay": 8,
-    "defaultFormation": "mass",
+    "defaultFormation": "column",
     "formations": [
       {
         "id": "mass",
