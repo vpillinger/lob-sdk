@@ -23,6 +23,12 @@ export interface Player {
   armyComposition: UnitCounts | null;
   unitDamageTaken: UnitCounts | null;
   unitsGained: UnitCounts | null;
+  /**
+   * Precomputed army power for VP rules when {@link armyComposition} is withheld
+   * from this client (e.g. enemy during an ongoing match). Omitted or null when
+   * full unit counts are present.
+   */
+  vpBaseArmyPower?: number | null;
   baseAmmoReserve: number;
   ammoReserve: number;
   avatarId?: number;
@@ -66,6 +72,12 @@ export interface PlayerInfo {
   armyComposition: UnitCounts | null;
   unitDamageTaken: UnitCounts | null;
   unitsGained: UnitCounts | null;
+  /**
+   * Precomputed army power for VP rules when {@link armyComposition} is withheld
+   * from this client (e.g. enemy during an ongoing match). Omitted or null when
+   * full unit counts are present.
+   */
+  vpBaseArmyPower?: number | null;
   ammoReserve: number;
   baseAmmoReserve: number;
   /**
