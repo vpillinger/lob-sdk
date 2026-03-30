@@ -266,6 +266,8 @@ export abstract class BaseUnit extends Entity {
   canUseOrder(orderType: OrderType) {
     const gameDataManager = GameDataManager.get(this.era);
     if (orderType === OrderType.FireAndAdvance && !this.canFireAndAdvance()) {
+      // Even if the unit category can fire and advance, if it's not ranged then it won't be able to use it.
+      // This is to allow horse archers to use FAA and, at the same time, prevent melee cavalry from using it.
       return false;
     }
     return gameDataManager.canUseOrder(this.category, orderType);
