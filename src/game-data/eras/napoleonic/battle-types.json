@@ -44,7 +44,7 @@
       "11": 3,
       "18": 3
     },
-    "mapSize": ["s", "m"],
+    "mapSize": ["s"],
     "premiumCurrencyChance": 4,
     "ranked": true
   },
@@ -70,7 +70,7 @@
       "12": 3,
       "18": 4
     },
-    "mapSize": ["m", "l"],
+    "mapSize": ["m"],
     "premiumCurrencyChance": 8,
     "ranked": true
   },
@@ -96,7 +96,7 @@
       "12": 4,
       "18": 7
     },
-    "mapSize": ["l", "xl"],
+    "mapSize": ["l"],
     "premiumCurrencyChance": 12,
     "ranked": true
   },
