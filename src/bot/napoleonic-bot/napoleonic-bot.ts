@@ -403,7 +403,7 @@ export class NapoleonicBot implements INapoleonicBot {
 
   private _getMyUnits() {
     return this._game
-      .getUnits()
+      .getUnitArray()
       .filter((unit) => unit.player === this._playerNumber);
   }
 
