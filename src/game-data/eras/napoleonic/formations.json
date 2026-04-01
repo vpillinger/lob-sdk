@@ -190,7 +190,7 @@
     "flankChargeResistance": -0.2,
     "shootingAngle": 360,
     "shootingMaxTargets": 1,
-    "projectilePassThrough": 0.3,
+    "projectilePassThrough": 0.5,
     "minMovementModifier": -0.3
   },
   {
